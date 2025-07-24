@@ -64,6 +64,59 @@ export default function Follow() {
             Stay <span className="gradient-text">Connected</span>
           </h2>
           
+          {/* Services Section */}
+          <div className="mb-16 bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 shadow-lg border border-gray-700">
+            <h3 className="text-2xl font-alata text-white mb-4">Real-Time Market <span className="gradient-text">Intelligence</span></h3>
+            <p className="text-gray-300 font-alata mb-6 text-lg">
+              Get critical updates within <span className="text-[hsl(280,100%,70%)] font-bold">2-5 minutes</span> from Indian Stock Exchange announcements
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="flex items-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <span className="text-2xl mr-3">🏭</span>
+                <div>
+                  <h4 className="font-alata text-white font-semibold">Capacity Expansion</h4>
+                  <p className="text-gray-400 text-sm font-alata">Production growth insights</p>
+                </div>
+                <span className="text-2xl ml-auto">📈</span>
+              </div>
+              
+              <div className="flex items-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <span className="text-2xl mr-3">📋</span>
+                <div>
+                  <h4 className="font-alata text-white font-semibold">Order Books</h4>
+                  <p className="text-gray-400 text-sm font-alata">Contract & demand analysis</p>
+                </div>
+                <span className="text-2xl ml-auto">📝</span>
+              </div>
+              
+              <div className="flex items-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <span className="text-2xl mr-3">🔮</span>
+                <div>
+                  <h4 className="font-alata text-white font-semibold">Future Guidance</h4>
+                  <p className="text-gray-400 text-sm font-alata">Forward-looking projections</p>
+                </div>
+                <span className="text-2xl ml-auto">🧭</span>
+              </div>
+              
+              <div className="flex items-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <span className="text-2xl mr-3">💰</span>
+                <div>
+                  <h4 className="font-alata text-white font-semibold">Financial Results</h4>
+                  <p className="text-gray-400 text-sm font-alata">Quarterly & annual data</p>
+                </div>
+                <span className="text-2xl ml-auto">📊</span>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] rounded-lg">
+                <span className="text-black font-alata font-bold text-lg mr-2">4 Lakh+</span>
+                <span className="text-black font-alata text-sm">Documents Processed</span>
+              </div>
+            </div>
+          </div>
+          
           {/* Statistics Section */}
           <div id="stats-section" className="mb-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
             <h3 className="text-2xl font-alata text-white mb-8">Our <span className="gradient-text">Impact</span></h3>
