@@ -48,14 +48,18 @@ export default function Header() {
             >
               Services
             </button>
-            <a 
-              href="https://twitter.com/_Investor_Feed_"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button 
+              onClick={() => scrollToSection('stats-section')}
               className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
-              Twitter
-            </a>
+              Impact
+            </button>
+            <button 
+              onClick={() => scrollToSection('contact-section')}
+              className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
+            >
+              Contact
+            </button>
           </nav>
 
           {/* Mobile menu button */}
@@ -85,15 +89,18 @@ export default function Header() {
               >
                 Services
               </button>
-              <a 
-                href="https://twitter.com/_Investor_Feed_"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button 
+                onClick={() => scrollToSection('stats-section')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
-                onClick={() => setIsMenuOpen(false)}
               >
-                Twitter
-              </a>
+                Impact
+              </button>
+              <button 
+                onClick={() => scrollToSection('contact-section')}
+                className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
+              >
+                Contact
+              </button>
             </nav>
           </div>
         )}

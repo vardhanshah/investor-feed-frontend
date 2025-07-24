@@ -209,7 +209,7 @@ export default function Follow() {
 
 
           {/* Contact & Support Section */}
-          <div className="mt-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
+          <div id="contact-section" className="mt-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
             <h3 className="text-2xl font-alata text-white mb-6 text-center">Get in Touch</h3>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="text-center">
