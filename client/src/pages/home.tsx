@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import About from "@/components/About";
 import Follow from "@/components/Follow";
 
 export default function Home() {
@@ -8,7 +7,6 @@ export default function Home() {
     <div className="min-h-screen bg-black">
       <Header />
       <Hero />
-      <About />
       <Follow />
     </div>
   );
