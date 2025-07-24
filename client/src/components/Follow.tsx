@@ -205,32 +205,6 @@ export default function Follow() {
             </div>
           </div>
           
-          {/* Twitter Card */}
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700 mb-12">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] rounded-full flex items-center justify-center">
-                <FaTwitter className="text-black text-2xl" />
-              </div>
-            </div>
-            <h3 className="text-2xl font-alata text-white mb-4">@_Investor_Feed_</h3>
-            <p className="text-lg font-alata text-gray-300 mb-6">
-              Get capacity expansions, order book updates, future guidance, and financial results from Indian Stock Exchange announcements within 2-5 minutes.
-            </p>
-            <Button
-              asChild
-              className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
-            >
-              <a 
-                href="https://x.com/_Investor_Feed_" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-6 py-3"
-              >
-                <FaTwitter className="mr-2" />
-                Follow Now
-              </a>
-            </Button>
-          </div>
 
 
 
