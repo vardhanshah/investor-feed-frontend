@@ -8,10 +8,11 @@ export default function Footer() {
           {/* Logo in Footer */}
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center justify-center w-10 h-10 mr-3">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 17L9 11L13 15L21 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M16 7L21 7L21 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <img 
+                src="/attached_assets/Screenshot 2025-03-07 at 9.02.15 AM_1753365427315.png" 
+                alt="Investor Feed Logo" 
+                className="w-8 h-8 object-contain filter brightness-0 invert"
+              />
             </div>
             <span className="text-xl font-alata text-white font-medium">Investor Feed</span>
           </div>

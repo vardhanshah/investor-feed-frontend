@@ -9,18 +9,13 @@ export default function Hero() {
           {/* Logo Display */}
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center justify-center w-16 h-16 mr-4">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 17L9 11L13 15L21 7" stroke="url(#hero-gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M16 7L21 7L21 12" stroke="url(#hero-gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <defs>
-                  <linearGradient id="hero-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="hsl(258, 60%, 52%)" />
-                    <stop offset="100%" stopColor="hsl(258, 73%, 68%)" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <img 
+                src="/attached_assets/Screenshot 2025-03-07 at 9.02.15 AM_1753365427315.png" 
+                alt="Investor Feed Logo" 
+                className="w-12 h-12 object-contain"
+              />
             </div>
-            <h1 className="text-4xl lg:text-6xl font-alata font-medium" style={{ color: 'hsl(258, 60%, 52%)' }}>
+            <h1 className="text-4xl lg:text-6xl font-alata font-medium text-black">
               Investor Feed
             </h1>
           </div>

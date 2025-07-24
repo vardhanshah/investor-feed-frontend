@@ -30,18 +30,13 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 17L9 11L13 15L21 7" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M16 7L21 7L21 12" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="hsl(258, 60%, 52%)" />
-                    <stop offset="100%" stopColor="hsl(258, 73%, 68%)" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <img 
+                src="/attached_assets/Screenshot 2025-03-07 at 9.02.15 AM_1753365427315.png" 
+                alt="Investor Feed Logo" 
+                className="w-8 h-8 object-contain"
+              />
             </div>
-            <span className="text-xl font-alata font-medium" style={{ color: 'hsl(258, 60%, 52%)' }}>
+            <span className="text-xl font-alata font-medium text-black">
               Investor Feed
             </span>
           </div>
