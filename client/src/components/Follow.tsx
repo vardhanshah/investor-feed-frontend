@@ -211,6 +211,13 @@ export default function Follow() {
               </div>
             </div>
           </div>
+          
+          {/* Copyright */}
+          <div className="mt-12 pt-8 border-t border-gray-800 text-center">
+            <p className="text-gray-500 font-alata text-sm">
+              &copy; 2024 Investor Feed. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </section>
