@@ -1,8 +1,61 @@
 import { Button } from "@/components/ui/button";
 import { FaTwitter } from "react-icons/fa";
-import { Filter, Clock, Lightbulb } from "lucide-react";
+import { Filter, Clock, Lightbulb, Users, Heart, Bookmark, MessageCircle, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+
+// Custom hook for animated counters
+function useAnimatedCounter(target: number, duration: number = 2000) {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(target * easeOutQuart));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [target, duration, isVisible]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    const element = document.getElementById('stats-section');
+    if (element) observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return count;
+}
 
 export default function Follow() {
+  const followers = useAnimatedCounter(6000);
+  const impressions = useAnimatedCounter(6500000);
+  const likes = useAnimatedCounter(25000);
+  const bookmarks = useAnimatedCounter(6000);
+  const posts = useAnimatedCounter(30000);
+
   return (
     <section id="follow" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,6 +63,69 @@ export default function Follow() {
           <h2 className="text-3xl lg:text-5xl font-alata text-white mb-12">
             Stay <span className="gradient-text">Connected</span>
           </h2>
+          
+          {/* Statistics Section */}
+          <div id="stats-section" className="mb-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
+            <h3 className="text-2xl font-alata text-white mb-8">Our <span className="gradient-text">Impact</span></h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Users className="text-[hsl(280,100%,70%)] w-6 h-6 mr-2" />
+                </div>
+                <div className="text-3xl font-alata text-white font-bold">
+                  {followers.toLocaleString()}+
+                </div>
+                <div className="text-sm text-gray-400 font-alata">Followers</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Eye className="text-[hsl(200,100%,70%)] w-6 h-6 mr-2" />
+                </div>
+                <div className="text-3xl font-alata text-white font-bold">
+                  {(impressions / 1000000).toFixed(1)}M+
+                </div>
+                <div className="text-sm text-gray-400 font-alata">Impressions</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Heart className="text-[hsl(320,100%,75%)] w-6 h-6 mr-2" />
+                </div>
+                <div className="text-3xl font-alata text-white font-bold">
+                  {(likes / 1000).toFixed(0)}K+
+                </div>
+                <div className="text-sm text-gray-400 font-alata">Likes</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Bookmark className="text-[hsl(280,100%,70%)] w-6 h-6 mr-2" />
+                </div>
+                <div className="text-3xl font-alata text-white font-bold">
+                  {(bookmarks / 1000).toFixed(0)}K+
+                </div>
+                <div className="text-sm text-gray-400 font-alata">Bookmarks</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <MessageCircle className="text-[hsl(200,100%,70%)] w-6 h-6 mr-2" />
+                </div>
+                <div className="text-3xl font-alata text-white font-bold">
+                  {(posts / 1000).toFixed(0)}K+
+                </div>
+                <div className="text-sm text-gray-400 font-alata">Posts</div>
+              </div>
+            </div>
+            
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center px-4 py-2 bg-gray-700 rounded-lg">
+                <span className="text-[hsl(280,100%,70%)] font-alata text-sm font-medium mr-2">Engagement Rate:</span>
+                <span className="text-white font-alata text-sm font-bold">4.5%</span>
+              </div>
+            </div>
+          </div>
           
           {/* Twitter Card */}
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700 mb-12">
