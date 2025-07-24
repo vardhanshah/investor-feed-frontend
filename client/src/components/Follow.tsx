@@ -60,6 +60,10 @@ export default function Follow() {
     <section id="follow" className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-5xl font-alata text-white mb-12">
+            Why Choose <span className="gradient-text">Us?</span>
+          </h2>
+          
           {/* Services Section */}
           <div className="mb-16 bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 shadow-lg border border-gray-700">
             <h3 className="text-2xl font-alata text-white mb-4">Real-Time Market <span className="gradient-text">Intelligence</span></h3>
@@ -139,9 +143,10 @@ export default function Follow() {
           </div>
           
           {/* Statistics Section */}
-          <div id="stats-section" className="mb-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
-            <h3 className="text-2xl font-alata text-white mb-8">Our <span className="gradient-text">Impact</span></h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div className="mb-16">
+            <h3 id="stats-section" className="text-3xl lg:text-4xl font-alata text-white mb-8 text-center">Our <span className="gradient-text">Impact</span></h3>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Users className="text-[hsl(280,100%,70%)] w-6 h-6 mr-2" />
@@ -198,6 +203,7 @@ export default function Follow() {
                 <span className="text-[hsl(280,100%,70%)] font-alata text-sm font-medium mr-2">Engagement Rate:</span>
                 <span className="text-white font-alata text-sm font-bold">4.5%</span>
               </div>
+            </div>
             </div>
           </div>
           
