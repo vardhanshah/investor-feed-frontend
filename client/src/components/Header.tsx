@@ -30,11 +30,13 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10">
-              <img 
-                src="/attached_assets/Screenshot 2025-07-24 at 9.15.18 PM_1753371927008.png" 
-                alt="Investor Feed Logo" 
-                className="w-8 h-8 object-contain"
-              />
+              <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 75 L35 55 L50 70 L85 35" stroke="#2D1B4E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M70 35 L85 35 L85 50" stroke="#2D1B4E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                <rect x="20" y="60" width="4" height="20" fill="#2D1B4E" rx="2"/>
+                <rect x="35" y="45" width="4" height="35" fill="#2D1B4E" rx="2"/>
+                <rect x="65" y="30" width="4" height="50" fill="#2D1B4E" rx="2"/>
+              </svg>
             </div>
             <span className="text-xl font-alata font-medium text-black">
               Investor Feed
