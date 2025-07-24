@@ -232,32 +232,7 @@ export default function Follow() {
             </Button>
           </div>
 
-          {/* Value Props */}
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="text-[hsl(280,100%,70%)] text-xl w-6 h-6" />
-              </div>
-              <h4 className="text-lg font-alata text-white mb-2">Lightning Fast</h4>
-              <p className="text-gray-300 font-alata">2-5 minutes from official Indian Stock Exchange announcements to your feed</p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Filter className="text-[hsl(200,100%,70%)] text-xl w-6 h-6" />
-              </div>
-              <h4 className="text-lg font-alata text-white mb-2">AI-Powered Filtering</h4>
-              <p className="text-gray-300 font-alata">4 Lakh+ documents processed to extract only market-moving insights</p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Lightbulb className="text-[hsl(320,100%,75%)] text-xl w-6 h-6" />
-              </div>
-              <h4 className="text-lg font-alata text-white mb-2">Actionable Intel</h4>
-              <p className="text-gray-300 font-alata">Capacity expansion, order books, guidance, and results - formatted for instant decisions</p>
-            </div>
-          </div>
+
 
           {/* Contact & Support Section */}
           <div className="mt-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
