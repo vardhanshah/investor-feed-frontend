@@ -43,17 +43,19 @@ export default function Header() {
               Home
             </button>
             <button 
-              onClick={() => scrollToSection('about')}
-              className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
-            >
-              About
-            </button>
-            <button 
               onClick={() => scrollToSection('follow')}
               className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
-              Follow
+              Services
             </button>
+            <a 
+              href="https://twitter.com/_Investor_Feed_"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
+            >
+              Twitter
+            </a>
           </nav>
 
           {/* Mobile menu button */}
@@ -78,17 +80,20 @@ export default function Header() {
                 Home
               </button>
               <button 
-                onClick={() => scrollToSection('about')}
-                className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
-              >
-                About
-              </button>
-              <button 
                 onClick={() => scrollToSection('follow')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
-                Follow
+                Services
               </button>
+              <a 
+                href="https://twitter.com/_Investor_Feed_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Twitter
+              </a>
             </nav>
           </div>
         )}
