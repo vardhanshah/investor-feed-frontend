@@ -3,7 +3,7 @@ import { FaTwitter } from "react-icons/fa";
 
 export default function Hero() {
   return (
-    <section id="home" className="relative py-20 lg:py-32 bg-black overflow-hidden">
+    <section id="home" className="relative min-h-screen flex items-center bg-black overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center animate-fade-in">
           {/* Main Title */}
