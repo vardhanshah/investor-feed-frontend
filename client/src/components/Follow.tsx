@@ -144,7 +144,7 @@ export default function Follow() {
           
           {/* Statistics Section */}
           <div className="mb-16">
-            <h3 id="stats-section" className="text-3xl lg:text-4xl font-alata text-white mb-8 text-center">Our <span className="gradient-text">Impact</span></h3>
+            <h3 id="stats-section" className="text-3xl lg:text-4xl font-alata text-white mb-8 text-center pt-20">Our <span className="gradient-text">Impact</span></h3>
             <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
               <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
               <div className="text-center">
