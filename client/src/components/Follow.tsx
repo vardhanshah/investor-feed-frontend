@@ -65,6 +65,36 @@ export default function Follow() {
               <p className="text-gray-300 font-alata">Complex data simplified for better decisions</p>
             </div>
           </div>
+
+          {/* Contact & Support Section */}
+          <div className="mt-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700">
+            <h3 className="text-2xl font-alata text-white mb-6 text-center">Get in Touch</h3>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="text-center">
+                <h4 className="text-lg font-alata text-white mb-3">Contact Us</h4>
+                <p className="text-gray-300 font-alata mb-4">Have questions or suggestions?</p>
+                <a 
+                  href="mailto:investor@investorfeed.in" 
+                  className="inline-flex items-center px-6 py-3 bg-gray-700 hover:bg-gray-600 text-[hsl(280,100%,70%)] font-alata rounded-lg transition-colors duration-200"
+                >
+                  📧 investor@investorfeed.in
+                </a>
+              </div>
+              
+              <div className="text-center">
+                <h4 className="text-lg font-alata text-white mb-3">Support Our Work</h4>
+                <p className="text-gray-300 font-alata mb-4">Help us continue providing valuable insights</p>
+                <a 
+                  href="https://pages.razorpay.com/pl_PWmbKVx0mTStf4/view" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata rounded-lg transition-all duration-200"
+                >
+                  💝 Tip Us
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
