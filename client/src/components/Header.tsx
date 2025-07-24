@@ -46,7 +46,7 @@ export default function Header() {
               onClick={() => scrollToSection('follow')}
               className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
-              Services
+              Intelligence
             </button>
             <button 
               onClick={() => scrollToSection('stats-section')}
@@ -87,7 +87,7 @@ export default function Header() {
                 onClick={() => scrollToSection('follow')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
-                Services
+                Intelligence
               </button>
               <button 
                 onClick={() => scrollToSection('stats-section')}
