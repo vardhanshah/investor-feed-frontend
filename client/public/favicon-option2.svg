@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(280,100%,70%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(200,100%,70%);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#000000" stroke="url(#grad2)" stroke-width="2"/>
+  
+  <!-- Feed/RSS icon -->
+  <circle cx="10" cy="22" r="2" fill="url(#grad2)"/>
+  <path d="M8 16 Q14 16 16 22" stroke="url(#grad2)" stroke-width="2" fill="none"/>
+  <path d="M8 10 Q18 10 22 22" stroke="url(#grad2)" stroke-width="2" fill="none"/>
+</svg>
