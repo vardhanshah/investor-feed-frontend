@@ -31,7 +31,7 @@ export default function Header() {
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10">
               <img 
-                src="/attached_assets/Screenshot 2025-03-07 at 9.02.15 AM_1753365427315.png" 
+                src="/attached_assets/Screenshot 2025-07-24 at 9.15.18 PM_1753371927008.png" 
                 alt="Investor Feed Logo" 
                 className="w-8 h-8 object-contain"
               />

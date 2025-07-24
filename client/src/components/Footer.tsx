@@ -9,7 +9,7 @@ export default function Footer() {
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center justify-center w-10 h-10 mr-3">
               <img 
-                src="/attached_assets/Screenshot 2025-03-07 at 9.02.15 AM_1753365427315.png" 
+                src="/attached_assets/Screenshot 2025-07-24 at 9.15.18 PM_1753371927008.png" 
                 alt="Investor Feed Logo" 
                 className="w-8 h-8 object-contain filter brightness-0 invert"
               />

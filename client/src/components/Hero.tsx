@@ -10,7 +10,7 @@ export default function Hero() {
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center justify-center w-16 h-16 mr-4">
               <img 
-                src="/attached_assets/Screenshot 2025-03-07 at 9.02.15 AM_1753365427315.png" 
+                src="/attached_assets/Screenshot 2025-07-24 at 9.15.18 PM_1753371927008.png" 
                 alt="Investor Feed Logo" 
                 className="w-12 h-12 object-contain"
               />
