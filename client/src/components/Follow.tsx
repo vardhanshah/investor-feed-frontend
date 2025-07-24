@@ -214,8 +214,7 @@ export default function Follow() {
             </div>
             <h3 className="text-2xl font-alata text-white mb-4">@_Investor_Feed_</h3>
             <p className="text-lg font-alata text-gray-300 mb-6">
-              Get real-time market insights, investment analysis, and curated financial news 
-              delivered directly to your feed.
+              Get capacity expansions, order book updates, future guidance, and financial results from Indian Stock Exchange announcements within 2-5 minutes.
             </p>
             <Button
               asChild
@@ -237,26 +236,26 @@ export default function Follow() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6">
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Filter className="text-[hsl(280,100%,70%)] text-xl w-6 h-6" />
+                <Clock className="text-[hsl(280,100%,70%)] text-xl w-6 h-6" />
               </div>
-              <h4 className="text-lg font-alata text-white mb-2">Curated Content</h4>
-              <p className="text-gray-300 font-alata">Quality over quantity - only the insights that matter</p>
+              <h4 className="text-lg font-alata text-white mb-2">Lightning Fast</h4>
+              <p className="text-gray-300 font-alata">2-5 minutes from official Indian Stock Exchange announcements to your feed</p>
             </div>
             
             <div className="text-center p-6">
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="text-[hsl(200,100%,70%)] text-xl w-6 h-6" />
+                <Filter className="text-[hsl(200,100%,70%)] text-xl w-6 h-6" />
               </div>
-              <h4 className="text-lg font-alata text-white mb-2">Timely Updates</h4>
-              <p className="text-gray-300 font-alata">Real-time analysis when markets move</p>
+              <h4 className="text-lg font-alata text-white mb-2">AI-Powered Filtering</h4>
+              <p className="text-gray-300 font-alata">4 Lakh+ documents processed to extract only market-moving insights</p>
             </div>
             
             <div className="text-center p-6">
               <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Lightbulb className="text-[hsl(320,100%,75%)] text-xl w-6 h-6" />
               </div>
-              <h4 className="text-lg font-alata text-white mb-2">Clear Insights</h4>
-              <p className="text-gray-300 font-alata">Complex data simplified for better decisions</p>
+              <h4 className="text-lg font-alata text-white mb-2">Actionable Intel</h4>
+              <p className="text-gray-300 font-alata">Capacity expansion, order books, guidance, and results - formatted for instant decisions</p>
             </div>
           </div>
 
