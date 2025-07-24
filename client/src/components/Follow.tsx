@@ -109,11 +109,36 @@ export default function Follow() {
               </div>
             </div>
             
-            <div className="text-center">
-              <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] rounded-lg">
-                <span className="text-black font-alata font-bold text-lg mr-2">4 Lakh+</span>
-                <span className="text-black font-alata text-sm">Documents Processed</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <div className="text-2xl font-alata text-[hsl(280,100%,70%)] font-bold">Thousands</div>
+                <div className="text-sm text-gray-400 font-alata">Documents processed everyday</div>
               </div>
+              
+              <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <div className="text-2xl font-alata text-[hsl(200,100%,70%)] font-bold">4 Lakh+</div>
+                <div className="text-sm text-gray-400 font-alata">Documents processed so far</div>
+              </div>
+              
+              <div className="text-center p-4 bg-gray-800 rounded-lg border border-gray-600">
+                <div className="text-2xl font-alata text-[hsl(320,100%,75%)] font-bold">30K+</div>
+                <div className="text-sm text-gray-400 font-alata">Updates delivered till today</div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-gray-300 font-alata mb-4">
+                Follow on <span className="gradient-text font-bold">Twitter</span> to get real-time updates
+              </p>
+              <a
+                href="https://twitter.com/_Investor_Feed_"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata rounded-lg transition-all duration-200"
+              >
+                <FaTwitter className="mr-2" />
+                Follow @_Investor_Feed_
+              </a>
             </div>
           </div>
           
