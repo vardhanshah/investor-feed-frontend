@@ -6,6 +6,13 @@ export default function Hero() {
     <section id="home" className="relative py-20 lg:py-32 bg-black overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center animate-fade-in">
+          {/* Main Title */}
+          <div className="mb-12">
+            <h1 className="text-5xl lg:text-8xl font-alata font-medium text-white mb-8">
+              Investor Feed
+            </h1>
+          </div>
+          
           {/* Main Taglines */}
           <div className="max-w-4xl mx-auto space-y-6 mb-12">
             <h2 className="text-2xl lg:text-4xl font-alata text-white leading-relaxed">
@@ -21,7 +28,7 @@ export default function Hero() {
             <Button
               asChild
               size="lg"
-              className="bg-[hsl(258,60%,52%)] hover:bg-[hsl(258,73%,68%)] text-white font-alata text-lg px-8 py-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata text-lg px-8 py-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               <a 
                 href="https://x.com/_Investor_Feed_" 

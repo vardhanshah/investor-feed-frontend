@@ -21,7 +21,7 @@ export default function About() {
             <div className="flex justify-center">
               <div className="bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-700 w-full max-w-sm">
                 <div className="flex items-center justify-center h-48">
-                  <TrendingUp className="w-24 h-24" style={{ color: 'hsl(258, 73%, 68%)' }} />
+                  <TrendingUp className="w-24 h-24 text-[hsl(280,100%,70%)]" />
                 </div>
                 <div className="text-center mt-4">
                   <p className="text-sm font-alata text-gray-400">Clear insights, actionable data</p>

@@ -14,8 +14,8 @@ export default function Follow() {
           {/* Twitter Card */}
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-lg border border-gray-700 mb-12">
             <div className="flex items-center justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-[hsl(258,60%,52%)] to-[hsl(258,73%,68%)] rounded-full flex items-center justify-center">
-                <FaTwitter className="text-white text-2xl" />
+              <div className="w-16 h-16 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] rounded-full flex items-center justify-center">
+                <FaTwitter className="text-black text-2xl" />
               </div>
             </div>
             <h3 className="text-2xl font-alata text-white mb-4">@_Investor_Feed_</h3>
@@ -25,7 +25,7 @@ export default function Follow() {
             </p>
             <Button
               asChild
-              className="bg-gradient-to-r from-[hsl(258,60%,52%)] to-[hsl(258,73%,68%)] hover:from-[hsl(258,73%,68%)] hover:to-[hsl(258,60%,52%)] text-white font-alata rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
             >
               <a 
                 href="https://x.com/_Investor_Feed_" 
@@ -42,24 +42,24 @@ export default function Follow() {
           {/* Value Props */}
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(258,60%,52%)]/20 to-[hsl(258,73%,68%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Filter className="text-[hsl(258,73%,68%)] text-xl w-6 h-6" />
+              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Filter className="text-[hsl(280,100%,70%)] text-xl w-6 h-6" />
               </div>
               <h4 className="text-lg font-alata text-white mb-2">Curated Content</h4>
               <p className="text-gray-300 font-alata">Quality over quantity - only the insights that matter</p>
             </div>
             
             <div className="text-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(258,60%,52%)]/20 to-[hsl(258,73%,68%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="text-[hsl(258,73%,68%)] text-xl w-6 h-6" />
+              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Clock className="text-[hsl(200,100%,70%)] text-xl w-6 h-6" />
               </div>
               <h4 className="text-lg font-alata text-white mb-2">Timely Updates</h4>
               <p className="text-gray-300 font-alata">Real-time analysis when markets move</p>
             </div>
             
             <div className="text-center p-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(258,60%,52%)]/20 to-[hsl(258,73%,68%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Lightbulb className="text-[hsl(258,73%,68%)] text-xl w-6 h-6" />
+              <div className="w-12 h-12 bg-gradient-to-r from-[hsl(280,100%,70%)]/20 to-[hsl(200,100%,70%)]/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Lightbulb className="text-[hsl(320,100%,75%)] text-xl w-6 h-6" />
               </div>
               <h4 className="text-lg font-alata text-white mb-2">Clear Insights</h4>
               <p className="text-gray-300 font-alata">Complex data simplified for better decisions</p>

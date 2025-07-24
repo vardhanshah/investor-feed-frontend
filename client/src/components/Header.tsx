@@ -38,19 +38,19 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('home')}
-              className="text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
+              className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
               Home
             </button>
             <button 
               onClick={() => scrollToSection('about')}
-              className="text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
+              className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
               About
             </button>
             <button 
               onClick={() => scrollToSection('follow')}
-              className="text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
+              className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
               Follow
             </button>
