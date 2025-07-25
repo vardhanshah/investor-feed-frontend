@@ -46,7 +46,7 @@ export default function Header() {
               onClick={() => scrollToSection('follow')}
               className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
             >
-              Why Choose Us?
+              Why Follow Us?
             </button>
             <button 
               onClick={() => scrollToSection('stats-section')}
