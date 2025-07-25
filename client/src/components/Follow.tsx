@@ -242,6 +242,20 @@ export default function Follow() {
           
           {/* Copyright */}
           <div className="mt-12 pt-8 border-t border-gray-800 text-center">
+            <div className="mb-4 flex justify-center space-x-6">
+              <a 
+                href="/terms" 
+                className="text-gray-400 hover:text-[hsl(280,100%,70%)] font-alata text-sm transition-colors duration-200"
+              >
+                Terms of Service
+              </a>
+              <a 
+                href="/privacy" 
+                className="text-gray-400 hover:text-[hsl(280,100%,70%)] font-alata text-sm transition-colors duration-200"
+              >
+                Privacy Policy
+              </a>
+            </div>
             <p className="text-gray-500 font-alata text-sm">
               &copy; 2025 Investor Feed. All rights reserved.
             </p>
