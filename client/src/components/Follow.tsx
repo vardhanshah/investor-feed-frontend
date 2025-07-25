@@ -61,7 +61,7 @@ export default function Follow() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl lg:text-5xl font-alata text-white mb-12">
-            Why Choose <span className="gradient-text">Us?</span>
+            Why Follow <span className="gradient-text">Us?</span>
           </h2>
           
           {/* Services Section */}
