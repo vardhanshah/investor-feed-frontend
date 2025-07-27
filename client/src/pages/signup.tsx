@@ -1,11 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FaGoogle, FaTwitter } from 'react-icons/fa';
+import { CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+
+// Validation helper functions
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (password.length < 8) errors.push('At least 8 characters');
+  if (!/[A-Z]/.test(password)) errors.push('One uppercase letter');
+  if (!/[a-z]/.test(password)) errors.push('One lowercase letter');
+  if (!/[0-9]/.test(password)) errors.push('One number');
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push('One special character');
+  
+  return { isValid: errors.length === 0, errors };
+};
+
+const validateName = (name: string): boolean => {
+  return name.trim().length >= 2 && /^[a-zA-Z\s\-']+$/.test(name);
+};
 
 export default function Signup() {
   const [, setLocation] = useLocation();
@@ -17,6 +41,45 @@ export default function Signup() {
     acceptTerms: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [validationState, setValidationState] = useState({
+    email: { isValid: false, message: '' },
+    name: { isValid: false, message: '' },
+    password: { isValid: false, errors: [] as string[] },
+    confirmPassword: { isValid: false, message: '' },
+    canSubmit: false,
+  });
+
+  // Real-time validation effect
+  useEffect(() => {
+    const newValidationState = {
+      email: {
+        isValid: formData.email.length > 0 && validateEmail(formData.email),
+        message: formData.email.length > 0 && !validateEmail(formData.email) ? 'Please enter a valid email address' : '',
+      },
+      name: {
+        isValid: validateName(formData.name),
+        message: formData.name.length > 0 && !validateName(formData.name) ? 'Name must be at least 2 characters and contain only letters, spaces, hyphens, and apostrophes' : '',
+      },
+      password: validatePassword(formData.password),
+      confirmPassword: {
+        isValid: formData.confirmPassword.length > 0 && formData.password === formData.confirmPassword,
+        message: formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword ? 'Passwords do not match' : '',
+      },
+      canSubmit: false,
+    };
+
+    // Check if all fields are valid and terms are accepted
+    newValidationState.canSubmit = 
+      newValidationState.email.isValid &&
+      newValidationState.name.isValid &&
+      newValidationState.password.isValid &&
+      newValidationState.confirmPassword.isValid &&
+      formData.acceptTerms;
+
+    setValidationState(newValidationState);
+  }, [formData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -28,19 +91,14 @@ export default function Signup() {
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Frontend validation check before API call
+    if (!validationState.canSubmit) {
+      console.error('Please fix all validation errors before submitting');
+      return;
+    }
+    
     setIsLoading(true);
-    
-    if (formData.password !== formData.confirmPassword) {
-      console.error('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-    
-    if (!formData.acceptTerms) {
-      console.error('Please accept the terms and conditions');
-      setIsLoading(false);
-      return;
-    }
     
     try {
       // TODO: Replace with actual API call
@@ -50,8 +108,8 @@ export default function Signup() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
         }),
       });
@@ -62,7 +120,8 @@ export default function Signup() {
         localStorage.setItem('authToken', data.token);
         setLocation('/dashboard');
       } else {
-        console.error('Signup failed');
+        const errorData = await response.json();
+        console.error('Signup failed:', errorData.message || 'Unknown error');
       }
     } catch (error) {
       console.error('Signup error:', error);
@@ -142,8 +201,16 @@ export default function Signup() {
 
             {/* Email Signup Form */}
             <form onSubmit={handleEmailSignup} className="space-y-4">
+              {/* Full Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-white font-alata">Full Name</Label>
+                <Label htmlFor="name" className="text-white font-alata flex items-center">
+                  Full Name
+                  {formData.name && (
+                    validationState.name.isValid ? 
+                      <CheckCircle className="ml-2 h-4 w-4 text-green-500" /> :
+                      <XCircle className="ml-2 h-4 w-4 text-red-500" />
+                  )}
+                </Label>
                 <Input
                   id="name"
                   name="name"
@@ -151,12 +218,27 @@ export default function Signup() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
+                  className={`bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)] ${
+                    formData.name && !validationState.name.isValid ? 'border-red-500' : 
+                    formData.name && validationState.name.isValid ? 'border-green-500' : ''
+                  }`}
                   placeholder="John Doe"
                 />
+                {validationState.name.message && (
+                  <p className="text-red-400 text-sm font-alata">{validationState.name.message}</p>
+                )}
               </div>
+
+              {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white font-alata">Email</Label>
+                <Label htmlFor="email" className="text-white font-alata flex items-center">
+                  Email
+                  {formData.email && (
+                    validationState.email.isValid ? 
+                      <CheckCircle className="ml-2 h-4 w-4 text-green-500" /> :
+                      <XCircle className="ml-2 h-4 w-4 text-red-500" />
+                  )}
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -164,35 +246,109 @@ export default function Signup() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
+                  className={`bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)] ${
+                    formData.email && !validationState.email.isValid ? 'border-red-500' : 
+                    formData.email && validationState.email.isValid ? 'border-green-500' : ''
+                  }`}
                   placeholder="investor@example.com"
                 />
+                {validationState.email.message && (
+                  <p className="text-red-400 text-sm font-alata">{validationState.email.message}</p>
+                )}
               </div>
+
+              {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white font-alata">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
-                  placeholder="Create a strong password"
-                />
+                <Label htmlFor="password" className="text-white font-alata flex items-center">
+                  Password
+                  {formData.password && (
+                    validationState.password.isValid ? 
+                      <CheckCircle className="ml-2 h-4 w-4 text-green-500" /> :
+                      <XCircle className="ml-2 h-4 w-4 text-red-500" />
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    className={`bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)] pr-10 ${
+                      formData.password && !validationState.password.isValid ? 'border-red-500' : 
+                      formData.password && validationState.password.isValid ? 'border-green-500' : ''
+                    }`}
+                    placeholder="Create a strong password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {/* Password Strength Indicator */}
+                {formData.password && (
+                  <div className="space-y-1">
+                    <div className="grid grid-cols-2 gap-1 text-xs font-alata">
+                      {validationState.password.errors.map((error, index) => (
+                        <div key={index} className="flex items-center text-red-400">
+                          <XCircle className="mr-1 h-3 w-3" />
+                          {error}
+                        </div>
+                      ))}
+                      {validationState.password.isValid && (
+                        <div className="col-span-2 flex items-center text-green-400">
+                          <CheckCircle className="mr-1 h-3 w-3" />
+                          Password meets all requirements
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Confirm Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white font-alata">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
-                  placeholder="Confirm your password"
-                />
+                <Label htmlFor="confirmPassword" className="text-white font-alata flex items-center">
+                  Confirm Password
+                  {formData.confirmPassword && (
+                    validationState.confirmPassword.isValid ? 
+                      <CheckCircle className="ml-2 h-4 w-4 text-green-500" /> :
+                      <XCircle className="ml-2 h-4 w-4 text-red-500" />
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required
+                    className={`bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)] pr-10 ${
+                      formData.confirmPassword && !validationState.confirmPassword.isValid ? 'border-red-500' : 
+                      formData.confirmPassword && validationState.confirmPassword.isValid ? 'border-green-500' : ''
+                    }`}
+                    placeholder="Confirm your password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {validationState.confirmPassword.message && (
+                  <p className="text-red-400 text-sm font-alata">{validationState.confirmPassword.message}</p>
+                )}
               </div>
               
               <div className="flex items-center space-x-2">
@@ -217,12 +373,37 @@ export default function Signup() {
                 </Label>
               </div>
               
+              {/* Form Status Indicator */}
+              {!validationState.canSubmit && formData.name && formData.email && formData.password && formData.confirmPassword && (
+                <Alert className="bg-yellow-900/20 border-yellow-600">
+                  <AlertDescription className="text-yellow-200 font-alata text-sm">
+                    Please complete all validation requirements before submitting
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button
                 type="submit"
-                disabled={isLoading || !formData.acceptTerms}
-                className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata disabled:opacity-50"
+                disabled={isLoading || !validationState.canSubmit}
+                className={`w-full font-alata transition-all duration-200 ${
+                  validationState.canSubmit 
+                    ? 'bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black' 
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating account...
+                  </span>
+                ) : validationState.canSubmit ? (
+                  'Create account'
+                ) : (
+                  'Complete form to continue'
+                )}
               </Button>
             </form>
           </CardContent>
