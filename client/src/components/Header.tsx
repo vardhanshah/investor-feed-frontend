@@ -84,18 +84,12 @@ export default function Header() {
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link href="/login">
-                  <Button variant="ghost" className="text-white hover:bg-gray-800 font-alata">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
+              <Link href="/login">
+                <Button className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata">
+                  <User className="mr-2 h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
             )}
           </div>
 
@@ -157,18 +151,12 @@ export default function Header() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex flex-col space-y-2">
-                    <Link href="/login">
-                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800 font-alata">
-                        Login
-                      </Button>
-                    </Link>
-                    <Link href="/signup">
-                      <Button className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata">
-                        Sign Up
-                      </Button>
-                    </Link>
-                  </div>
+                  <Link href="/login">
+                    <Button className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata">
+                      <User className="mr-2 h-4 w-4" />
+                      Sign In
+                    </Button>
+                  </Link>
                 )}
               </div>
             </nav>
