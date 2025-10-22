@@ -11,6 +11,7 @@ import { feedsApi, feedConfigApi, FeedConfiguration } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
+import FeedSidebar from '@/components/FeedSidebar';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ export default function Feed() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<FeedConfiguration | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const LIMIT = 20;
 
@@ -202,6 +204,28 @@ export default function Feed() {
     setLocation('/');
   };
 
+  const handleFeedCreated = async () => {
+    // Reload feed configurations
+    try {
+      const configs = await feedConfigApi.listFeedConfigurations();
+      setFeedConfigs(configs);
+
+      // Select the newly created feed (last one in the list)
+      if (configs.length > 0) {
+        const newFeed = configs[configs.length - 1];
+        setSelectedFeedId(newFeed.id);
+        localStorage.setItem('selectedFeedId', newFeed.id.toString());
+      }
+    } catch (err) {
+      const errorInfo = getErrorMessage(err);
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
+      });
+    }
+  };
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -355,7 +379,7 @@ export default function Feed() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation('/filters')}
+                onClick={() => setIsSidebarOpen(true)}
                 className="border-dashed border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap"
               >
                 <Plus className="h-4 w-4 mr-1" />
@@ -522,6 +546,13 @@ export default function Feed() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Feed Creation Sidebar */}
+      <FeedSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onFeedCreated={handleFeedCreated}
+      />
     </div>
   );
 }
