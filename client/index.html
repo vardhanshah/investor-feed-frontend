@@ -19,6 +19,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alata:wght@400&display=swap" rel="stylesheet">
+
+    <!-- Theme initialization script - runs BEFORE any rendering -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const bgColor = savedTheme === 'dark' ? '#000000' : '#ffffff';
+
+        // Add theme class to html
+        document.documentElement.classList.add(savedTheme);
+
+        // Set html background immediately
+        document.documentElement.style.backgroundColor = bgColor;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

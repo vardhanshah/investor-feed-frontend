@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,19 +39,19 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <nav className="flex items-center space-x-8">
-              <button 
+              <button
                 onClick={() => scrollToSection('home')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('follow')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
                 Why Follow Us?
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('stats-section')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
@@ -62,6 +64,12 @@ export default function Header() {
                 Contact
               </button>
             </nav>
+            <Button
+              onClick={() => setLocation('/login')}
+              className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+            >
+              Sign In / Sign Up
+            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -79,19 +87,19 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-800">
             <nav className="flex flex-col space-y-4">
-              <button 
+              <button
                 onClick={() => scrollToSection('home')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('follow')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
                 Why Follow Us?
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('stats-section')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
@@ -103,6 +111,14 @@ export default function Header() {
               >
                 Contact
               </button>
+              <div className="pt-4 border-t border-gray-800">
+                <Button
+                  onClick={() => { setLocation('/login'); setIsMenuOpen(false); }}
+                  className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+                >
+                  Sign In / Sign Up
+                </Button>
+              </div>
             </nav>
           </div>
         )}

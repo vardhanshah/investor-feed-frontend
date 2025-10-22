@@ -1,41 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FaGoogle, FaTwitter } from 'react-icons/fa';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import { authApi } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorHandler';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { user, isLoading: authLoading, login } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Redirect authenticated users to feed
+  useEffect(() => {
+    if (!authLoading && user) {
+      setLocation('/home');
+    }
+  }, [user, authLoading, setLocation]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    setError(null);
+
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      console.log('Starting login...');
+      const response = await authApi.login({ email, password });
+      console.log('Login API response:', response);
+
+      // Store token and update auth context
+      console.log('Calling login with token...');
+      await login(response.access_token);
+      console.log('Login completed, user should be set');
+
+      // Show success message
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully logged in.',
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Store auth token
-        localStorage.setItem('authToken', data.token);
-        setLocation('/dashboard');
-      } else {
-        console.error('Login failed');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
+
+      // Redirect to home feed
+      console.log('Redirecting to /home...');
+      setLocation('/home');
+      console.log('setLocation called');
+    } catch (err) {
+      console.error('Login error:', err);
+      const errorInfo = getErrorMessage(err);
+      setError(errorInfo.message);
+
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -51,8 +78,20 @@ export default function Login() {
     window.location.href = '/api/auth/twitter';
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/">
@@ -112,6 +151,13 @@ export default function Login() {
 
             {/* Email Login Form */}
             <form onSubmit={handleEmailLogin} className="space-y-4">
+              {error && (
+                <Alert variant="destructive" className="bg-red-900/20 border-red-600">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="font-alata">{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-white font-alata">Email</Label>
                 <Input
@@ -120,6 +166,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                   className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
                   placeholder="investor@example.com"
                 />
@@ -132,6 +179,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                   className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
                   placeholder="Enter your password"
                 />

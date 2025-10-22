@@ -6,8 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FaGoogle, FaTwitter } from 'react-icons/fa';
-import { CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import { authApi } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorHandler';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Validation helper functions
 const validateEmail = (email: string): boolean => {
@@ -33,6 +37,8 @@ const validateName = (name: string): boolean => {
 
 export default function Signup() {
   const [, setLocation] = useLocation();
+  const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -50,6 +56,13 @@ export default function Signup() {
     confirmPassword: { isValid: false, message: '' },
     canSubmit: false,
   });
+
+  // Redirect authenticated users to feed
+  useEffect(() => {
+    if (!authLoading && user) {
+      setLocation('/home');
+    }
+  }, [user, authLoading, setLocation]);
 
   // Real-time validation effect
   useEffect(() => {
@@ -91,39 +104,40 @@ export default function Signup() {
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Frontend validation check before API call
     if (!validationState.canSubmit) {
       console.error('Please fix all validation errors before submitting');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
-        }),
+      const response = await authApi.register({
+        full_name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Store auth token
-        localStorage.setItem('authToken', data.token);
-        setLocation('/dashboard');
-      } else {
-        const errorData = await response.json();
-        console.error('Signup failed:', errorData.message || 'Unknown error');
-      }
+
+      // Show success message
+      toast({
+        title: 'Account Created!',
+        description: `Welcome, ${formData.name}! Please log in to continue.`,
+      });
+
+      // Redirect to login page
+      setLocation('/login');
     } catch (error) {
+      const errorInfo = getErrorMessage(error);
+
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
+      });
+
       console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
@@ -140,8 +154,20 @@ export default function Signup() {
     window.location.href = '/api/auth/twitter';
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/">
