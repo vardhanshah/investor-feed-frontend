@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'wouter';
+import { useLocation } from "wouter";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,57 +39,37 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <nav className="flex items-center space-x-8">
-              <button 
+              <button
                 onClick={() => scrollToSection('home')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('follow')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
                 Why Follow Us?
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('stats-section')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
                 Impact
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('contact-section')}
                 className="text-white hover:text-[hsl(280,100%,70%)] transition-colors duration-200 font-alata"
               >
                 Contact
               </button>
             </nav>
-            
-            {/* Authentication Buttons */}
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <Link href="/dashboard">
-                  <Button variant="ghost" className="text-white hover:bg-gray-800 font-alata">
-                    <User className="mr-2 h-4 w-4" />
-                    {user?.name.split(' ')[0]}
-                  </Button>
-                </Link>
-                <Button
-                  variant="ghost"
-                  onClick={logout}
-                  className="text-white hover:bg-gray-800 font-alata"
-                >
-                  Logout
-                </Button>
-              </div>
-            ) : (
-              <Link href="/login">
-                <Button className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata">
-                  <User className="mr-2 h-4 w-4" />
-                  Sign In
-                </Button>
-              </Link>
-            )}
+            <Button
+              onClick={() => setLocation('/login')}
+              className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+            >
+              Sign In / Sign Up
+            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -108,56 +87,37 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-800">
             <nav className="flex flex-col space-y-4">
-              <button 
+              <button
                 onClick={() => scrollToSection('home')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('follow')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
                 Why Follow Us?
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('stats-section')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
                 Impact
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('contact-section')}
                 className="text-left text-white hover:text-[hsl(258,73%,68%)] transition-colors duration-200 font-alata"
               >
                 Contact
               </button>
-              
-              <div className="border-t border-gray-700 pt-4">
-                {isAuthenticated ? (
-                  <div className="flex flex-col space-y-2">
-                    <Link href="/dashboard">
-                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-gray-800 font-alata">
-                        <User className="mr-2 h-4 w-4" />
-                        {user?.name.split(' ')[0]} Dashboard
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      onClick={logout}
-                      className="w-full justify-start text-white hover:bg-gray-800 font-alata"
-                    >
-                      Logout
-                    </Button>
-                  </div>
-                ) : (
-                  <Link href="/login">
-                    <Button className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata">
-                      <User className="mr-2 h-4 w-4" />
-                      Sign In
-                    </Button>
-                  </Link>
-                )}
+              <div className="pt-4 border-t border-gray-800">
+                <Button
+                  onClick={() => { setLocation('/login'); setIsMenuOpen(false); }}
+                  className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+                >
+                  Sign In / Sign Up
+                </Button>
               </div>
             </nav>
           </div>
