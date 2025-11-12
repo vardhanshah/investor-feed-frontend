@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: investor-feed-frontend
     ports:
-      - "8080:80"
+      - "8081:80"
     restart: unless-stopped
     environment:
       - NODE_ENV=production

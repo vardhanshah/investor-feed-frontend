@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2, Share2 } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata } from '@/lib/api';
@@ -194,48 +194,6 @@ export default function PostDetailPage() {
       });
     } finally {
       setIsLiking(false);
-    }
-  };
-
-  // Handle share
-  const handleShare = async () => {
-    if (!post) return;
-
-    const postUrl = `${window.location.origin}/posts/${post.id}`;
-
-    // Try to use Web Share API if available (mobile devices)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Post by ${post.profile_title || 'Investor Feed'}`,
-          text: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
-          url: postUrl,
-        });
-        toast({
-          title: 'Shared!',
-          description: 'Post shared successfully.',
-        });
-      } catch (err) {
-        // User cancelled or error occurred
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Share failed:', err);
-        }
-      }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        await navigator.clipboard.writeText(postUrl);
-        toast({
-          title: 'Link Copied!',
-          description: 'Post link copied to clipboard.',
-        });
-      } catch (err) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to copy',
-          description: 'Could not copy link to clipboard.',
-        });
-      }
     }
   };
 
@@ -480,13 +438,6 @@ export default function PostDetailPage() {
                 <MessageCircle className="h-4 w-4" />
                 <span className="text-sm font-alata">{post.comment_count}</span>
               </div>
-              <button
-                onClick={handleShare}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="text-sm font-alata">Share</span>
-              </button>
             </div>
           </CardContent>
         </Card>
@@ -663,28 +614,74 @@ export default function PostDetailPage() {
                                     {user && (
                                       <button
                                         onClick={async () => {
-                                          if (!post) return;
+                                          if (!post || likingInProgress[`thread-${comment.id}-${reply.id}`]) return;
+
+                                          const likeKey = `thread-${comment.id}-${reply.id}`;
+                                          const threadKey = `${comment.id}-${reply.id}`;
+                                          const wasLiked = threadLikes[threadKey];
+
+                                          // Set liking in progress
+                                          setLikingInProgress(prev => ({ ...prev, [likeKey]: true }));
+
+                                          // Optimistic update
+                                          setThreadLikes(prev => ({ ...prev, [threadKey]: !wasLiked }));
+                                          setComments(prev => prev.map(c =>
+                                            c.id === comment.id
+                                              ? {
+                                                  ...c,
+                                                  thread: c.thread.map(t =>
+                                                    t.id === reply.id
+                                                      ? { ...t, reaction_count: wasLiked ? t.reaction_count - 1 : t.reaction_count + 1 }
+                                                      : t
+                                                  )
+                                                }
+                                              : c
+                                          ));
+
                                           try {
                                             await commentsApi.addThreadReaction(post.id, comment.id, reply.id);
-                                            toast({
-                                              title: 'Liked!',
-                                              description: 'Your reaction has been recorded.',
-                                            });
-                                            // Reload current page of comments to update counts
-                                            const commentsResponse = await commentsApi.getComments(post.id, pageNo, PAGE_SIZE);
-                                            setComments(commentsResponse.comments);
+                                            if (!wasLiked) {
+                                              toast({
+                                                title: 'Liked!',
+                                                description: 'Your reaction has been recorded.',
+                                              });
+                                            }
                                           } catch (err) {
+                                            // Revert on error
+                                            setThreadLikes(prev => ({ ...prev, [threadKey]: wasLiked }));
+                                            setComments(prev => prev.map(c =>
+                                              c.id === comment.id
+                                                ? {
+                                                    ...c,
+                                                    thread: c.thread.map(t =>
+                                                      t.id === reply.id
+                                                        ? { ...t, reaction_count: wasLiked ? t.reaction_count + 1 : t.reaction_count - 1 }
+                                                        : t
+                                                    )
+                                                  }
+                                                : c
+                                            ));
+
                                             const errorInfo = getErrorMessage(err);
                                             toast({
                                               variant: 'destructive',
                                               title: errorInfo.title,
                                               description: errorInfo.message,
                                             });
+                                          } finally {
+                                            setLikingInProgress(prev => ({ ...prev, [likeKey]: false }));
                                           }
                                         }}
-                                        className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-[hsl(280,100%,70%)] font-alata transition-colors"
+                                        className={`flex items-center space-x-1 text-xs font-alata transition-all ${
+                                          threadLikes[`${comment.id}-${reply.id}`]
+                                            ? 'text-[hsl(200,100%,70%)] hover:text-[hsl(200,100%,75%)]'
+                                            : 'text-muted-foreground hover:text-[hsl(200,100%,70%)]'
+                                        } ${likingInProgress[`thread-${comment.id}-${reply.id}`] ? 'opacity-50 cursor-wait' : ''}`}
+                                        disabled={likingInProgress[`thread-${comment.id}-${reply.id}`]}
                                       >
-                                        <Heart className="h-3 w-3" />
+                                        <Heart className={`h-3 w-3 transition-all ${
+                                          threadLikes[`${comment.id}-${reply.id}`] ? 'fill-current scale-110' : ''
+                                        }`} />
                                         <span>{reply.reaction_count}</span>
                                       </button>
                                     )}

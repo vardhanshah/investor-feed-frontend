@@ -95,14 +95,14 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/">
-            <span className="text-3xl font-alata font-medium text-white cursor-pointer hover:text-[hsl(280,100%,70%)] transition-colors">
+            <span className="text-3xl font-alata font-medium text-foreground cursor-pointer hover:text-[hsl(280,100%,70%)] transition-colors">
               Investor Feed
             </span>
           </Link>
-          <h2 className="mt-6 text-3xl font-alata text-white">
+          <h2 className="mt-6 text-3xl font-alata text-foreground">
             Sign in to your <span className="gradient-text">account</span>
           </h2>
-          <p className="mt-2 text-sm text-gray-400 font-alata">
+          <p className="mt-2 text-sm text-muted-foreground font-alata">
             Or{' '}
             <Link href="/signup">
               <span className="text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] cursor-pointer">
@@ -112,10 +112,10 @@ export default function Login() {
           </p>
         </div>
 
-        <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-700">
+        <Card className="bg-card border-border">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-alata text-white text-center">Welcome back</CardTitle>
-            <CardDescription className="text-gray-400 font-alata text-center">
+            <CardTitle className="text-2xl font-alata text-foreground text-center">Welcome back</CardTitle>
+            <CardDescription className="text-muted-foreground font-alata text-center">
               Choose your preferred sign-in method
             </CardDescription>
           </CardHeader>
@@ -125,7 +125,7 @@ export default function Login() {
               <Button
                 variant="outline"
                 onClick={handleGoogleLogin}
-                className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 font-alata"
+                className="border-border text-foreground hover:bg-muted font-alata"
               >
                 <FaGoogle className="mr-2 h-4 w-4" />
                 Google
@@ -133,7 +133,7 @@ export default function Login() {
               <Button
                 variant="outline"
                 onClick={handleXLogin}
-                className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 font-alata"
+                className="border-border text-foreground hover:bg-muted font-alata"
               >
                 <FaTwitter className="mr-2 h-4 w-4" />
                 X (Twitter)
@@ -142,10 +142,10 @@ export default function Login() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-600" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-gray-900 px-2 text-gray-400 font-alata">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground font-alata">Or continue with</span>
               </div>
             </div>
 
@@ -159,7 +159,7 @@ export default function Login() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white font-alata">Email</Label>
+                <Label htmlFor="email" className="text-foreground font-alata">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -167,12 +167,12 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
+                  className="bg-background border-border text-foreground font-alata focus:border-[hsl(280,100%,70%)]"
                   placeholder="investor@example.com"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white font-alata">Password</Label>
+                <Label htmlFor="password" className="text-foreground font-alata">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -180,7 +180,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
+                  className="bg-background border-border text-foreground font-alata focus:border-[hsl(280,100%,70%)]"
                   placeholder="Enter your password"
                 />
               </div>
@@ -195,7 +195,7 @@ export default function Login() {
 
             <div className="text-center">
               <Link href="/forgot-password">
-                <span className="text-sm text-gray-400 hover:text-[hsl(280,100%,70%)] cursor-pointer font-alata">
+                <span className="text-sm text-muted-foreground hover:text-[hsl(280,100%,70%)] cursor-pointer font-alata">
                   Forgot your password?
                 </span>
               </Link>
@@ -205,7 +205,7 @@ export default function Login() {
 
         <div className="text-center">
           <Link href="/">
-            <span className="text-sm text-gray-400 hover:text-white cursor-pointer font-alata">
+            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer font-alata">
               ← Back to home
             </span>
           </Link>
