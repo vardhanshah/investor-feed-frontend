@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Loader2, TrendingUp, Radio, Sun, Moon, Plus, X } from 'lucide-react';
+import { Bell, BellOff, Loader2, TrendingUp, Radio, Sun, Moon, Plus, X, Edit2 } from 'lucide-react';
 import { FaCog as FaCogIcon, FaSignOutAlt as FaSignOutAltIcon } from 'react-icons/fa';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { feedsApi, feedConfigApi, FeedConfiguration } from '@/lib/api';
+import { feedsApi, feedConfigApi, subscriptionsApi, FeedConfiguration, Subscription } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
 import FeedSidebar from '@/components/FeedSidebar';
+import { NotificationBell } from '@/components/NotificationBell';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,8 @@ export default function Feed() {
   const [feedToDelete, setFeedToDelete] = useState<FeedConfiguration | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [editingFeedId, setEditingFeedId] = useState<number | null>(null);
+  const [subscribedFeeds, setSubscribedFeeds] = useState<Set<number>>(new Set());
 
   const LIMIT = 20;
 
@@ -92,6 +95,24 @@ export default function Feed() {
 
     loadFeeds();
   }, [user, toast]);
+
+  // Load user subscriptions
+  useEffect(() => {
+    const loadSubscriptions = async () => {
+      if (user) {
+        try {
+          const subscriptions = await subscriptionsApi.getUserSubscriptions();
+          const feedIds = new Set(subscriptions.map(sub => sub.feed_id));
+          setSubscribedFeeds(feedIds);
+        } catch (err) {
+          console.error('Failed to load subscriptions:', err);
+          // Don't show error toast for subscriptions - it's not critical
+        }
+      }
+    };
+
+    loadSubscriptions();
+  }, [user]);
 
   // Fetch posts from a feed
   const fetchPosts = async (feedId: number, currentOffset: number = 0) => {
@@ -204,17 +225,76 @@ export default function Feed() {
     setLocation('/');
   };
 
+  const handleEditClick = (feed: FeedConfiguration, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent feed selection when clicking edit
+    setEditingFeedId(feed.id);
+    setIsSidebarOpen(true);
+  };
+
   const handleFeedCreated = async () => {
-    // Reload feed configurations
+    // Reload feed configurations and refresh the feed posts
     try {
       const configs = await feedConfigApi.listFeedConfigurations();
       setFeedConfigs(configs);
 
-      // Select the newly created feed (last one in the list)
-      if (configs.length > 0) {
-        const newFeed = configs[configs.length - 1];
-        setSelectedFeedId(newFeed.id);
-        localStorage.setItem('selectedFeedId', newFeed.id.toString());
+      if (editingFeedId) {
+        // When editing, reload posts for the current feed to show updated results
+        setIsLoadingPosts(true);
+        setOffset(0);
+        await fetchPosts(editingFeedId, 0);
+        // Keep editing state - don't close sidebar
+      } else {
+        // When creating, select the newly created feed (last one in the list)
+        if (configs.length > 0) {
+          const newFeed = configs[configs.length - 1];
+          setSelectedFeedId(newFeed.id);
+          localStorage.setItem('selectedFeedId', newFeed.id.toString());
+        }
+      }
+    } catch (err) {
+      const errorInfo = getErrorMessage(err);
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
+      });
+    }
+  };
+
+  const handleSidebarClose = () => {
+    setIsSidebarOpen(false);
+    setEditingFeedId(null);
+  };
+
+  const handleNewFeedClick = () => {
+    setEditingFeedId(null);
+    setIsSidebarOpen(true);
+  };
+
+  const handleSubscribeToggle = async (feed: FeedConfiguration, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent feed selection when clicking bell
+
+    const isSubscribed = subscribedFeeds.has(feed.id);
+
+    try {
+      if (isSubscribed) {
+        await subscriptionsApi.unsubscribeFromFeed(feed.id);
+        setSubscribedFeeds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(feed.id);
+          return newSet;
+        });
+        toast({
+          title: 'Unsubscribed',
+          description: `You will no longer receive notifications for "${feed.name}"`,
+        });
+      } else {
+        await subscriptionsApi.subscribeToFeed(feed.id);
+        setSubscribedFeeds(prev => new Set(prev).add(feed.id));
+        toast({
+          title: 'Subscribed',
+          description: `You will now receive notifications for "${feed.name}"`,
+        });
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
@@ -241,7 +321,7 @@ export default function Feed() {
   }
 
   return (
-    <div className="min-h-screen bg-background transition-colors">
+    <div className="min-h-screen bg-background transition-colors overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border transition-colors">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -278,19 +358,7 @@ export default function Feed() {
                   <Moon className="h-5 w-5" />
                 )}
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                onClick={() => {
-                  toast({
-                    title: 'Notifications',
-                    description: 'Notification center coming soon!',
-                  });
-                }}
-              >
-                <Bell className="h-5 w-5" />
-              </Button>
+              <NotificationBell />
               <Button
                 variant="ghost"
                 size="icon"
@@ -329,93 +397,130 @@ export default function Feed() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Feed Selector */}
-        {isLoadingFeeds ? (
-          <div className="mb-4 flex items-center justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-[hsl(280,100%,70%)]" />
-          </div>
-        ) : feedConfigs.length > 0 ? (
-          <div className="mb-4 overflow-x-auto">
-            <div className="flex items-center space-x-2 pb-2">
-              {/* Feed Tabs */}
-              {feedConfigs.map((feed) => (
-                <div key={feed.id} className="relative group">
-                  <Button
-                    variant={selectedFeedId === feed.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFeedSelect(feed.id)}
-                    className={
-                      selectedFeedId === feed.id
-                        ? "bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black font-alata border-0 whitespace-nowrap pr-8"
-                        : "border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap pr-8"
-                    }
-                  >
-                    {feed.name}
-                    {feed.is_default && (
-                      <Badge className="ml-2 bg-background/20 text-inherit text-xs border-0">
-                        Default
-                      </Badge>
-                    )}
-                  </Button>
-                  {/* Delete button - only show for non-default feeds */}
-                  {!feed.is_default && (
-                    <button
-                      onClick={(e) => handleDeleteClick(feed, e)}
-                      className={`absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
-                        selectedFeedId === feed.id
-                          ? 'hover:bg-black/10 text-black'
-                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                      }`}
-                      title="Delete feed"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {/* Create New Feed Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsSidebarOpen(true)}
-                className="border-dashed border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                New Feed
-              </Button>
-            </div>
-          </div>
-        ) : null}
-
-        {/* Live Updates Header */}
-        <div className="mb-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            {/* Live Indicator */}
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <Radio className="h-5 w-5 text-[hsl(280,100%,70%)]" />
-                <span className="absolute top-0 right-0 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(280,100%,70%)] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(280,100%,70%)]"></span>
-                </span>
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className={`flex gap-6 ${isSidebarOpen ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
+          {/* Left Side - Feed Content */}
+          <div className={`transition-all duration-500 ease-in-out ${isSidebarOpen ? 'flex-1 min-w-0' : 'w-full'}`}>
+            {/* Feed Selector */}
+            {isLoadingFeeds ? (
+              <div className="mb-4 flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-[hsl(280,100%,70%)]" />
               </div>
-              <h1 className="text-xl font-alata font-bold text-foreground">
-                Market <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)]">Pulse</span>
-              </h1>
+            ) : feedConfigs.length > 0 ? (
+              <div className="mb-4 overflow-x-auto">
+                <div className="flex items-center space-x-2 pb-2">
+                  {/* Feed Tabs */}
+                  {feedConfigs.map((feed) => (
+                    <div key={feed.id} className="relative group">
+                      <Button
+                        variant={selectedFeedId === feed.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleFeedSelect(feed.id)}
+                        className={
+                          selectedFeedId === feed.id
+                            ? "bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black font-alata border-0 whitespace-nowrap pr-20"
+                            : "border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap pr-20"
+                        }
+                      >
+                        {feed.name}
+                        {feed.is_default && (
+                          <Badge className="ml-2 bg-background/20 text-inherit text-xs border-0">
+                            Default
+                          </Badge>
+                        )}
+                      </Button>
+                      {/* Action buttons - show for all feeds */}
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Bell icon - show for all non-default feeds */}
+                        {!feed.is_default && (
+                          <button
+                            onClick={(e) => handleSubscribeToggle(feed, e)}
+                            className={`p-1 rounded-full ${
+                              selectedFeedId === feed.id
+                                ? 'hover:bg-black/10 text-black'
+                                : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                            }`}
+                            title={subscribedFeeds.has(feed.id) ? "Unsubscribe from notifications" : "Subscribe to notifications"}
+                          >
+                            {subscribedFeeds.has(feed.id) ? (
+                              <Bell className="h-3 w-3 fill-current" />
+                            ) : (
+                              <BellOff className="h-3 w-3" />
+                            )}
+                          </button>
+                        )}
+                        {/* Edit and Delete buttons - only for non-default feeds */}
+                        {!feed.is_default && (
+                          <>
+                            <button
+                              onClick={(e) => handleEditClick(feed, e)}
+                              className={`p-1 rounded-full ${
+                                selectedFeedId === feed.id
+                                  ? 'hover:bg-black/10 text-black'
+                                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                              }`}
+                              title="Edit feed"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteClick(feed, e)}
+                              className={`p-1 rounded-full ${
+                                selectedFeedId === feed.id
+                                  ? 'hover:bg-black/10 text-black'
+                                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                              }`}
+                              title="Delete feed"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Create New Feed Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewFeedClick}
+                    className="border-dashed border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    New Feed
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Live Updates Header */}
+            <div className="mb-4 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                {/* Live Indicator */}
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <Radio className="h-5 w-5 text-[hsl(280,100%,70%)]" />
+                    <span className="absolute top-0 right-0 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(280,100%,70%)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(280,100%,70%)]"></span>
+                    </span>
+                  </div>
+                  <h1 className="text-xl font-alata font-bold text-foreground">
+                    Market <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)]">Pulse</span>
+                  </h1>
+                </div>
+
+                {/* Post Count */}
+                <Badge variant="outline" className="border-border text-muted-foreground font-alata">
+                  {posts.length} updates
+                </Badge>
+              </div>
+
             </div>
 
-            {/* Post Count */}
-            <Badge variant="outline" className="border-border text-muted-foreground font-alata">
-              {posts.length} updates
-            </Badge>
-          </div>
-
-        </div>
-
-        {/* Posts List */}
-        <div className="space-y-4">
+            {/* Posts List */}
+            <div className="space-y-4">
           {isLoadingPosts && posts.length === 0 ? (
             // Loading skeleton
             <>
@@ -508,6 +613,25 @@ export default function Feed() {
               )}
             </>
           )}
+            </div>
+          </div>
+
+          {/* Vertical Divider */}
+          {isSidebarOpen && (
+            <div className="w-px bg-border flex-shrink-0 animate-in fade-in duration-500"></div>
+          )}
+
+          {/* Right Side - Sidebar */}
+          {isSidebarOpen && (
+            <div className="w-[480px] flex-shrink-0 animate-in slide-in-from-right duration-500">
+              <FeedSidebar
+                isOpen={isSidebarOpen}
+                onClose={handleSidebarClose}
+                onFeedCreated={handleFeedCreated}
+                editingFeedId={editingFeedId}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -546,13 +670,6 @@ export default function Feed() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Feed Creation Sidebar */}
-      <FeedSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onFeedCreated={handleFeedCreated}
-      />
     </div>
   );
 }

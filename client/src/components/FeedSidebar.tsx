@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Save, X, Maximize2, Minimize2 } from 'lucide-react';
-import { filtersApi, feedConfigApi, FilterConfig } from '@/lib/api';
+import { Loader2, Save, X } from 'lucide-react';
+import { filtersApi, feedConfigApi, FilterConfig, FilterGroup } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,26 +26,30 @@ interface FeedSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onFeedCreated: () => void;
+  editingFeedId?: number | null;
 }
 
-export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSidebarProps) {
+export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFeedId }: FeedSidebarProps) {
   const { toast } = useToast();
 
   const [filterConfigs, setFilterConfigs] = useState<FilterConfig[]>([]);
+  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
   const [numberFilterStates, setNumberFilterStates] = useState<Record<string, NumberFilterState>>({});
   const [feedName, setFeedName] = useState('');
   const [feedDescription, setFeedDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoadingFeed, setIsLoadingFeed] = useState(false);
 
-  // Fetch filter configuration
+  // Fetch filter configuration and load existing feed if editing
   useEffect(() => {
     const fetchFilters = async () => {
       try {
         const response = await filtersApi.getFilterConfig();
         setFilterConfigs(response.filters);
+        // Groups are already sorted by backend
+        setFilterGroups(response.groups || []);
 
         // Initialize number filter states with default operators
         const initialStates: Record<string, NumberFilterState> = {};
@@ -57,6 +62,44 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
           }
         });
         setNumberFilterStates(initialStates);
+
+        // Load existing feed data if editing
+        if (editingFeedId) {
+          setIsLoadingFeed(true);
+          try {
+            const feedData = await feedConfigApi.getFeedConfiguration(editingFeedId);
+            setFeedName(feedData.name);
+            setFeedDescription(feedData.description || '');
+
+            // Populate filter values from existing feed
+            const newFilterValues: Record<string, any> = {};
+            const newNumberStates: Record<string, NumberFilterState> = { ...initialStates };
+
+            feedData.filter_criteria.filters.forEach(filter => {
+              const config = response.filters.find(c => c.field === filter.field);
+              if (config?.type === 'boolean') {
+                newFilterValues[filter.field] = filter.value;
+              } else if (config?.type === 'number') {
+                newNumberStates[filter.field] = {
+                  value: filter.value.toString(),
+                  operator: filter.operator,
+                };
+              }
+            });
+
+            setFilterValues(newFilterValues);
+            setNumberFilterStates(newNumberStates);
+          } catch (err) {
+            const errorInfo = getErrorMessage(err);
+            toast({
+              variant: 'destructive',
+              title: errorInfo.title,
+              description: errorInfo.message,
+            });
+          } finally {
+            setIsLoadingFeed(false);
+          }
+        }
       } catch (err) {
         const errorInfo = getErrorMessage(err);
         toast({
@@ -72,7 +115,7 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
     if (isOpen) {
       fetchFilters();
     }
-  }, [isOpen, toast]);
+  }, [isOpen, editingFeedId, toast]);
 
   // Reset form when sidebar closes
   useEffect(() => {
@@ -80,7 +123,6 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
       setFeedName('');
       setFeedDescription('');
       setFilterValues({});
-      setIsExpanded(false);
       // Reset number filter states
       const initialStates: Record<string, NumberFilterState> = {};
       filterConfigs.forEach(config => {
@@ -125,19 +167,19 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
     }));
   };
 
-  // Get operator label
+  // Get operator symbol
   const getOperatorLabel = (operator: string): string => {
     const labels: Record<string, string> = {
-      'gte': '≥ (Greater than or equal)',
-      'lte': '≤ (Less than or equal)',
-      'gt': '> (Greater than)',
-      'lt': '< (Less than)',
-      'eq': '= (Equal to)',
+      'gte': '≥',
+      'lte': '≤',
+      'gt': '>',
+      'lt': '<',
+      'eq': '=',
     };
     return labels[operator] || operator;
   };
 
-  // Handle save feed configuration
+  // Handle save feed configuration (create or update)
   const handleSaveFeed = async () => {
     if (!feedName.trim()) {
       toast({
@@ -200,7 +242,7 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
 
     setIsSaving(true);
     try {
-      await feedConfigApi.createFeedConfiguration({
+      const feedData = {
         name: feedName,
         description: feedDescription || undefined,
         filter_criteria: {
@@ -208,15 +250,75 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
           sort_by: 'created_at',
           sort_order: 'desc',
         },
-      });
+      };
 
-      toast({
-        title: 'Success',
-        description: 'Feed configuration created successfully',
-      });
+      if (editingFeedId) {
+        // Update existing feed
+        await feedConfigApi.updateFeedConfiguration(editingFeedId, feedData);
+        toast({
+          title: 'Success',
+          description: 'Feed configuration updated successfully. Review your feed below.',
+        });
 
-      onFeedCreated();
-      onClose();
+        // Reload feed configurations to show updated feed
+        onFeedCreated();
+
+        // Keep sidebar open - reload the updated feed data
+        setIsLoadingFeed(true);
+        try {
+          const updatedFeed = await feedConfigApi.getFeedConfiguration(editingFeedId);
+          setFeedName(updatedFeed.name);
+          setFeedDescription(updatedFeed.description || '');
+
+          // Populate filter values from updated feed
+          const newFilterValues: Record<string, any> = {};
+          const newNumberStates: Record<string, NumberFilterState> = {};
+
+          // Initialize with defaults
+          filterConfigs.forEach(config => {
+            if (config.type === 'number' && config.operators && config.operators.length > 0) {
+              newNumberStates[config.field] = {
+                value: '',
+                operator: config.operators[0],
+              };
+            }
+          });
+
+          updatedFeed.filter_criteria.filters.forEach(filter => {
+            const config = filterConfigs.find(c => c.field === filter.field);
+            if (config?.type === 'boolean') {
+              newFilterValues[filter.field] = filter.value;
+            } else if (config?.type === 'number') {
+              newNumberStates[filter.field] = {
+                value: filter.value.toString(),
+                operator: filter.operator,
+              };
+            }
+          });
+
+          setFilterValues(newFilterValues);
+          setNumberFilterStates(newNumberStates);
+        } catch (err) {
+          const errorInfo = getErrorMessage(err);
+          toast({
+            variant: 'destructive',
+            title: errorInfo.title,
+            description: errorInfo.message,
+          });
+        } finally {
+          setIsLoadingFeed(false);
+        }
+      } else {
+        // Create new feed
+        await feedConfigApi.createFeedConfiguration(feedData);
+        toast({
+          title: 'Success',
+          description: 'Feed configuration created successfully',
+        });
+
+        onFeedCreated();
+        onClose();
+      }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
       toast({
@@ -227,6 +329,125 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Format number with thousand separators and proper formatting
+  const formatNumber = (value: string): string => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+
+    // Format with commas for thousands
+    return new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    }).format(num);
+  };
+
+  // Format number for display in input field (add commas)
+  const formatNumberForInput = (value: string): string => {
+    if (!value) return '';
+    // Remove all non-numeric characters except decimal point
+    const cleanValue = value.replace(/[^\d.]/g, '');
+    const num = parseFloat(cleanValue);
+    if (isNaN(num)) return value;
+
+    return new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      useGrouping: true,
+    }).format(num);
+  };
+
+  // Parse formatted number back to raw value
+  const parseFormattedNumber = (value: string): string => {
+    // Remove all commas and spaces
+    return value.replace(/[,\s]/g, '');
+  };
+
+  // Helper function to get human-readable filter description
+  const getFilterDescription = (config: FilterConfig): string | null => {
+    if (config.type === 'boolean') {
+      return filterValues[config.field] === true ? config.label : null;
+    } else if (config.type === 'number') {
+      const state = numberFilterStates[config.field];
+      if (state && state.value && state.value.trim() !== '') {
+        const operatorLabel = getOperatorLabel(state.operator);
+        const formattedValue = formatNumber(state.value);
+        return `${config.label} ${operatorLabel} ${formattedValue}${config.unit ? ' ' + config.unit : ''}`;
+      }
+    }
+    return null;
+  };
+
+  // Build query preview for a group with syntax highlighting
+  const buildGroupQueryPreview = (group: FilterGroup): React.ReactNode | null => {
+    const groupFilters = filterConfigs.filter(f => f.group === group.group_id);
+    const activeDescriptions = groupFilters
+      .map(config => getFilterDescription(config))
+      .filter(desc => desc !== null);
+
+    if (activeDescriptions.length === 0) return null;
+
+    const operator = group.group_operator === 'and' ? 'AND' : 'OR';
+
+    return (
+      <>
+        {activeDescriptions.map((desc, idx) => (
+          <span key={idx}>
+            {idx > 0 && (
+              <span className="text-[hsl(280,100%,70%)] font-semibold mx-2">
+                {operator}
+              </span>
+            )}
+            <span>{desc}</span>
+          </span>
+        ))}
+      </>
+    );
+  };
+
+  // Build full query preview combining all groups with syntax highlighting
+  const buildFullQueryPreview = (): React.ReactNode | null => {
+    const groupPreviews = filterGroups
+      .map(group => {
+        const groupFilters = filterConfigs.filter(f => f.group === group.group_id);
+        const activeDescriptions = groupFilters
+          .map(config => getFilterDescription(config))
+          .filter(desc => desc !== null);
+
+        if (activeDescriptions.length === 0) return null;
+
+        const operator = group.group_operator === 'and' ? 'AND' : 'OR';
+        return {
+          label: group.group_label,
+          preview: activeDescriptions.join(` ${operator} `),
+        };
+      })
+      .filter(p => p !== null);
+
+    if (groupPreviews.length === 0) return null;
+    if (groupPreviews.length === 1) {
+      return <span>({groupPreviews[0].preview})</span>;
+    }
+
+    // Combine groups with AND (groups are always combined with AND)
+    return (
+      <div className="space-y-2">
+        {groupPreviews.map((group, idx) => (
+          <div key={idx}>
+            {idx > 0 && (
+              <div className="text-[hsl(280,100%,70%)] font-bold text-center my-1">
+                AND
+              </div>
+            )}
+            <div className="text-muted-foreground text-xs mb-1 opacity-70">
+              {group.label}:
+            </div>
+            <div>({group.preview})</div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   // Render filter input based on type
@@ -254,12 +475,12 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
                   value={state.operator}
                   onValueChange={(value) => handleNumberFilterOperatorChange(config.field, value)}
                 >
-                  <SelectTrigger className="bg-background border-border text-foreground font-alata">
+                  <SelectTrigger className="bg-background border-border text-foreground font-mono text-2xl h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {config.operators.map((op) => (
-                      <SelectItem key={op} value={op} className="font-alata">
+                      <SelectItem key={op} value={op} className="font-mono text-xl">
                         {getOperatorLabel(op)}
                       </SelectItem>
                     ))}
@@ -274,20 +495,29 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
                 Value
                 {config.range && (
                   <span className="ml-1">
-                    ({config.range.min} - {config.range.max})
+                    ({formatNumber(config.range.min.toString())} - {formatNumber(config.range.max.toString())})
                   </span>
                 )}
               </Label>
               <div className="relative">
                 <Input
                   id={config.field}
-                  type="number"
-                  placeholder={config.range ? `${config.range.min} - ${config.range.max}` : 'Enter value'}
-                  value={state.value}
-                  onChange={(e) => handleNumberFilterValueChange(config.field, e.target.value)}
-                  min={config.range?.min}
-                  max={config.range?.max}
-                  className="bg-background border-border text-foreground font-alata"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder={config.range ? `e.g., ${formatNumber(config.range.min.toString())}` : 'Enter value'}
+                  value={state.value ? formatNumberForInput(state.value) : ''}
+                  onChange={(e) => {
+                    const rawValue = parseFormattedNumber(e.target.value);
+                    handleNumberFilterValueChange(config.field, rawValue);
+                  }}
+                  onBlur={(e) => {
+                    // Format on blur for better UX
+                    const rawValue = parseFormattedNumber(e.target.value);
+                    if (rawValue) {
+                      handleNumberFilterValueChange(config.field, rawValue);
+                    }
+                  }}
+                  className="bg-background border-border text-foreground font-mono text-lg tracking-wider pr-12 h-11"
                 />
                 {config.unit && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-alata">
@@ -326,90 +556,111 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity ${isExpanded ? 'opacity-100' : 'opacity-100'}`}
-        onClick={onClose}
-      />
+    <div className="h-[calc(100vh-5rem)] bg-background border border-border rounded-lg flex flex-col sticky top-4">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <h2 className="text-xl font-alata font-bold text-foreground">
+          {editingFeedId ? 'Edit Feed' : 'Create Custom Feed'}
+        </h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-5 w-5" />
+        </Button>
+      </div>
 
-      {/* Sidebar */}
-      <div
-        className={`fixed right-0 top-0 h-full bg-background border-l border-border z-50 transition-all duration-300 flex flex-col ${
-          isExpanded ? 'w-full' : 'w-full md:w-[600px]'
-        }`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-xl font-alata font-bold text-foreground">Create Custom Feed</h2>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-muted-foreground hover:text-foreground"
-              title={isExpanded ? 'Collapse' : 'Expand to full page'}
-            >
-              {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {isLoadingFilters || isLoadingFeed ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Feed Details */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-foreground font-alata">Feed Details</CardTitle>
+                <CardDescription className="text-muted-foreground font-alata">
+                  Give your custom feed a name and description
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="feedName" className="text-foreground font-alata">
+                    Feed Name *
+                  </Label>
+                  <Input
+                    id="feedName"
+                    type="text"
+                    placeholder="e.g., Growth Stocks Feed"
+                    value={feedName}
+                    onChange={(e) => setFeedName(e.target.value)}
+                    className="bg-background border-border text-foreground font-alata"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="feedDescription" className="text-foreground font-alata">
+                    Description (Optional)
+                  </Label>
+                  <Input
+                    id="feedDescription"
+                    type="text"
+                    placeholder="e.g., Posts related to high-growth companies"
+                    value={feedDescription}
+                    onChange={(e) => setFeedDescription(e.target.value)}
+                    className="bg-background border-border text-foreground font-alata"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {isLoadingFilters ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Feed Details */}
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="text-foreground font-alata">Feed Details</CardTitle>
-                  <CardDescription className="text-muted-foreground font-alata">
-                    Give your custom feed a name and description
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="feedName" className="text-foreground font-alata">
-                      Feed Name *
-                    </Label>
-                    <Input
-                      id="feedName"
-                      type="text"
-                      placeholder="e.g., Growth Stocks Feed"
-                      value={feedName}
-                      onChange={(e) => setFeedName(e.target.value)}
-                      className="bg-background border-border text-foreground font-alata"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="feedDescription" className="text-foreground font-alata">
-                      Description (Optional)
-                    </Label>
-                    <Input
-                      id="feedDescription"
-                      type="text"
-                      placeholder="e.g., Posts related to high-growth companies"
-                      value={feedDescription}
-                      onChange={(e) => setFeedDescription(e.target.value)}
-                      className="bg-background border-border text-foreground font-alata"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Filter Configuration - Grouped */}
+            {filterGroups.length > 0 ? (
+              // Render grouped filters (already sorted by backend)
+              filterGroups.map((group) => {
+                const groupFilters = filterConfigs.filter(f => f.group === group.group_id);
+                if (groupFilters.length === 0) return null;
 
-              {/* Filter Configuration */}
+                return (
+                  <Card key={group.group_id} className="bg-card border-border">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-foreground font-alata">{group.group_label}</CardTitle>
+                        <Badge
+                          variant="outline"
+                          className="border-border text-muted-foreground font-alata text-xs"
+                        >
+                          {group.group_operator.toUpperCase()} Logic
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-muted-foreground font-alata">
+                        {group.group_description || `Select ${group.group_label.toLowerCase()} for your feed`}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {groupFilters.map((config) => renderFilterInput(config))}
+
+                      {/* Query Preview */}
+                      {buildGroupQueryPreview(group) && (
+                        <div className="mt-6 pt-4 border-t border-border">
+                          <div className="text-xs font-semibold text-muted-foreground font-alata mb-2">
+                            Query Preview:
+                          </div>
+                          <div className="bg-muted/50 rounded-md p-3 font-mono text-xs text-foreground leading-relaxed">
+                            {buildGroupQueryPreview(group)}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              // Fallback: render without grouping
               <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="text-foreground font-alata">Filter Criteria</CardTitle>
@@ -427,40 +678,67 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated }: FeedSide
                   )}
                 </CardContent>
               </Card>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border bg-background">
-          <div className="flex justify-end space-x-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="border-border text-foreground hover:bg-muted font-alata"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveFeed}
-              disabled={isSaving}
-              className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Create Feed
-                </>
-              )}
-            </Button>
+            {/* Combined Query Preview - Shows how all groups combine */}
+            {buildFullQueryPreview() && filterGroups.length > 1 && (
+              <Card className="bg-card border-border border-[hsl(280,100%,70%)]/30">
+                <CardHeader>
+                  <div className="flex items-center space-x-2">
+                    <CardTitle className="text-foreground font-alata text-base">
+                      Combined Feed Query
+                    </CardTitle>
+                    <Badge
+                      variant="outline"
+                      className="bg-gradient-to-r from-[hsl(280,100%,70%)]/10 to-[hsl(200,100%,70%)]/10 border-[hsl(280,100%,70%)]/30 text-foreground font-alata text-xs"
+                    >
+                      Your Filter Logic
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-muted-foreground font-alata text-xs">
+                    Posts matching this combined query will appear in your feed
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted/50 rounded-md p-4 font-mono text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                    {buildFullQueryPreview()}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-border bg-background">
+        <div className="flex justify-end space-x-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="border-border text-foreground hover:bg-muted font-alata"
+          >
+            Close
+          </Button>
+          <Button
+            onClick={handleSaveFeed}
+            disabled={isSaving}
+            className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {editingFeedId ? 'Updating...' : 'Creating...'}
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                {editingFeedId ? 'Update Feed' : 'Create Feed'}
+              </>
+            )}
+          </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,5 +1,8 @@
+import { EventSourcePolyfill } from 'event-source-polyfill';
+
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://0.0.0.0:8000';
+// Use relative URL for same-origin requests through Traefik (no CORS)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 // Token refresh state
 let isRefreshing = false;
@@ -463,6 +466,19 @@ export const feedConfigApi = {
     return handleResponse<FeedConfiguration>(response);
   },
 
+  async updateFeedConfiguration(feedId: number, data: {
+    name?: string;
+    description?: string;
+    filter_criteria?: FeedConfiguration['filter_criteria'];
+  }): Promise<FeedConfiguration> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/feeds/config/${feedId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<FeedConfiguration>(response);
+  },
+
   async deleteFeedConfiguration(feedId: number): Promise<void> {
     const response = await fetchWithAuth(`${API_BASE_URL}/feeds/config/${feedId}`, {
       method: 'DELETE',
@@ -592,8 +608,9 @@ export const commentsApi = {
 export interface FilterConfig {
   field: string;
   label: string;
-  type: 'number' | 'boolean';
+  type: 'number' | 'boolean' | 'string';
   description: string;
+  group: string; // Group ID reference
   range?: {
     min: number;
     max: number;
@@ -602,13 +619,95 @@ export interface FilterConfig {
   operators?: Array<'gte' | 'lte' | 'lt' | 'gt' | 'eq'>;
 }
 
+export interface FilterGroup {
+  group_id: string;
+  group_label: string;
+  group_description?: string;
+  group_operator: 'and' | 'or';
+  order: number;
+}
+
 export interface FilterConfigResponse {
   filters: FilterConfig[];
+  groups: FilterGroup[]; // Array of groups, sorted by order
 }
 
 export const filtersApi = {
   async getFilterConfig(): Promise<FilterConfigResponse> {
     const response = await fetch(`${API_BASE_URL}/filters/config`);
     return handleResponse<FilterConfigResponse>(response);
+  },
+};
+
+// Notifications API
+export interface Notification {
+  id: number;
+  message: string;
+  delivered: boolean;
+  read: boolean;
+  created_at: string;
+  delivered_at: string | null;
+  post_id: number | null;
+}
+
+export interface NotificationCountResponse {
+  unread_count: number;
+}
+
+export const notificationsApi = {
+  async getNotifications(unreadOnly: boolean = false, limit: number = 50): Promise<Notification[]> {
+    const queryParams = new URLSearchParams();
+    if (unreadOnly) queryParams.append('unread_only', 'true');
+    queryParams.append('limit', limit.toString());
+
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/notifications?${queryParams.toString()}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return handleResponse<Notification[]>(response);
+  },
+
+  async getUnreadCount(): Promise<NotificationCountResponse> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/notifications/count`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<NotificationCountResponse>(response);
+  },
+
+  async markAsRead(notificationId: number): Promise<void> {
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/notifications/${notificationId}/mark-read`,
+      {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      }
+    );
+    return handleResponse<void>(response);
+  },
+
+  async markAllAsRead(): Promise<void> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/notifications/mark-all-read`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<void>(response);
+  },
+
+  // SSE connection for real-time notifications
+  createSSEConnection(): EventSource {
+    const token = localStorage.getItem('authToken');
+
+    // Use EventSourcePolyfill to support Authorization header
+    // Native EventSource doesn't support custom headers
+    const eventSource = new EventSourcePolyfill(`${API_BASE_URL}/notifications/stream`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      withCredentials: true,
+    }) as EventSource;
+
+    return eventSource;
   },
 };
