@@ -5,11 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
+import { formatTimeAgo } from '@/lib/dateUtils';
 
 interface Thread {
   id: number;
@@ -325,7 +325,7 @@ export default function PostDetailPage() {
     );
   }
 
-  const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
+  const timeAgo = formatTimeAgo(post.created_at);
 
   return (
     <div className="min-h-screen bg-background">
@@ -509,7 +509,7 @@ export default function PostDetailPage() {
                         <p className="text-foreground font-alata">{comment.content}</p>
                         <div className="flex items-center space-x-4 mt-2">
                           <p className="text-xs text-muted-foreground font-alata">
-                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                            {formatTimeAgo(comment.created_at)}
                           </p>
                           {user && (
                             <>
@@ -609,7 +609,7 @@ export default function PostDetailPage() {
                                   <p className="text-foreground font-alata text-sm">{reply.content}</p>
                                   <div className="flex items-center space-x-3 mt-1">
                                     <p className="text-xs text-muted-foreground font-alata">
-                                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                                      {formatTimeAgo(reply.created_at)}
                                     </p>
                                     {user && (
                                       <button

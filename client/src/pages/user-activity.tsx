@@ -7,7 +7,7 @@ import { userActivityApi, UserActivityResponse, UserActivity } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo, formatLocalizedDate } from '@/lib/dateUtils';
 
 export default function UserActivityPage() {
   const [match, params] = useRoute('/users/:userId');
@@ -89,22 +89,6 @@ export default function UserActivityPage() {
       });
     } finally {
       setIsLoadingMore(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return 'Unknown';
-      }
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return 'Unknown';
     }
   };
 
@@ -191,7 +175,7 @@ export default function UserActivityPage() {
                 <span className="text-foreground font-medium">{activity.post.profile.title}</span>
               </span>
               <span>•</span>
-              <span>{formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}</span>
+              <span>{formatTimeAgo(activity.created_at)}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -286,7 +270,7 @@ export default function UserActivityPage() {
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-2" />
-                    <span className="font-alata">Joined {formatDate(activityData.created_at)}</span>
+                    <span className="font-alata">Joined {formatLocalizedDate(activityData.created_at)}</span>
                   </div>
                   {activityData.total_count > 0 && (
                     <div className="flex items-center">

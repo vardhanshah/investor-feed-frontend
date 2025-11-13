@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, ExternalLink, Share2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { reactionsApi, PostAttributes, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
+import { formatTimeAgo } from '@/lib/dateUtils';
 
 export interface Post {
   id: number;
@@ -28,7 +28,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
+  const timeAgo = formatTimeAgo(post.created_at);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isLiked, setIsLiked] = useState(post.user_liked);

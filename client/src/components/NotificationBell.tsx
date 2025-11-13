@@ -8,11 +8,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { notificationsApi, Notification } from '@/lib/api';
-import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { formatTimeAgo } from '@/lib/dateUtils';
 
 export function NotificationBell() {
   const { toast } = useToast();
@@ -222,9 +222,7 @@ export function NotificationBell() {
                         {notification.message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 font-alata">
-                        {formatDistanceToNow(new Date(notification.created_at), {
-                          addSuffix: true,
-                        })}
+                        {formatTimeAgo(notification.created_at)}
                       </p>
                     </div>
                   </div>
