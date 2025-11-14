@@ -30,54 +30,65 @@ export function NotificationBell() {
     }
   }, [isOpen]);
 
-  // Set up SSE connection for real-time notifications
+  // Set up SSE connection for real-time notifications using Mercure
   useEffect(() => {
     // Load initial unread count
     loadUnreadCount();
 
-    // Create SSE connection
-    const eventSource = notificationsApi.createSSEConnection();
-    eventSourceRef.current = eventSource;
-
-    // Handle incoming notifications
-    eventSource.addEventListener('notification', (event: MessageEvent) => {
+    // Create SSE connection asynchronously
+    const setupSSEConnection = async () => {
       try {
-        const notification: Notification = JSON.parse(event.data);
+        const eventSource = await notificationsApi.createSSEConnection();
+        eventSourceRef.current = eventSource;
 
-        // Add new notification to the list
-        setNotifications(prev => [notification, ...prev]);
+        // Handle incoming notifications
+        eventSource.onmessage = (event: MessageEvent) => {
+          try {
+            const notification: Notification = JSON.parse(event.data);
 
-        // Increment unread count
-        setUnreadCount(prev => prev + 1);
+            // Add new notification to the list
+            setNotifications(prev => [notification, ...prev]);
 
-        // Show toast for the new notification
-        toast({
-          title: 'New Notification',
-          description: notification.message,
+            // Increment unread count
+            setUnreadCount(prev => prev + 1);
+
+            // Show toast for the new notification
+            toast({
+              title: 'New Notification',
+              description: notification.message,
+            });
+          } catch (err) {
+            console.error('Failed to parse notification:', err);
+          }
+        };
+
+        // Handle connection open
+        eventSource.addEventListener('open', () => {
+          console.log('[Mercure SSE] Connected to notification stream');
+        });
+
+        // Handle errors
+        eventSource.addEventListener('error', (error) => {
+          console.error('[Mercure SSE] Connection error:', error);
+
+          // EventSource will automatically attempt to reconnect
+          // We can add custom reconnection logic here if needed
         });
       } catch (err) {
-        console.error('Failed to parse notification:', err);
+        console.error('Failed to establish Mercure SSE connection:', err);
+        // Could show a toast notification about connection failure
       }
-    });
+    };
 
-    // Handle connection open
-    eventSource.addEventListener('open', () => {
-      console.log('[SSE] Connected to notification stream');
-    });
-
-    // Handle errors
-    eventSource.addEventListener('error', (error) => {
-      console.error('[SSE] Connection error:', error);
-
-      // EventSource will automatically attempt to reconnect
-      // We can add custom reconnection logic here if needed
-    });
+    setupSSEConnection();
 
     // Cleanup on unmount
     return () => {
-      console.log('[SSE] Closing notification stream');
-      eventSource.close();
-      eventSourceRef.current = null;
+      if (eventSourceRef.current) {
+        console.log('[Mercure SSE] Closing notification stream');
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
     };
   }, []);
 
