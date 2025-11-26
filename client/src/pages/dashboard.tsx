@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { FaTwitter, FaSignOutAlt, FaUser, FaCog } from 'react-icons/fa';
 import { Bell, TrendingUp, FileText, Calendar } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { formatLocalizedDate } from '@/lib/dateUtils';
 
 interface User {
   id: string;
@@ -160,7 +161,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-alata text-white font-bold">
-                {new Date(user.joinedDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                {formatLocalizedDate(user.joinedDate, { month: 'short', year: 'numeric' })}
               </div>
               <p className="text-xs text-gray-400 font-alata">Active member</p>
             </CardContent>

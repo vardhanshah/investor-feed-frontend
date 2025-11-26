@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { reactionsApi, PostAttributes, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
-import { formatTimeAgo } from '@/lib/dateUtils';
+import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
 
 export interface Post {
   id: number;
@@ -14,7 +14,7 @@ export interface Post {
   profile_id: number;
   profile_title?: string;
   source: string | null;
-  created_at: string;
+  submission_date: string;
   images: string[];
   reaction_count: number;
   comment_count: number;
@@ -28,7 +28,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const timeAgo = formatTimeAgo(post.created_at);
+  const timeAgo = formatTimeAgoTwoUnits(post.submission_date);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isLiked, setIsLiked] = useState(post.user_liked);

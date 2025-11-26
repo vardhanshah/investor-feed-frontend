@@ -1,4 +1,4 @@
-import { formatDistanceToNow, format, parseISO } from 'date-fns';
+import { formatDistanceToNow, format, parseISO, differenceInSeconds } from 'date-fns';
 
 /**
  * Converts a UTC timestamp string to the user's local timezone and returns a Date object.
@@ -34,6 +34,56 @@ export function formatTimeAgo(
   try {
     const localDate = parseUTCToLocal(utcTimestamp);
     return formatDistanceToNow(localDate, { addSuffix: true, ...options });
+  } catch (error) {
+    console.error('Failed to format time ago:', utcTimestamp, error);
+    return 'Unknown time';
+  }
+}
+
+/**
+ * Formats a UTC timestamp as relative time with two units (e.g., "2 hrs 30 mins ago")
+ * Automatically converts to user's local timezone
+ *
+ * @param utcTimestamp - UTC timestamp string
+ * @returns Formatted relative time string with two units
+ */
+export function formatTimeAgoTwoUnits(utcTimestamp: string): string {
+  try {
+    const localDate = parseUTCToLocal(utcTimestamp);
+    const now = new Date();
+    const totalSeconds = differenceInSeconds(now, localDate);
+
+    if (totalSeconds < 0) {
+      return 'just now';
+    }
+
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const parts: string[] = [];
+
+    if (days > 0) {
+      parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
+      if (hours > 0) {
+        parts.push(`${hours} ${hours === 1 ? 'hr' : 'hrs'}`);
+      }
+    } else if (hours > 0) {
+      parts.push(`${hours} ${hours === 1 ? 'hr' : 'hrs'}`);
+      if (minutes > 0) {
+        parts.push(`${minutes} ${minutes === 1 ? 'min' : 'mins'}`);
+      }
+    } else if (minutes > 0) {
+      parts.push(`${minutes} ${minutes === 1 ? 'min' : 'mins'}`);
+      if (seconds > 0) {
+        parts.push(`${seconds} ${seconds === 1 ? 'sec' : 'secs'}`);
+      }
+    } else {
+      parts.push(`${seconds} ${seconds === 1 ? 'sec' : 'secs'}`);
+    }
+
+    return parts.join(' ') + ' ago';
   } catch (error) {
     console.error('Failed to format time ago:', utcTimestamp, error);
     return 'Unknown time';
