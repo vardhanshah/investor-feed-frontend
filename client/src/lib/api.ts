@@ -695,21 +695,21 @@ export const notificationsApi = {
     return handleResponse<void>(response);
   },
 
-  // Get Mercure authentication details
-  async getMercureAuth(): Promise<{ mercure_url: string; token: string; topic: string }> {
+  // Get Mercure authentication details (token and topic only)
+  async getMercureAuth(): Promise<{ token: string; topic: string }> {
     const response = await fetchWithAuth(`${API_BASE_URL}/notifications/mercure/auth`, {
       headers: getAuthHeaders(),
     });
-    return handleResponse<{ mercure_url: string; token: string; topic: string }>(response);
+    return handleResponse<{ token: string; topic: string }>(response);
   },
 
   // SSE connection for real-time notifications using Mercure
   async createSSEConnection(): Promise<EventSource> {
-    // 1. Get auth details from backend
-    const { mercure_url, token, topic } = await this.getMercureAuth();
+    // 1. Get auth details from backend (token and topic)
+    const { token, topic } = await this.getMercureAuth();
 
-    // 2. Connect to Mercure with token
-    const url = new URL(mercure_url);
+    // 2. Connect to Mercure at {host}/streams
+    const url = new URL('/streams', window.location.origin);
     url.searchParams.append('topic', topic);
 
     // Use EventSourcePolyfill to support Authorization header
