@@ -9,9 +9,12 @@ import { formatDistanceToNow, format, parseISO, differenceInSeconds } from 'date
  */
 export function parseUTCToLocal(utcTimestamp: string): Date {
   try {
+    // Ensure the timestamp has a Z suffix to indicate UTC
+    // Backend sends timestamps without Z, so we need to append it
+    const utcString = utcTimestamp.endsWith('Z') ? utcTimestamp : utcTimestamp + 'Z';
     // parseISO from date-fns handles ISO 8601 strings properly
     // The resulting Date object is automatically in the user's local timezone
-    return parseISO(utcTimestamp);
+    return parseISO(utcString);
   } catch (error) {
     console.error('Failed to parse timestamp:', utcTimestamp, error);
     // Return current date as fallback
