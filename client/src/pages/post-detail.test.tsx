@@ -39,12 +39,16 @@ vi.mock('@/contexts/AuthContext', () => ({
 const mockPostDetail = {
   id: 123,
   content: 'This is a test post about our Q3 results',
-  profile_id: 1,
-  profile_title: 'Test Company',
+  profile: {
+    id: 1,
+    title: 'Test Company',
+  },
   source: 'https://example.com/news',
   created_at: '2024-10-15T10:00:00',
+  submission_date: '2024-10-15T10:00:00',
   images: [],
   reaction_count: 15,
+  comment_count: 2,
   comments: [
     {
       id: 1,
@@ -641,7 +645,7 @@ describe('PostDetailPage', () => {
     it('should handle post with no profile title', async () => {
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostDetail,
-        profile_title: undefined,
+        profile: { id: 1, title: '' },
       });
 
       render(<PostDetailPage />);

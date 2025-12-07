@@ -40,8 +40,11 @@ export const mockPosts: Post[] = [
   {
     id: 1,
     content: 'Excited to announce our Q3 results - 25% growth!',
-    profile_id: 1,
-    profile_title: 'TechCorp Inc',
+    profile: {
+      id: 1,
+      title: 'TechCorp Inc',
+      attributes: { sector: 'Technology', region: 'North America' },
+    },
     source: 'https://example.com/news/1',
     created_at: '2025-10-15T10:00:00',
     images: [],
@@ -53,8 +56,11 @@ export const mockPosts: Post[] = [
   {
     id: 2,
     content: 'Just closed a $50M Series B round led by top VCs',
-    profile_id: 1,
-    profile_title: 'TechCorp Inc',
+    profile: {
+      id: 1,
+      title: 'TechCorp Inc',
+      attributes: { sector: 'Technology', region: 'North America' },
+    },
     source: null,
     created_at: '2025-10-15T09:00:00',
     images: [],
@@ -66,8 +72,11 @@ export const mockPosts: Post[] = [
   {
     id: 3,
     content: 'Launching new AI-powered investment platform',
-    profile_id: 2,
-    profile_title: 'InvestPro Capital',
+    profile: {
+      id: 2,
+      title: 'InvestPro Capital',
+      attributes: { sector: 'Finance', type: 'Venture Capital' },
+    },
     source: 'https://example.com/news/3',
     created_at: '2025-10-15T08:00:00',
     images: [],
@@ -79,8 +88,11 @@ export const mockPosts: Post[] = [
   {
     id: 4,
     content: 'Expanding operations to 5 new markets across Asia',
-    profile_id: 3,
-    profile_title: 'FinanceHub',
+    profile: {
+      id: 3,
+      title: 'FinanceHub',
+      attributes: { sector: 'Financial Services', region: 'Asia Pacific' },
+    },
     source: null,
     created_at: '2025-10-14T15:00:00',
     images: [],
@@ -92,8 +104,11 @@ export const mockPosts: Post[] = [
   {
     id: 5,
     content: 'Partnership announcement with Fortune 500 company',
-    profile_id: 1,
-    profile_title: 'TechCorp Inc',
+    profile: {
+      id: 1,
+      title: 'TechCorp Inc',
+      attributes: { sector: 'Technology', region: 'North America' },
+    },
     source: 'https://example.com/news/5',
     created_at: '2025-10-14T12:00:00',
     images: [],

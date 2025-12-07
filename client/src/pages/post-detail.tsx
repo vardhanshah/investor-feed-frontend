@@ -30,11 +30,17 @@ interface Comment {
   created_at: string;
 }
 
+interface PostProfile {
+  id: number;
+  title: string;
+  external_id?: string;
+  attributes?: Record<string, any>;
+}
+
 interface PostDetail {
   id: number;
   content: string;
-  profile_id: number;
-  profile_title?: string;
+  profile: PostProfile;
   source: string | null;
   created_at: string;
   images: string[];
@@ -353,20 +359,35 @@ export default function PostDetailPage() {
             {/* Profile Header */}
             <div className="flex items-center justify-between mb-4">
               <button
-                onClick={() => setLocationPath(`/profiles/${post.profile_id}`)}
+                onClick={() => setLocationPath(`/profiles/${post.profile.id}`)}
                 className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold">
-                  {post.profile_title ? post.profile_title[0].toUpperCase() : 'P'}
+                  {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
                 </div>
                 <div className="text-left">
                   <h3 className="text-foreground font-alata font-medium hover:text-[hsl(280,100%,70%)] transition-colors">
-                    {post.profile_title || `Profile #${post.profile_id}`}
+                    {post.profile.title || `Profile #${post.profile.id}`}
                   </h3>
                   <p className="text-xs text-muted-foreground font-alata">{timeAgo}</p>
                 </div>
               </button>
             </div>
+
+            {/* Profile Attributes */}
+            {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {Object.entries(post.profile.attributes).map(([key, value]) => (
+                  <span
+                    key={key}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-alata bg-muted text-muted-foreground"
+                  >
+                    <span className="text-foreground/60">{key}:</span>
+                    <span className="ml-1 text-foreground">{String(value)}</span>
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Post Content */}
             <div className="mb-4">

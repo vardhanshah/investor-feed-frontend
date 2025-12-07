@@ -200,7 +200,7 @@ describe('API Layer', () => {
       it('should filter by profile_id', async () => {
         const result = await postsApi.listPosts({ profile_id: 1 });
 
-        expect(result.posts.every((post) => post.profile_id === 1)).toBe(true);
+        expect(result.posts.every((post) => post.profile.id === 1)).toBe(true);
       });
 
       it('should handle pagination parameters', async () => {
@@ -223,7 +223,7 @@ describe('API Layer', () => {
 
         expect(result).toHaveProperty('id', 1);
         expect(result).toHaveProperty('content');
-        expect(result).toHaveProperty('profile_id');
+        expect(result).toHaveProperty('profile');
       });
 
       it('should throw error for non-existent post', async () => {

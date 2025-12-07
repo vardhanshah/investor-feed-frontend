@@ -1,66 +1,29 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Router } from 'wouter';
 import PostDetailPage from './post-detail';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 
+// Create mock functions that we can reference
+const mockGetPost = vi.fn();
+const mockGetComments = vi.fn();
+const mockAddCommentReaction = vi.fn();
+const mockAddThreadReaction = vi.fn();
+const mockAddReaction = vi.fn();
+
 // Mock the API
 vi.mock('@/lib/api', () => ({
   postsApi: {
-    getPost: vi.fn(() => Promise.resolve({
-      id: 1,
-      content: 'Test post content',
-      profile_id: 1,
-      profile_title: 'Test Profile',
-      source: null,
-      created_at: '2024-01-01T00:00:00Z',
-      images: [],
-      reaction_count: 5,
-      comment_count: 2,
-      user_liked: false,
-      attributes: null,
-      attributes_metadata: null,
-    })),
+    getPost: mockGetPost,
   },
   commentsApi: {
-    getComments: vi.fn(() => Promise.resolve({
-      comments: [
-        {
-          id: 1,
-          user_id: 10,
-          content: 'Test comment',
-          reaction_count: 3,
-          user_liked: false,
-          created_at: '2024-01-01T01:00:00Z',
-          thread: [
-            {
-              id: 100,
-              user_id: 20,
-              content: 'Test thread reply',
-              reaction_count: 1,
-              user_liked: false,
-              created_at: '2024-01-01T02:00:00Z',
-            },
-          ],
-        },
-        {
-          id: 2,
-          user_id: 30,
-          content: 'Another comment',
-          reaction_count: 0,
-          user_liked: true,
-          created_at: '2024-01-01T03:00:00Z',
-          thread: [],
-        },
-      ],
-      total_pages: 1,
-    })),
-    addCommentReaction: vi.fn(() => Promise.resolve()),
-    addThreadReaction: vi.fn(() => Promise.resolve()),
+    getComments: mockGetComments,
+    addCommentReaction: mockAddCommentReaction,
+    addThreadReaction: mockAddThreadReaction,
   },
   reactionsApi: {
-    addReaction: vi.fn(() => Promise.resolve()),
+    addReaction: mockAddReaction,
   },
 }));
 
@@ -93,6 +56,61 @@ vi.mock('@/contexts/AuthContext', () => ({
 describe('PostDetailPage - Comment and Thread Likes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Set up default mock implementations
+    mockGetPost.mockResolvedValue({
+      id: 1,
+      content: 'Test post content',
+      profile: {
+        id: 1,
+        title: 'Test Profile',
+      },
+      source: null,
+      created_at: '2024-01-01T00:00:00Z',
+      images: [],
+      reaction_count: 5,
+      comment_count: 2,
+      user_liked: false,
+      attributes: null,
+      attributes_metadata: null,
+    });
+
+    mockGetComments.mockResolvedValue({
+      comments: [
+        {
+          id: 1,
+          user_id: 10,
+          content: 'Test comment',
+          reaction_count: 3,
+          user_liked: false,
+          created_at: '2024-01-01T01:00:00Z',
+          thread: [
+            {
+              id: 100,
+              user_id: 20,
+              content: 'Test thread reply',
+              reaction_count: 1,
+              user_liked: false,
+              created_at: '2024-01-01T02:00:00Z',
+            },
+          ],
+        },
+        {
+          id: 2,
+          user_id: 30,
+          content: 'Another comment',
+          reaction_count: 0,
+          user_liked: true,
+          created_at: '2024-01-01T03:00:00Z',
+          thread: [],
+        },
+      ],
+      total_pages: 1,
+    });
+
+    mockAddCommentReaction.mockResolvedValue(undefined);
+    mockAddThreadReaction.mockResolvedValue(undefined);
+    mockAddReaction.mockResolvedValue(undefined);
   });
 
   describe('Comment Likes Visual Feedback', () => {
@@ -157,8 +175,6 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
     });
 
     it('should toggle visual state when liking a comment', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
       render(
         <Router>
           <AuthProvider>
@@ -183,7 +199,7 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
 
       await waitFor(() => {
         expect(likeButton?.className).toContain('hsl(280,100%,70%)');
-        expect(commentsApi.addCommentReaction).toHaveBeenCalledWith(1, 1);
+        expect(mockAddCommentReaction).toHaveBeenCalledWith(1, 1);
       });
 
       // Check heart icon is filled
@@ -196,8 +212,7 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
     });
 
     it('should show loading state while liking', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-      commentsApi.addCommentReaction.mockImplementation(() =>
+      mockAddCommentReaction.mockImplementation(() =>
         new Promise(resolve => setTimeout(resolve, 100))
       );
 
@@ -266,8 +281,6 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
     });
 
     it('should call correct API for thread reactions', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
       render(
         <Router>
           <AuthProvider>
@@ -287,15 +300,13 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
       fireEvent.click(likeButton);
 
       await waitFor(() => {
-        expect(commentsApi.addThreadReaction).toHaveBeenCalledWith(1, 1, 100);
+        expect(mockAddThreadReaction).toHaveBeenCalledWith(1, 1, 100);
       });
     });
 
     it('should handle optimistic updates for thread likes', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
       // Simulate API delay
-      commentsApi.addThreadReaction.mockImplementation(() =>
+      mockAddThreadReaction.mockImplementation(() =>
         new Promise(resolve => setTimeout(resolve, 100))
       );
 
@@ -325,14 +336,12 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
       expect(likeButton?.className).toContain('hsl(200,100%,70%)');
 
       await waitFor(() => {
-        expect(commentsApi.addThreadReaction).toHaveBeenCalled();
+        expect(mockAddThreadReaction).toHaveBeenCalled();
       });
     });
 
     it('should revert on error for thread likes', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
-      commentsApi.addThreadReaction.mockRejectedValue(new Error('Network error'));
+      mockAddThreadReaction.mockRejectedValue(new Error('Network error'));
 
       render(
         <Router>
@@ -366,8 +375,6 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
 
   describe('Multiple Simultaneous Likes', () => {
     it('should handle multiple comment likes independently', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
       render(
         <Router>
           <AuthProvider>
@@ -394,9 +401,9 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
       fireEvent.click(likeButton2);
 
       await waitFor(() => {
-        expect(commentsApi.addCommentReaction).toHaveBeenCalledTimes(2);
-        expect(commentsApi.addCommentReaction).toHaveBeenCalledWith(1, 1);
-        expect(commentsApi.addCommentReaction).toHaveBeenCalledWith(1, 2);
+        expect(mockAddCommentReaction).toHaveBeenCalledTimes(2);
+        expect(mockAddCommentReaction).toHaveBeenCalledWith(1, 1);
+        expect(mockAddCommentReaction).toHaveBeenCalledWith(1, 2);
       });
 
       // Both should show correct visual state
@@ -405,9 +412,7 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
     });
 
     it('should prevent duplicate likes while request is in progress', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
-      commentsApi.addCommentReaction.mockImplementation(() =>
+      mockAddCommentReaction.mockImplementation(() =>
         new Promise(resolve => setTimeout(resolve, 200))
       );
 
@@ -433,7 +438,7 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
       fireEvent.click(likeButton);
 
       // Should only call API once
-      expect(commentsApi.addCommentReaction).toHaveBeenCalledTimes(1);
+      expect(mockAddCommentReaction).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
         expect(likeButton?.className).not.toContain('cursor-wait');
@@ -443,8 +448,6 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
 
   describe('Unlike Functionality', () => {
     it('should toggle off liked state when clicking again', async () => {
-      const commentsApi = vi.mocked(await import('@/lib/api')).commentsApi;
-
       render(
         <Router>
           <AuthProvider>
@@ -470,7 +473,7 @@ describe('PostDetailPage - Comment and Thread Likes', () => {
 
       await waitFor(() => {
         expect(likeButton?.className).toContain('text-muted-foreground');
-        expect(commentsApi.addCommentReaction).toHaveBeenCalledWith(1, 2);
+        expect(mockAddCommentReaction).toHaveBeenCalledWith(1, 2);
       });
 
       // Heart should no longer be filled

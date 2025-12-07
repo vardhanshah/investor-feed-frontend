@@ -138,8 +138,10 @@ describe('Profile Page', () => {
     const manyPosts = Array.from({ length: 20 }, (_, i) => ({
       id: i + 1,
       content: `Post ${i + 1}`,
-      profile_id: 1,
-      profile_title: 'Test Profile',
+      profile: {
+        id: 1,
+        title: 'Test Profile',
+      },
       source: null,
       created_at: '2025-10-15T10:00:00',
       images: [],
@@ -170,8 +172,10 @@ describe('Profile Page', () => {
     const firstBatch = Array.from({ length: 20 }, (_, i) => ({
       id: i + 1,
       content: `Post ${i + 1}`,
-      profile_id: 1,
-      profile_title: 'Test Profile',
+      profile: {
+        id: 1,
+        title: 'Test Profile',
+      },
       source: null,
       created_at: '2025-10-15T10:00:00',
       images: [],
@@ -184,8 +188,10 @@ describe('Profile Page', () => {
     const secondBatch = Array.from({ length: 10 }, (_, i) => ({
       id: i + 21,
       content: `Post ${i + 21}`,
-      profile_id: 1,
-      profile_title: 'Test Profile',
+      profile: {
+        id: 1,
+        title: 'Test Profile',
+      },
       source: null,
       created_at: '2025-10-15T10:00:00',
       images: [],
@@ -227,8 +233,10 @@ describe('Profile Page', () => {
     const posts = Array.from({ length: 5 }, (_, i) => ({
       id: i + 1,
       content: `Post ${i + 1}`,
-      profile_id: 1,
-      profile_title: 'Test Profile',
+      profile: {
+        id: 1,
+        title: 'Test Profile',
+      },
       source: null,
       created_at: '2025-10-15T10:00:00',
       images: [],
@@ -295,8 +303,10 @@ describe('Profile Page', () => {
     const manyPosts = Array.from({ length: 20 }, (_, i) => ({
       id: i + 1,
       content: `Post ${i + 1}`,
-      profile_id: 1,
-      profile_title: 'Test Profile',
+      profile: {
+        id: 1,
+        title: 'Test Profile',
+      },
       source: null,
       created_at: '2025-10-15T10:00:00',
       images: [],

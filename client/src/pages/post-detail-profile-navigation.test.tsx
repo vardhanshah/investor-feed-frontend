@@ -51,8 +51,10 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
   const mockPostWithProfile = {
     id: 123,
     content: 'This is a test post about Q3 results',
-    profile_id: 42,
-    profile_title: 'Acme Corporation',
+    profile: {
+      id: 42,
+      title: 'Acme Corporation',
+    },
     source: 'https://example.com/news',
     created_at: '2024-10-15T10:00:00',
     images: [],
@@ -115,7 +117,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
     it('should render profile avatar with P when no profile title', async () => {
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: undefined,
+        profile: { id: 42, title: '' },
       });
 
       render(<PostDetailPage />);
@@ -129,7 +131,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
     it('should display Profile #ID when no profile title', async () => {
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: undefined,
+        profile: { id: 42, title: '' },
       });
 
       render(<PostDetailPage />);
@@ -199,7 +201,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_id: 999,
+        profile: { id: 999, title: 'Acme Corporation' },
       });
 
       render(<PostDetailPage />);
@@ -333,7 +335,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const longTitle = 'Very Long Corporation Name That Goes On And On International Holdings Limited';
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: longTitle,
+        profile: { id: 42, title: longTitle },
       });
 
       render(<PostDetailPage />);
@@ -400,7 +402,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: 'Tech & Co. <Industries>',
+        profile: { id: 42, title: 'Tech & Co. <Industries>' },
       });
 
       render(<PostDetailPage />);
@@ -419,7 +421,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: '🚀 Rocket Corp',
+        profile: { id: 42, title: '🚀 Rocket Corp' },
       });
 
       render(<PostDetailPage />);
@@ -441,7 +443,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: '123456',
+        profile: { id: 42, title: '123456' },
       });
 
       render(<PostDetailPage />);
@@ -464,7 +466,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_title: '',
+        profile: { id: 42, title: '' },
       });
 
       render(<PostDetailPage />);
@@ -486,7 +488,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_id: 0,
+        profile: { id: 0, title: 'Acme Corporation' },
       });
 
       render(<PostDetailPage />);
@@ -505,7 +507,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_id: -1,
+        profile: { id: -1, title: 'Acme Corporation' },
       });
 
       render(<PostDetailPage />);
@@ -538,7 +540,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       const user = userEvent.setup();
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostWithProfile,
-        profile_id: null as any,
+        profile: { id: null as any, title: 'Acme Corporation' },
       });
 
       render(<PostDetailPage />);

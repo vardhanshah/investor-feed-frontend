@@ -3,32 +3,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, ExternalLink, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { reactionsApi, PostAttributes, PostAttributesMetadata } from '@/lib/api';
+import { reactionsApi, Post, PostProfile } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
 import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
 
-export interface Post {
-  id: number;
-  content: string;
-  profile_id: number;
-  profile_title?: string;
-  source: string | null;
-  submission_date: string;
-  images: string[];
-  reaction_count: number;
-  comment_count: number;
-  user_liked: boolean;
-  attributes?: PostAttributes | null;
-  attributes_metadata?: PostAttributesMetadata;
-}
+export type { Post, PostProfile };
 
 interface PostCardProps {
   post: Post;
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const timeAgo = formatTimeAgoTwoUnits(post.submission_date);
+  const timeAgo = formatTimeAgoTwoUnits(post.submission_date || post.created_at);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isLiked, setIsLiked] = useState(post.user_liked);
@@ -77,7 +64,7 @@ export default function PostCard({ post }: PostCardProps) {
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    setLocation(`/profiles/${post.profile_id}`);
+    setLocation(`/profiles/${post.profile.id}`);
   };
 
   const handleShare = async (e: React.MouseEvent) => {
@@ -89,7 +76,7 @@ export default function PostCard({ post }: PostCardProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Post by ${post.profile_title || 'Investor Feed'}`,
+          title: `Post by ${post.profile.title || 'Investor Feed'}`,
           text: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
           url: postUrl,
         });
@@ -134,16 +121,31 @@ export default function PostCard({ post }: PostCardProps) {
             onClick={handleProfileClick}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-sm">
-              {post.profile_title ? post.profile_title[0].toUpperCase() : 'P'}
+              {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
             </div>
             <div>
               <h3 className="text-foreground font-alata font-semibold text-sm">
-                {post.profile_title || `Profile #${post.profile_id}`}
+                {post.profile.title || `Profile #${post.profile.id}`}
               </h3>
               <p className="text-xs text-muted-foreground font-alata">{timeAgo}</p>
             </div>
           </div>
         </div>
+
+        {/* Profile Attributes */}
+        {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {Object.entries(post.profile.attributes).map(([key, value]) => (
+              <span
+                key={key}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-alata bg-muted text-muted-foreground"
+              >
+                <span className="text-foreground/60">{key}:</span>
+                <span className="ml-1 text-foreground">{String(value)}</span>
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Post Content - More Prominent */}
         <div className="mb-3">

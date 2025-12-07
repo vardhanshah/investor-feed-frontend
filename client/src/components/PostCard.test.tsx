@@ -22,9 +22,12 @@ vi.mock('wouter', () => ({
 const mockPost: Post = {
   id: 1,
   content: 'Excited to announce our Q3 results - 25% growth!',
-  profile_id: 1,
-  profile_title: 'Tech Corp',
+  profile: {
+    id: 1,
+    title: 'Tech Corp',
+  },
   source: 'https://example.com/news/1',
+  submission_date: '2024-10-15T10:00:00',
   created_at: '2024-10-15T10:00:00',
   images: [],
   reaction_count: 42,
@@ -49,7 +52,7 @@ describe('PostCard', () => {
     });
 
     it('should display profile fallback when title is missing', () => {
-      const postWithoutTitle = { ...mockPost, profile_title: undefined };
+      const postWithoutTitle = { ...mockPost, profile: { id: 1, title: '' } };
       render(<PostCard post={postWithoutTitle} />);
       expect(screen.getByText('Profile #1')).toBeInTheDocument();
     });
@@ -60,7 +63,7 @@ describe('PostCard', () => {
     });
 
     it('should display profile avatar fallback when title is missing', () => {
-      const postWithoutTitle = { ...mockPost, profile_title: undefined };
+      const postWithoutTitle = { ...mockPost, profile: { id: 1, title: '' } };
       render(<PostCard post={postWithoutTitle} />);
       expect(screen.getByText('P')).toBeInTheDocument();
     });

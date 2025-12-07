@@ -36,9 +36,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Home />);
@@ -54,9 +54,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Home />);
@@ -81,9 +81,9 @@ describe('Home Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Home />);
@@ -103,9 +103,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Home />);
@@ -123,9 +123,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Home />);
@@ -141,9 +141,9 @@ describe('Home Page', () => {
     const loadingAuth = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -158,9 +158,9 @@ describe('Home Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -180,9 +180,9 @@ describe('Home Page', () => {
     const loadingAuth = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -192,9 +192,9 @@ describe('Home Page', () => {
     loadingAuth.mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -212,9 +212,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     const { container } = render(<Home />);
@@ -236,9 +236,9 @@ describe('Home Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     const { container } = render(<Home />);
@@ -256,9 +256,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     const { container } = render(<Home />);
@@ -276,9 +276,9 @@ describe('Home Page', () => {
         created_at: '2025-01-15',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Home />);
@@ -298,9 +298,9 @@ describe('Home Page', () => {
     authSpy.mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -310,9 +310,9 @@ describe('Home Page', () => {
     authSpy.mockReturnValue({
       user: null,
       isLoading: true,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -327,9 +327,9 @@ describe('Home Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     rerender(<Home />);
@@ -343,9 +343,9 @@ describe('Home Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     const { container } = render(<Home />);

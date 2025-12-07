@@ -130,7 +130,10 @@ describe('Feed Page', () => {
             {
               id: 1,
               content: 'Only post',
-              profile_id: 1,
+              profile: {
+                id: 1,
+                title: 'Test Profile',
+              },
               source: null,
               created_at: '2024-10-15T10:00:00',
               images: [],
@@ -218,7 +221,10 @@ describe('Feed Page', () => {
             {
               id: 1,
               content: 'Success after retry',
-              profile_id: 1,
+              profile: {
+                id: 1,
+                title: 'Test Profile',
+              },
               source: null,
               created_at: '2024-10-15T10:00:00',
               images: [],

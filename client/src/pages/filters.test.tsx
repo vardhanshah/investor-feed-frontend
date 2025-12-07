@@ -31,9 +31,9 @@ describe('Filters Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
   });
 
@@ -41,9 +41,9 @@ describe('Filters Page', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
+      isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<Filters />);

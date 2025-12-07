@@ -39,9 +39,9 @@ describe('UserActivity Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
   });
 
@@ -126,9 +126,9 @@ describe('UserActivity Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     render(<UserActivity />);
@@ -195,9 +195,9 @@ describe('UserActivity Page', () => {
         created_at: '2025-01-01',
       },
       isLoading: false,
+      isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
-      checkAuth: vi.fn(),
     });
 
     server.use(

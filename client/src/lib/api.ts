@@ -72,11 +72,17 @@ export interface PostAttributesMetadata {
   };
 }
 
+export interface PostProfile {
+  id: number;
+  title: string;
+  external_id?: string;
+  attributes?: Record<string, any>;
+}
+
 export interface Post {
   id: number;
   content: string;
-  profile_id: number;
-  profile_title?: string;
+  profile: PostProfile;
   source: string | null;
   submission_date?: string;
   created_at: string;

@@ -93,7 +93,7 @@ export const handlers = [
 
     let filteredPosts = mockPosts;
     if (profileId) {
-      filteredPosts = mockPosts.filter(p => p.profile_id === parseInt(profileId));
+      filteredPosts = mockPosts.filter(p => p.profile.id === parseInt(profileId));
     }
 
     const paginatedPosts = filteredPosts.slice(offset, offset + limit);
@@ -411,7 +411,7 @@ export const handlers = [
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
     const profilePosts = mockPosts.filter(
-      p => p.profile_id === parseInt(params.profileId as string)
+      p => p.profile.id === parseInt(params.profileId as string)
     );
     const paginatedPosts = profilePosts.slice(offset, offset + limit);
 
