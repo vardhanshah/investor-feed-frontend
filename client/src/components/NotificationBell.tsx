@@ -46,15 +46,23 @@ export function NotificationBell() {
           try {
             const data = JSON.parse(event.data);
 
-            // Handle different possible data structures from Mercure
-            // The notification might be the root object or nested under a key
-            const notification: Notification = data.notification || data;
-
-            // Validate the notification has required fields
-            if (!notification.message) {
+            // Validate the data has required fields
+            if (!data.message) {
               console.warn('[Mercure SSE] Received notification without message:', data);
               return;
             }
+
+            // Map SSE data structure to Notification interface
+            // SSE uses notification_id, our interface uses id
+            const notification: Notification = {
+              id: data.notification_id,
+              message: data.message,
+              post_id: data.post_id || null,
+              delivered: true,
+              read: false,
+              created_at: data.timestamp || new Date().toISOString(),
+              delivered_at: data.timestamp || new Date().toISOString(),
+            };
 
             // Add new notification to the list
             setNotifications(prev => [notification, ...prev]);
