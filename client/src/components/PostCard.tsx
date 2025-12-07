@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Heart, MessageCircle, ExternalLink, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { reactionsApi, Post, PostProfile, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
@@ -268,18 +267,20 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
       </CardContent>
     </Card>
 
-    {/* Image Lightbox - outside Card to prevent click propagation */}
-    <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-      <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
-        {selectedImage && (
-          <img
-            src={selectedImage}
-            alt="Full size"
-            className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+    {/* Image Lightbox - click anywhere outside image to close */}
+    {selectedImage && (
+      <div
+        className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center cursor-pointer"
+        onClick={() => setSelectedImage(null)}
+      >
+        <img
+          src={selectedImage}
+          alt="Full size"
+          className="max-w-4xl w-full h-auto max-h-[90vh] object-contain rounded-lg cursor-default"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    )}
   </>
   );
 }
