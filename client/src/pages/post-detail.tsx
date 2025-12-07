@@ -101,6 +101,28 @@ export default function PostDetailPage() {
   // Image lightbox state
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (selectedImageIndex === null || !post?.images) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedImageIndex(null);
+      } else if (e.key === 'ArrowLeft' && post.images.length > 1) {
+        setSelectedImageIndex((prev) =>
+          prev !== null ? (prev - 1 + post.images.length) % post.images.length : 0
+        );
+      } else if (e.key === 'ArrowRight' && post.images.length > 1) {
+        setSelectedImageIndex((prev) =>
+          prev !== null ? (prev + 1) % post.images.length : 0
+        );
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImageIndex, post?.images]);
+
   // Pagination state
   const [pageNo, setPageNo] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -842,7 +864,7 @@ export default function PostDetailPage() {
           {/* Previous button */}
           {post.images.length > 1 && (
             <button
-              className="absolute left-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedImageIndex((prev) =>
@@ -865,7 +887,7 @@ export default function PostDetailPage() {
           {/* Next button */}
           {post.images.length > 1 && (
             <button
-              className="absolute right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedImageIndex((prev) =>

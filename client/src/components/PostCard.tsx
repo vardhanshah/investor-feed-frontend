@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, ExternalLink, Share2, X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -40,6 +40,28 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
   const [likeCount, setLikeCount] = useState(post.reaction_count);
   const [isLiking, setIsLiking] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (selectedImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedImageIndex(null);
+      } else if (e.key === 'ArrowLeft' && post.images && post.images.length > 1) {
+        setSelectedImageIndex((prev) =>
+          prev !== null ? (prev - 1 + post.images.length) % post.images.length : 0
+        );
+      } else if (e.key === 'ArrowRight' && post.images && post.images.length > 1) {
+        setSelectedImageIndex((prev) =>
+          prev !== null ? (prev + 1) % post.images.length : 0
+        );
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImageIndex, post.images]);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent navigation when clicking like
@@ -284,7 +306,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         {/* Previous button */}
         {post.images.length > 1 && (
           <button
-            className="absolute left-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedImageIndex((prev) =>
@@ -307,7 +329,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         {/* Next button */}
         {post.images.length > 1 && (
           <button
-            className="absolute right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedImageIndex((prev) =>
