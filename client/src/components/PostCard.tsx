@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, ExternalLink, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, Share2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { reactionsApi, Post, PostProfile, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
@@ -273,10 +273,17 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center cursor-pointer"
         onClick={() => setSelectedImage(null)}
       >
+        {/* Close button */}
+        <button
+          className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+          onClick={() => setSelectedImage(null)}
+        >
+          <X className="h-6 w-6" />
+        </button>
         <img
           src={selectedImage}
           alt="Full size"
-          className="max-w-4xl w-full h-auto max-h-[90vh] object-contain rounded-lg cursor-default"
+          className="max-w-4xl w-full h-auto max-h-[90vh] object-contain rounded-lg cursor-default px-4"
           onClick={(e) => e.stopPropagation()}
         />
       </div>
