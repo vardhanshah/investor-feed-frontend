@@ -1,4 +1,21 @@
-import type { User, Post, Profile, FeedConfiguration } from '@/lib/api';
+import type { User, Post, Profile, FeedConfiguration, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
+
+// Shared metadata for profile attributes
+export const mockProfilesAttributesMetadata: ProfilesAttributesMetadata = {
+  sector: { label: 'Sector', type: 'string' },
+  region: { label: 'Region', type: 'string' },
+  type: { label: 'Type', type: 'string' },
+  mcap: { label: 'Market Cap', unit: 'Cr', type: 'number' },
+  pe_ratio: { label: 'P/E Ratio', type: 'number' },
+};
+
+// Shared metadata for post attributes
+export const mockPostsAttributesMetadata: PostAttributesMetadata = {
+  growth_related: { label: 'Growth Related', type: 'boolean' },
+  future_guidance: { label: 'Future Guidance', type: 'boolean' },
+  revenue_insights: { label: 'Revenue Insights', type: 'boolean' },
+  funding_related: { label: 'Funding Related', type: 'boolean' },
+};
 
 export const mockUsers: User[] = [
   {

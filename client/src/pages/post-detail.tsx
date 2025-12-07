@@ -6,10 +6,26 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata } from '@/lib/api';
+import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo } from '@/lib/dateUtils';
+
+// Helper to format attribute value with unit
+function formatAttributeValue(value: any, metadata?: { unit?: string | null; type?: string }): string {
+  if (value === null || value === undefined) return '';
+
+  // Format numbers with Indian locale
+  if (metadata?.type === 'number' && typeof value === 'number') {
+    const formatted = value.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    if (metadata.unit) {
+      return `${formatted} ${metadata.unit}`;
+    }
+    return formatted;
+  }
+
+  return String(value);
+}
 
 interface Thread {
   id: number;
@@ -49,6 +65,9 @@ interface PostDetail {
   user_liked: boolean;
   attributes?: PostAttributes | null;
   attributes_metadata?: PostAttributesMetadata;
+  // Response-level metadata
+  profiles_attributes_metadata?: ProfilesAttributesMetadata;
+  posts_attributes_metadata?: PostAttributesMetadata;
 }
 
 export default function PostDetailPage() {
@@ -375,17 +394,21 @@ export default function PostDetailPage() {
             </div>
 
             {/* Profile Attributes */}
-            {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && (
+            {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && post.profiles_attributes_metadata && (
               <div className="flex flex-wrap gap-2 mb-4">
-                {Object.entries(post.profile.attributes).map(([key, value]) => (
-                  <span
-                    key={key}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-alata bg-muted text-muted-foreground"
-                  >
-                    <span className="text-foreground/60">{key}:</span>
-                    <span className="ml-1 text-foreground">{String(value)}</span>
-                  </span>
-                ))}
+                {Object.entries(post.profile.attributes).map(([key, value]) => {
+                  const metadata = post.profiles_attributes_metadata?.[key];
+                  if (!metadata || value === null || value === undefined) return null;
+                  return (
+                    <span
+                      key={key}
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-alata bg-muted text-muted-foreground"
+                    >
+                      <span className="text-foreground/60">{metadata.label}:</span>
+                      <span className="ml-1 text-foreground">{formatAttributeValue(value, metadata)}</span>
+                    </span>
+                  );
+                })}
               </div>
             )}
 
@@ -422,17 +445,19 @@ export default function PostDetailPage() {
             )}
 
             {/* Attribute Badges */}
-            {post.attributes && post.attributes_metadata && (
+            {post.attributes && (post.attributes_metadata || post.posts_attributes_metadata) && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {Object.entries(post.attributes).map(([key, value]) => {
-                  if (value === true && post.attributes_metadata?.[key]) {
+                  // Use post-level metadata first, fall back to response-level metadata
+                  const metadata = post.attributes_metadata?.[key] || post.posts_attributes_metadata?.[key];
+                  if (value === true && metadata) {
                     return (
                       <Badge
                         key={key}
                         variant="outline"
                         className="border-[hsl(280,100%,70%)]/30 bg-[hsl(280,100%,70%)]/5 text-[hsl(280,100%,70%)] text-xs font-alata"
                       >
-                        {post.attributes_metadata[key].label}
+                        {metadata.label}
                       </Badge>
                     );
                   }

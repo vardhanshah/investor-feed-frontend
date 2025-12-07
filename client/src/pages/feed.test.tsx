@@ -5,7 +5,7 @@ import Feed from './feed';
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'http://0.0.0.0:8000';
+const API_BASE_URL = 'https://dev.investorfeed.in/api';
 
 // Mock useLocation from wouter
 const mockSetLocation = vi.fn();

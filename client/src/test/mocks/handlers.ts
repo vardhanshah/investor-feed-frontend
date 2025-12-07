@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
-import { mockUsers, mockPosts, mockProfiles, mockFeedConfigs } from './mockData';
+import { mockUsers, mockPosts, mockProfiles, mockFeedConfigs, mockProfilesAttributesMetadata, mockPostsAttributesMetadata } from './mockData';
 
-const API_BASE_URL = 'http://0.0.0.0:8000';
+const API_BASE_URL = 'https://dev.investorfeed.in/api';
 
 export const handlers = [
   // Auth endpoints
@@ -114,7 +114,12 @@ export const handlers = [
         { status: 404 }
       );
     }
-    return HttpResponse.json(post);
+    // Return post with response-level metadata
+    return HttpResponse.json({
+      ...post,
+      profiles_attributes_metadata: mockProfilesAttributesMetadata,
+      posts_attributes_metadata: mockPostsAttributesMetadata,
+    });
   }),
 
   // Profiles endpoints
@@ -196,6 +201,8 @@ export const handlers = [
 
     return HttpResponse.json({
       posts: paginatedPosts,
+      profiles_attributes_metadata: mockProfilesAttributesMetadata,
+      posts_attributes_metadata: mockPostsAttributesMetadata,
     });
   }),
 
@@ -417,6 +424,8 @@ export const handlers = [
 
     return HttpResponse.json({
       posts: paginatedPosts,
+      profiles_attributes_metadata: mockProfilesAttributesMetadata,
+      posts_attributes_metadata: mockPostsAttributesMetadata,
     });
   }),
 ];

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, TrendingUp, Building2, TrendingUpIcon, PieChart, Layers } from 'lucide-react';
-import { feedsApi, profilesApi } from '@/lib/api';
+import { feedsApi, profilesApi, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,8 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [profilesAttributesMetadata, setProfilesAttributesMetadata] = useState<ProfilesAttributesMetadata | undefined>();
+  const [postsAttributesMetadata, setPostsAttributesMetadata] = useState<PostAttributesMetadata | undefined>();
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +65,9 @@ export default function ProfilePage() {
           0
         );
         setPosts(response.posts);
+        // Store response-level metadata
+        setProfilesAttributesMetadata(response.profiles_attributes_metadata);
+        setPostsAttributesMetadata(response.posts_attributes_metadata);
         setHasMore(response.posts.length === LIMIT);
         setOffset(response.posts.length);
       } catch (err) {
@@ -291,7 +296,12 @@ export default function ProfilePage() {
             // Posts list
             <>
               {posts.map(post => (
-                <PostCard key={post.id} post={post} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  profilesAttributesMetadata={profilesAttributesMetadata}
+                  postsAttributesMetadata={postsAttributesMetadata}
+                />
               ))}
 
               {/* Load More Button */}

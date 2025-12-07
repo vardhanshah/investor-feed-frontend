@@ -72,6 +72,16 @@ export interface PostAttributesMetadata {
   };
 }
 
+export interface ProfileAttributeMetadata {
+  label: string;
+  unit?: string | null;
+  type: string;
+}
+
+export interface ProfilesAttributesMetadata {
+  [key: string]: ProfileAttributeMetadata;
+}
+
 export interface PostProfile {
   id: number;
   title: string;
@@ -101,6 +111,17 @@ export interface PostsResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+export interface FeedPostsResponse {
+  posts: Post[];
+  profiles_attributes_metadata?: ProfilesAttributesMetadata;
+  posts_attributes_metadata?: PostAttributesMetadata;
+}
+
+export interface PostDetailResponse extends Post {
+  profiles_attributes_metadata?: ProfilesAttributesMetadata;
+  posts_attributes_metadata?: PostAttributesMetadata;
 }
 
 export interface FeedConfiguration {
@@ -428,11 +449,11 @@ export const postsApi = {
     return handleResponse<PostsResponse>(response);
   },
 
-  async getPost(postId: number): Promise<Post> {
+  async getPost(postId: number): Promise<PostDetailResponse> {
     const response = await fetchWithAuth(`${API_BASE_URL}/posts/${postId}`, {
       headers: getAuthHeaders(),
     });
-    return handleResponse<Post>(response);
+    return handleResponse<PostDetailResponse>(response);
   },
 
   async getPostWithComments(postId: number): Promise<Post> {
@@ -522,24 +543,24 @@ export const subscriptionsApi = {
 
 // Feeds API
 export const feedsApi = {
-  async getFeedPosts(feedId: number, limit = 20, offset = 0): Promise<{ posts: Post[] }> {
+  async getFeedPosts(feedId: number, limit = 20, offset = 0): Promise<FeedPostsResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/feeds/${feedId}/posts?limit=${limit}&offset=${offset}`,
       {
         headers: getAuthHeaders(),
       }
     );
-    return handleResponse(response);
+    return handleResponse<FeedPostsResponse>(response);
   },
 
-  async getProfileFeed(profileId: number, limit = 40, offset = 0): Promise<{ posts: Post[] }> {
+  async getProfileFeed(profileId: number, limit = 40, offset = 0): Promise<FeedPostsResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/profiles/${profileId}/posts?limit=${limit}&offset=${offset}`,
       {
         headers: getAuthHeaders(),
       }
     );
-    return handleResponse(response);
+    return handleResponse<FeedPostsResponse>(response);
   },
 };
 

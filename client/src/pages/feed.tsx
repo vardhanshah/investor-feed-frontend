@@ -7,7 +7,7 @@ import { FaCog as FaCogIcon, FaSignOutAlt as FaSignOutAltIcon } from 'react-icon
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { feedsApi, feedConfigApi, subscriptionsApi, FeedConfiguration, Subscription } from '@/lib/api';
+import { feedsApi, feedConfigApi, subscriptionsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,8 @@ export default function Feed() {
   const { toast } = useToast();
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [profilesAttributesMetadata, setProfilesAttributesMetadata] = useState<ProfilesAttributesMetadata | undefined>();
+  const [postsAttributesMetadata, setPostsAttributesMetadata] = useState<PostAttributesMetadata | undefined>();
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -123,6 +125,9 @@ export default function Feed() {
       if (currentOffset === 0) {
         // Initial load
         setPosts(response.posts);
+        // Store response-level metadata
+        setProfilesAttributesMetadata(response.profiles_attributes_metadata);
+        setPostsAttributesMetadata(response.posts_attributes_metadata);
       } else {
         // Load more
         setPosts(prev => [...prev, ...response.posts]);
@@ -582,7 +587,12 @@ export default function Feed() {
             // Posts list
             <>
               {posts.map(post => (
-                <PostCard key={post.id} post={post} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  profilesAttributesMetadata={profilesAttributesMetadata}
+                  postsAttributesMetadata={postsAttributesMetadata}
+                />
               ))}
 
               {/* Load More Button */}
