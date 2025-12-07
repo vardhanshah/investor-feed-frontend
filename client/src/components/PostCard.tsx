@@ -129,6 +129,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
   };
 
   return (
+    <>
     <Card
       className="bg-card border-border hover:border-[hsl(280,100%,70%)]/50 transition-all cursor-pointer group"
       onClick={handleCardClick}
@@ -265,19 +266,20 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
           )}
         </div>
       </CardContent>
-
-      {/* Image Lightbox */}
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt="Full size"
-              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </Card>
+
+    {/* Image Lightbox - outside Card to prevent click propagation */}
+    <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+      <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+        {selectedImage && (
+          <img
+            src={selectedImage}
+            alt="Full size"
+            className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
