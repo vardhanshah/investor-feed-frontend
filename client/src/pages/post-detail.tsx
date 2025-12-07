@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2 } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
@@ -97,6 +97,9 @@ export default function PostDetailPage() {
   const [commentLikes, setCommentLikes] = useState<{ [key: number]: boolean }>({});
   const [threadLikes, setThreadLikes] = useState<{ [key: string]: boolean }>({});
   const [likingInProgress, setLikingInProgress] = useState<{ [key: string]: boolean }>({});
+
+  // Image lightbox state
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   // Pagination state
   const [pageNo, setPageNo] = useState(1);
@@ -425,7 +428,8 @@ export default function PostDetailPage() {
                     key={index}
                     src={image}
                     alt={`Post image ${index + 1}`}
-                    className="rounded-lg w-full h-64 object-cover"
+                    className="rounded-lg w-full h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setSelectedImageIndex(index)}
                   />
                 ))}
               </div>
@@ -820,6 +824,67 @@ export default function PostDetailPage() {
           <div ref={commentsEndRef} />
         </div>
       </div>
+
+      {/* Image Lightbox with navigation */}
+      {selectedImageIndex !== null && post.images && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center cursor-pointer"
+          onClick={() => setSelectedImageIndex(null)}
+        >
+          {/* Close button */}
+          <button
+            className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+            onClick={() => setSelectedImageIndex(null)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          {/* Previous button */}
+          {post.images.length > 1 && (
+            <button
+              className="absolute left-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImageIndex((prev) =>
+                  prev !== null ? (prev - 1 + post.images.length) % post.images.length : 0
+                );
+              }}
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+          )}
+
+          {/* Image */}
+          <img
+            src={post.images[selectedImageIndex]}
+            alt="Full size"
+            className="max-w-4xl w-full h-auto max-h-[90vh] object-contain rounded-lg cursor-default px-4"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Next button */}
+          {post.images.length > 1 && (
+            <button
+              className="absolute right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImageIndex((prev) =>
+                  prev !== null ? (prev + 1) % post.images.length : 0
+                );
+              }}
+            >
+              <ChevronRight className="h-8 w-8" />
+            </button>
+          )}
+
+          {/* Image counter */}
+          {post.images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 text-white text-sm font-alata">
+              {selectedImageIndex + 1} / {post.images.length}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

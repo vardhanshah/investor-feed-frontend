@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, ExternalLink, Share2, X } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, Share2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { reactionsApi, Post, PostProfile, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
@@ -39,7 +39,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
   const [isLiked, setIsLiked] = useState(post.user_liked);
   const [likeCount, setLikeCount] = useState(post.reaction_count);
   const [isLiking, setIsLiking] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent navigation when clicking like
@@ -187,7 +187,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
                 className="rounded-lg w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedImage(image);
+                  setSelectedImageIndex(index);
                 }}
               />
             ))}
@@ -267,25 +267,64 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
       </CardContent>
     </Card>
 
-    {/* Image Lightbox - click anywhere outside image to close */}
-    {selectedImage && (
+    {/* Image Lightbox with navigation */}
+    {selectedImageIndex !== null && post.images && (
       <div
         className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center cursor-pointer"
-        onClick={() => setSelectedImage(null)}
+        onClick={() => setSelectedImageIndex(null)}
       >
         {/* Close button */}
         <button
-          className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
-          onClick={() => setSelectedImage(null)}
+          className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+          onClick={() => setSelectedImageIndex(null)}
         >
           <X className="h-6 w-6" />
         </button>
+
+        {/* Previous button */}
+        {post.images.length > 1 && (
+          <button
+            className="absolute left-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex((prev) =>
+                prev !== null ? (prev - 1 + post.images.length) % post.images.length : 0
+              );
+            }}
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </button>
+        )}
+
+        {/* Image */}
         <img
-          src={selectedImage}
+          src={post.images[selectedImageIndex]}
           alt="Full size"
           className="max-w-4xl w-full h-auto max-h-[90vh] object-contain rounded-lg cursor-default px-4"
           onClick={(e) => e.stopPropagation()}
         />
+
+        {/* Next button */}
+        {post.images.length > 1 && (
+          <button
+            className="absolute right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex((prev) =>
+                prev !== null ? (prev + 1) % post.images.length : 0
+              );
+            }}
+          >
+            <ChevronRight className="h-8 w-8" />
+          </button>
+        )}
+
+        {/* Image counter */}
+        {post.images.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 text-white text-sm font-alata">
+            {selectedImageIndex + 1} / {post.images.length}
+          </div>
+        )}
       </div>
     )}
   </>
