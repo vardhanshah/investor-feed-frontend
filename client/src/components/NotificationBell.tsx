@@ -45,6 +45,7 @@ export function NotificationBell() {
         eventSource.onmessage = (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
+            console.log('[Mercure SSE] Received data:', data);
 
             // Validate the data has required fields
             if (!data.message) {
@@ -54,8 +55,11 @@ export function NotificationBell() {
 
             // Map SSE data structure to Notification interface
             // SSE uses notification_id, our interface uses id
+            const notificationId = data.notification_id;
+            console.log('[Mercure SSE] notification_id:', notificationId, 'type:', typeof notificationId);
+
             const notification: Notification = {
-              id: data.notification_id,
+              id: notificationId,
               message: data.message,
               post_id: data.post_id || null,
               delivered: true,
@@ -138,8 +142,10 @@ export function NotificationBell() {
 
   const handleNotificationClick = async (notification: Notification) => {
     try {
-      // Mark as read if unread and has a valid id
-      if (!notification.read && notification.id !== undefined && notification.id !== null) {
+      // Mark as read if unread and has a valid numeric id
+      const hasValidId = typeof notification.id === 'number' && !isNaN(notification.id);
+
+      if (!notification.read && hasValidId) {
         await notificationsApi.markAsRead(notification.id);
 
         // Update local state
