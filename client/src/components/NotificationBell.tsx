@@ -44,7 +44,17 @@ export function NotificationBell() {
         // Handle incoming notifications
         eventSource.onmessage = (event: MessageEvent) => {
           try {
-            const notification: Notification = JSON.parse(event.data);
+            const data = JSON.parse(event.data);
+
+            // Handle different possible data structures from Mercure
+            // The notification might be the root object or nested under a key
+            const notification: Notification = data.notification || data;
+
+            // Validate the notification has required fields
+            if (!notification.message) {
+              console.warn('[Mercure SSE] Received notification without message:', data);
+              return;
+            }
 
             // Add new notification to the list
             setNotifications(prev => [notification, ...prev]);
@@ -120,8 +130,8 @@ export function NotificationBell() {
 
   const handleNotificationClick = async (notification: Notification) => {
     try {
-      // Mark as read if unread
-      if (!notification.read) {
+      // Mark as read if unread and has a valid id
+      if (!notification.read && notification.id !== undefined && notification.id !== null) {
         await notificationsApi.markAsRead(notification.id);
 
         // Update local state
