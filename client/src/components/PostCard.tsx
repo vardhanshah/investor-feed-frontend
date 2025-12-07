@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Heart, MessageCircle, ExternalLink, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { reactionsApi, Post, PostProfile } from '@/lib/api';
+import { reactionsApi, Post, PostProfile, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
 import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
@@ -12,15 +13,34 @@ export type { Post, PostProfile };
 
 interface PostCardProps {
   post: Post;
+  profilesAttributesMetadata?: ProfilesAttributesMetadata;
+  postsAttributesMetadata?: PostAttributesMetadata;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+// Helper to format attribute value with unit
+function formatAttributeValue(value: any, metadata?: { unit?: string | null; type?: string }): string {
+  if (value === null || value === undefined) return '';
+
+  // Format numbers with Indian locale
+  if (metadata?.type === 'number' && typeof value === 'number') {
+    const formatted = value.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    if (metadata.unit) {
+      return `${formatted} ${metadata.unit}`;
+    }
+    return formatted;
+  }
+
+  return String(value);
+}
+
+export default function PostCard({ post, profilesAttributesMetadata, postsAttributesMetadata }: PostCardProps) {
   const timeAgo = formatTimeAgoTwoUnits(post.submission_date || post.created_at);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isLiked, setIsLiked] = useState(post.user_liked);
   const [likeCount, setLikeCount] = useState(post.reaction_count);
   const [isLiking, setIsLiking] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent navigation when clicking like
@@ -133,17 +153,21 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
 
         {/* Profile Attributes */}
-        {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && (
+        {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && profilesAttributesMetadata && (
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {Object.entries(post.profile.attributes).map(([key, value]) => (
-              <span
-                key={key}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-alata bg-muted text-muted-foreground"
-              >
-                <span className="text-foreground/60">{key}:</span>
-                <span className="ml-1 text-foreground">{String(value)}</span>
-              </span>
-            ))}
+            {Object.entries(post.profile.attributes).map(([key, value]) => {
+              const metadata = profilesAttributesMetadata[key];
+              if (!metadata || value === null || value === undefined) return null;
+              return (
+                <span
+                  key={key}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-alata bg-muted text-muted-foreground"
+                >
+                  <span className="text-foreground/60">{metadata.label}:</span>
+                  <span className="ml-1 text-foreground">{formatAttributeValue(value, metadata)}</span>
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -160,7 +184,11 @@ export default function PostCard({ post }: PostCardProps) {
                 key={index}
                 src={image}
                 alt={`Post image ${index + 1}`}
-                className="rounded-lg w-full h-48 object-cover"
+                className="rounded-lg w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage(image);
+                }}
               />
             ))}
           </div>
@@ -181,17 +209,19 @@ export default function PostCard({ post }: PostCardProps) {
         )}
 
         {/* Attribute Badges */}
-        {post.attributes && post.attributes_metadata && (
+        {post.attributes && (post.attributes_metadata || postsAttributesMetadata) && (
           <div className="flex flex-wrap gap-2 mb-3">
             {Object.entries(post.attributes).map(([key, value]) => {
-              if (value === true && post.attributes_metadata?.[key]) {
+              // Use post-level metadata first, fall back to response-level metadata
+              const metadata = post.attributes_metadata?.[key] || postsAttributesMetadata?.[key];
+              if (value === true && metadata) {
                 return (
                   <Badge
                     key={key}
                     variant="outline"
                     className="border-[hsl(280,100%,70%)]/30 bg-[hsl(280,100%,70%)]/5 text-[hsl(280,100%,70%)] text-xs font-alata"
                   >
-                    {post.attributes_metadata[key].label}
+                    {metadata.label}
                   </Badge>
                 );
               }
@@ -235,6 +265,19 @@ export default function PostCard({ post }: PostCardProps) {
           )}
         </div>
       </CardContent>
+
+      {/* Image Lightbox */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+          {selectedImage && (
+            <img
+              src={selectedImage}
+              alt="Full size"
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -121,6 +121,38 @@ describe('PostCard', () => {
       expect(screen.queryByRole('img', { name: /post image/i })).not.toBeInTheDocument();
     });
 
+    it('should open lightbox when image is clicked', async () => {
+      const user = userEvent.setup();
+      const postWithImages = {
+        ...mockPost,
+        images: ['https://example.com/image1.jpg'],
+      };
+      render(<PostCard post={postWithImages} />);
+
+      const image = screen.getByRole('img', { name: /post image 1/i });
+      await user.click(image);
+
+      // Lightbox should show full size image
+      const fullSizeImage = screen.getByRole('img', { name: /full size/i });
+      expect(fullSizeImage).toBeInTheDocument();
+      expect(fullSizeImage).toHaveAttribute('src', 'https://example.com/image1.jpg');
+    });
+
+    it('should not navigate when image is clicked', async () => {
+      const user = userEvent.setup();
+      const postWithImages = {
+        ...mockPost,
+        images: ['https://example.com/image1.jpg'],
+      };
+      render(<PostCard post={postWithImages} />);
+
+      const image = screen.getByRole('img', { name: /post image 1/i });
+      await user.click(image);
+
+      // Should not navigate because stopPropagation prevents card click
+      expect(mockSetLocation).not.toHaveBeenCalled();
+    });
+
     it('should preserve line breaks in content', () => {
       const postWithMultilineContent = {
         ...mockPost,
@@ -144,7 +176,7 @@ describe('PostCard', () => {
     it('should show empty heart when user_liked is false', () => {
       const unlikedPost = { ...mockPost, user_liked: false };
       const { container } = render(<PostCard post={unlikedPost} />);
-      const heartButton = container.querySelector('[class*="text-gray-400"]');
+      const heartButton = container.querySelector('[class*="text-muted-foreground"]');
       expect(heartButton).toBeInTheDocument();
     });
   });
@@ -335,14 +367,15 @@ describe('PostCard', () => {
   describe('Styling and Layout', () => {
     it('should have hover effects on card', () => {
       const { container } = render(<PostCard post={mockPost} />);
-      const card = container.querySelector('.hover\\:border-gray-600');
+      const card = container.querySelector('.cursor-pointer.group');
       expect(card).toBeInTheDocument();
+      expect(card?.className).toContain('hover:border-[hsl(280,100%,70%)]/50');
     });
 
-    it('should have gradient background', () => {
+    it('should have gradient background on avatar', () => {
       const { container } = render(<PostCard post={mockPost} />);
-      const card = container.querySelector('.bg-gradient-to-br');
-      expect(card).toBeInTheDocument();
+      const avatar = container.querySelector('.bg-gradient-to-r');
+      expect(avatar).toBeInTheDocument();
     });
 
     it('should display engagement section with border', () => {
