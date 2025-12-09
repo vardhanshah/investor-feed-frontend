@@ -622,14 +622,14 @@ export default function Feed() {
             </div>
           </div>
 
-          {/* Vertical Divider */}
+          {/* Vertical Divider - hidden on mobile */}
           {isSidebarOpen && (
-            <div className="w-px bg-border flex-shrink-0 animate-in fade-in duration-500"></div>
+            <div className="hidden md:block w-px bg-border flex-shrink-0 animate-in fade-in duration-500"></div>
           )}
 
-          {/* Right Side - Sidebar */}
+          {/* Right Side - Sidebar (fullscreen on mobile, side panel on desktop) */}
           {isSidebarOpen && (
-            <div className="w-[480px] flex-shrink-0 animate-in slide-in-from-right duration-500">
+            <div className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto md:w-[480px] flex-shrink-0 animate-in slide-in-from-right duration-500">
               <FeedSidebar
                 isOpen={isSidebarOpen}
                 onClose={handleSidebarClose}

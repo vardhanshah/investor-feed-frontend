@@ -556,7 +556,7 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
   if (!isOpen) return null;
 
   return (
-    <div className="h-[calc(100vh-5rem)] bg-background border border-border rounded-lg flex flex-col sticky top-4">
+    <div className="h-full md:h-[calc(100vh-5rem)] bg-background border-0 md:border md:border-border md:rounded-lg flex flex-col md:sticky md:top-4">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h2 className="text-xl font-alata font-bold text-foreground">
