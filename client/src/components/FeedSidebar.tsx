@@ -580,44 +580,6 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Feed Details */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground font-alata">Feed Details</CardTitle>
-                <CardDescription className="text-muted-foreground font-alata">
-                  Give your custom feed a name and description
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="feedName" className="text-foreground font-alata">
-                    Feed Name *
-                  </Label>
-                  <Input
-                    id="feedName"
-                    type="text"
-                    placeholder="e.g., Growth Stocks Feed"
-                    value={feedName}
-                    onChange={(e) => setFeedName(e.target.value)}
-                    className="bg-background border-border text-foreground font-alata"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="feedDescription" className="text-foreground font-alata">
-                    Description (Optional)
-                  </Label>
-                  <Input
-                    id="feedDescription"
-                    type="text"
-                    placeholder="e.g., Posts related to high-growth companies"
-                    value={feedDescription}
-                    onChange={(e) => setFeedDescription(e.target.value)}
-                    className="bg-background border-border text-foreground font-alata"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Filter Configuration - Grouped */}
             {filterGroups.length > 0 ? (
               // Render grouped filters (already sorted by backend)
@@ -679,6 +641,44 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
                 </CardContent>
               </Card>
             )}
+
+            {/* Feed Details - Name & Description */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-foreground font-alata">Feed Details</CardTitle>
+                <CardDescription className="text-muted-foreground font-alata">
+                  Give your custom feed a name and description
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="feedName" className="text-foreground font-alata">
+                    Feed Name *
+                  </Label>
+                  <Input
+                    id="feedName"
+                    type="text"
+                    placeholder="e.g., Growth Stocks Feed"
+                    value={feedName}
+                    onChange={(e) => setFeedName(e.target.value)}
+                    className="bg-background border-border text-foreground font-alata"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="feedDescription" className="text-foreground font-alata">
+                    Description (Optional)
+                  </Label>
+                  <Input
+                    id="feedDescription"
+                    type="text"
+                    placeholder="e.g., Posts related to high-growth companies"
+                    value={feedDescription}
+                    onChange={(e) => setFeedDescription(e.target.value)}
+                    className="bg-background border-border text-foreground font-alata"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Combined Query Preview - Shows how all groups combine */}
             {buildFullQueryPreview() && filterGroups.length > 1 && (
