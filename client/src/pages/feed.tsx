@@ -236,25 +236,21 @@ export default function Feed() {
     setIsSidebarOpen(true);
   };
 
-  const handleFeedCreated = async () => {
+  const handleFeedCreated = async (feedId?: number) => {
     // Reload feed configurations and refresh the feed posts
     try {
       const configs = await feedConfigApi.listFeedConfigurations();
       setFeedConfigs(configs);
 
-      if (editingFeedId) {
-        // When editing, reload posts for the current feed to show updated results
+      if (feedId) {
+        // Select the created/updated feed by its ID
+        setSelectedFeedId(feedId);
+        localStorage.setItem('selectedFeedId', feedId.toString());
+
+        // Reload posts for the feed
         setIsLoadingPosts(true);
         setOffset(0);
-        await fetchPosts(editingFeedId, 0);
-        // Keep editing state - don't close sidebar
-      } else {
-        // When creating, select the newly created feed (last one in the list)
-        if (configs.length > 0) {
-          const newFeed = configs[configs.length - 1];
-          setSelectedFeedId(newFeed.id);
-          localStorage.setItem('selectedFeedId', newFeed.id.toString());
-        }
+        await fetchPosts(feedId, 0);
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);

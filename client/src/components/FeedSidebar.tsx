@@ -25,7 +25,7 @@ interface NumberFilterState {
 interface FeedSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onFeedCreated: () => void;
+  onFeedCreated: (feedId?: number) => void;
   editingFeedId?: number | null;
 }
 
@@ -261,7 +261,7 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
         });
 
         // Reload feed configurations to show updated feed
-        onFeedCreated();
+        onFeedCreated(editingFeedId);
 
         // Keep sidebar open - reload the updated feed data
         setIsLoadingFeed(true);
@@ -310,13 +310,13 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
         }
       } else {
         // Create new feed
-        await feedConfigApi.createFeedConfiguration(feedData);
+        const newFeed = await feedConfigApi.createFeedConfiguration(feedData);
         toast({
           title: 'Success',
           description: 'Feed configuration created successfully',
         });
 
-        onFeedCreated();
+        onFeedCreated(newFeed.id);
         onClose();
       }
     } catch (err) {
