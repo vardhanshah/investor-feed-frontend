@@ -46,9 +46,10 @@ export function formatTimeAgo(
 /**
  * Formats a UTC timestamp as relative time with two units (e.g., "2 hrs 30 mins ago")
  * Automatically converts to user's local timezone
+ * If more than 15 days ago, shows the date and time instead (e.g., "Dec 10, 2024 at 5:30 PM")
  *
  * @param utcTimestamp - UTC timestamp string
- * @returns Formatted relative time string with two units
+ * @returns Formatted relative time string with two units, or date-time if older than 15 days
  */
 export function formatTimeAgoTwoUnits(utcTimestamp: string): string {
   try {
@@ -61,6 +62,12 @@ export function formatTimeAgoTwoUnits(utcTimestamp: string): string {
     }
 
     const days = Math.floor(totalSeconds / 86400);
+
+    // If more than 15 days, show date-time in local timezone
+    if (days > 15) {
+      return format(localDate, 'MMM d, yyyy \'at\' h:mm a');
+    }
+
     const hours = Math.floor((totalSeconds % 86400) / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
