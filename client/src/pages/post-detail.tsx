@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
-import { formatTimeAgo } from '@/lib/dateUtils';
+import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
 
 // Helper to format attribute value with unit
 function formatAttributeValue(value: any, metadata?: { unit?: string | null; type?: string }): string {
@@ -58,6 +58,7 @@ interface PostDetail {
   content: string;
   profile: PostProfile;
   source: string | null;
+  submission_date?: string;
   created_at: string;
   images: string[];
   reaction_count: number;
@@ -375,7 +376,7 @@ export default function PostDetailPage() {
     );
   }
 
-  const timeAgo = formatTimeAgo(post.created_at);
+  const timeAgo = formatTimeAgoTwoUnits(post.submission_date || post.created_at);
 
   return (
     <div className="min-h-screen bg-background">
