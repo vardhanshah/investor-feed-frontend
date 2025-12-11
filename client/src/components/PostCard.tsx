@@ -162,9 +162,17 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
             className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={handleProfileClick}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-sm">
-              {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
-            </div>
+            {post.profile.meta_attributes?.logo_url ? (
+              <img
+                src={post.profile.meta_attributes.logo_url}
+                alt={post.profile.title || 'Profile'}
+                className="w-8 h-8 rounded-full object-cover bg-muted"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-sm">
+                {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
+              </div>
+            )}
             <div>
               <h3 className="text-foreground font-alata font-semibold text-sm">
                 {post.profile.title || `Profile #${post.profile.id}`}

@@ -407,9 +407,17 @@ export default function PostDetailPage() {
                 onClick={() => setLocationPath(`/profiles/${post.profile.id}`)}
                 className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
               >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold">
-                  {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
-                </div>
+                {post.profile.meta_attributes?.logo_url ? (
+                  <img
+                    src={post.profile.meta_attributes.logo_url}
+                    alt={post.profile.title || 'Profile'}
+                    className="w-10 h-10 rounded-full object-cover bg-muted"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold">
+                    {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
+                  </div>
+                )}
                 <div className="text-left">
                   <h3 className="text-foreground font-alata font-medium hover:text-[hsl(280,100%,70%)] transition-colors">
                     {post.profile.title || `Profile #${post.profile.id}`}

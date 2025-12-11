@@ -172,9 +172,17 @@ export default function ProfilePage() {
           <Card className="bg-card border-border mb-8">
             <CardContent className="p-8">
               <div className="flex items-start space-x-6 mb-6">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-3xl shrink-0">
-                  {profile.title[0].toUpperCase()}
-                </div>
+                {profile.meta_attributes?.logo_url ? (
+                  <img
+                    src={profile.meta_attributes.logo_url}
+                    alt={profile.title}
+                    className="w-20 h-20 rounded-full object-cover bg-muted shrink-0"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-3xl shrink-0">
+                    {profile.title[0].toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1">
                   <h1 className="text-3xl font-alata text-foreground mb-2">{profile.title}</h1>
                   {profile.description && (

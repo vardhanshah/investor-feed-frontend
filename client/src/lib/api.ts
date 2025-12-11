@@ -41,12 +41,23 @@ export interface RegisterResponse {
   email: string;
 }
 
+export interface ProfileMetaAttributes {
+  logo_url?: string | null;
+  symbol?: string | null;
+  company_bse_id?: string | null;
+  website?: string | null;
+  isin?: string | null;
+  bse_code?: string | null;
+  nse_symbol?: string | null;
+}
+
 export interface Profile {
   id: number;
   title: string;
   description: string | null;
   created_at: string;
   updated_at?: string;
+  meta_attributes?: ProfileMetaAttributes | null;
   attributes?: {
     mcap?: number | null;
     pe_ratio?: number | null;
@@ -86,6 +97,7 @@ export interface PostProfile {
   id: number;
   title: string;
   external_id?: string;
+  meta_attributes?: ProfileMetaAttributes | null;
   attributes?: Record<string, any>;
 }
 
