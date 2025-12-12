@@ -6,20 +6,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FaGoogle, FaTwitter } from 'react-icons/fa';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
-import { authApi } from '@/lib/api';
+import { Link, useLocation, useSearch } from 'wouter';
+import { authApi, API_BASE_URL } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const search = useSearch();
   const { user, isLoading: authLoading, login } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Check for OAuth error in query params
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const oauthError = params.get('error');
+    if (oauthError) {
+      setError(oauthError);
+      // Clear the error from URL without triggering a reload
+      window.history.replaceState({}, '', '/login');
+    }
+  }, [search]);
 
   // Redirect authenticated users to feed
   useEffect(() => {
@@ -69,13 +81,13 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // TODO: Replace with actual Google OAuth redirect
-    window.location.href = '/api/auth/google';
+    // Redirect to backend OAuth endpoint
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   const handleXLogin = () => {
-    // TODO: Replace with actual X OAuth redirect
-    window.location.href = '/api/auth/twitter';
+    // Redirect to backend OAuth endpoint
+    window.location.href = `${API_BASE_URL}/auth/twitter`;
   };
 
   if (authLoading) {

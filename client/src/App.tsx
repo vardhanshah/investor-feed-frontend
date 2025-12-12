@@ -16,6 +16,7 @@ import UserPublicProfile from "@/pages/user-public-profile";
 import Filters from "@/pages/filters";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
+import AuthCallback from "@/pages/auth-callback";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/filters" component={Filters} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/auth/callback" component={AuthCallback} />
       <Route component={NotFound} />
     </Switch>
   );
