@@ -402,41 +402,41 @@ export default function PostDetailPage() {
         <Card className="bg-card border-border mb-6">
           <CardContent className="p-6">
             {/* Profile Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <button
                 onClick={() => setLocationPath(`/profiles/${post.profile.id}`)}
-                className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+                className="flex items-center space-x-4 hover:opacity-80 transition-opacity"
               >
                 {post.profile.meta_attributes?.logo_url ? (
                   <img
                     src={post.profile.meta_attributes.logo_url}
                     alt={post.profile.title || 'Profile'}
-                    className="w-10 h-10 rounded-full object-cover bg-muted"
+                    className="w-12 h-12 rounded-full object-cover bg-muted"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-lg">
                     {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
                   </div>
                 )}
                 <div className="text-left">
-                  <h3 className="text-foreground font-alata font-medium hover:text-[hsl(280,100%,70%)] transition-colors">
+                  <h3 className="text-foreground font-alata font-medium text-lg hover:text-[hsl(280,100%,70%)] transition-colors">
                     {post.profile.title || `Profile #${post.profile.id}`}
                   </h3>
-                  <p className="text-xs text-muted-foreground font-alata">{timeAgo}</p>
+                  <p className="text-sm text-muted-foreground font-alata">{timeAgo}</p>
                 </div>
               </button>
             </div>
 
             {/* Profile Attributes */}
             {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && post.profiles_attributes_metadata && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-5">
                 {Object.entries(post.profile.attributes).map(([key, value]) => {
                   const metadata = post.profiles_attributes_metadata?.[key];
                   if (!metadata || value === null || value === undefined) return null;
                   return (
                     <span
                       key={key}
-                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-alata bg-muted text-muted-foreground"
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-alata bg-muted text-muted-foreground"
                     >
                       <span className="text-foreground/60">{metadata.label}:</span>
                       <span className="ml-1 text-foreground">{formatAttributeValue(value, metadata)}</span>
@@ -447,8 +447,8 @@ export default function PostDetailPage() {
             )}
 
             {/* Post Content */}
-            <div className="mb-4">
-              <p className="text-foreground font-alata whitespace-pre-wrap text-lg">{post.content}</p>
+            <div className="mb-5">
+              <p className="text-foreground font-alata whitespace-pre-wrap text-lg leading-relaxed">{post.content}</p>
             </div>
 
             {/* Images */}
@@ -472,9 +472,9 @@ export default function PostDetailPage() {
                 href={post.source}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center text-sm text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] mb-4 font-alata"
+                className="inline-flex items-center text-sm text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] mb-5 font-alata"
               >
-                <ExternalLink className="h-3 w-3 mr-1" />
+                <ExternalLink className="h-4 w-4 mr-1.5" />
                 View Source
               </a>
             )}
@@ -502,7 +502,7 @@ export default function PostDetailPage() {
             )}
 
             {/* Engagement Stats */}
-            <div className="flex items-center space-x-6 pt-4 border-t border-border">
+            <div className="flex items-center space-x-6 pt-5 border-t border-border">
               <button
                 onClick={handleLike}
                 disabled={!user}
@@ -512,12 +512,12 @@ export default function PostDetailPage() {
                     : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
                 } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="text-sm font-alata">{likeCount}</span>
+                <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                <span className="text-base font-alata">{likeCount}</span>
               </button>
               <div className="flex items-center space-x-2 text-muted-foreground">
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-sm font-alata">{post.comment_count}</span>
+                <MessageCircle className="h-5 w-5" />
+                <span className="text-base font-alata">{post.comment_count}</span>
               </div>
             </div>
           </CardContent>

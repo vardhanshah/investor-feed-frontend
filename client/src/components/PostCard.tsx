@@ -155,43 +155,43 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
       className="bg-card border-border hover:border-[hsl(280,100%,70%)]/50 transition-all cursor-pointer group"
       onClick={handleCardClick}
     >
-      <CardContent className="p-4">
-        {/* Profile Header - More Compact */}
-        <div className="flex items-center justify-between mb-3">
+      <CardContent className="p-5">
+        {/* Profile Header */}
+        <div className="flex items-center justify-between mb-4">
           <div
-            className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={handleProfileClick}
           >
             {post.profile.meta_attributes?.logo_url ? (
               <img
                 src={post.profile.meta_attributes.logo_url}
                 alt={post.profile.title || 'Profile'}
-                className="w-8 h-8 rounded-full object-cover bg-muted"
+                className="w-10 h-10 rounded-full object-cover bg-muted"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-sm">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-base">
                 {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
               </div>
             )}
             <div>
-              <h3 className="text-foreground font-alata font-semibold text-sm">
+              <h3 className="text-foreground font-alata font-semibold text-base">
                 {post.profile.title || `Profile #${post.profile.id}`}
               </h3>
-              <p className="text-xs text-muted-foreground font-alata">{timeAgo}</p>
+              <p className="text-sm text-muted-foreground font-alata">{timeAgo}</p>
             </div>
           </div>
         </div>
 
         {/* Profile Attributes */}
         {post.profile.attributes && Object.keys(post.profile.attributes).length > 0 && profilesAttributesMetadata && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-2 mb-4">
             {Object.entries(post.profile.attributes).map(([key, value]) => {
               const metadata = profilesAttributesMetadata[key];
               if (!metadata || value === null || value === undefined) return null;
               return (
                 <span
                   key={key}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-alata bg-muted text-muted-foreground"
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-alata bg-muted text-muted-foreground"
                 >
                   <span className="text-foreground/60">{metadata.label}:</span>
                   <span className="ml-1 text-foreground">{formatAttributeValue(value, metadata)}</span>
@@ -201,9 +201,9 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
           </div>
         )}
 
-        {/* Post Content - More Prominent */}
-        <div className="mb-3">
-          <p className="text-foreground font-alata whitespace-pre-wrap text-[15px] leading-relaxed">{post.content}</p>
+        {/* Post Content */}
+        <div className="mb-4">
+          <p className="text-foreground font-alata whitespace-pre-wrap text-base leading-relaxed">{post.content}</p>
         </div>
 
         {/* Images */}
@@ -231,16 +231,16 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center text-xs text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] mb-3 font-alata"
+            className="inline-flex items-center text-sm text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] mb-4 font-alata"
           >
-            <ExternalLink className="h-3 w-3 mr-1" />
+            <ExternalLink className="h-4 w-4 mr-1.5" />
             View Source
           </a>
         )}
 
         {/* Attribute Badges */}
         {post.attributes && (post.attributes_metadata || postsAttributesMetadata) && (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-4">
             {Object.entries(post.attributes).map(([key, value]) => {
               // Use post-level metadata first, fall back to response-level metadata
               const metadata = post.attributes_metadata?.[key] || postsAttributesMetadata?.[key];
@@ -249,7 +249,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
                   <Badge
                     key={key}
                     variant="outline"
-                    className="border-[hsl(280,100%,70%)]/30 bg-[hsl(280,100%,70%)]/5 text-[hsl(280,100%,70%)] text-xs font-alata"
+                    className="border-[hsl(280,100%,70%)]/30 bg-[hsl(280,100%,70%)]/5 text-[hsl(280,100%,70%)] text-sm font-alata px-2.5 py-0.5"
                   >
                     {metadata.label}
                   </Badge>
@@ -260,35 +260,35 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
           </div>
         )}
 
-        {/* Engagement Stats - Market Style */}
-        <div className="flex items-center justify-between pt-3 border-t border-border/50">
-          <div className="flex items-center space-x-4">
+        {/* Engagement Stats */}
+        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+          <div className="flex items-center space-x-5">
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-1.5 transition-all cursor-pointer group/like ${
+              className={`flex items-center space-x-2 transition-all cursor-pointer group/like ${
                 isLiked
                   ? 'text-[hsl(280,100%,70%)]'
                   : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
               }`}
             >
-              <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
-              <span className="text-sm font-alata font-medium">{likeCount}</span>
+              <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
+              <span className="text-base font-alata font-medium">{likeCount}</span>
             </button>
-            <div className="flex items-center space-x-1.5 text-muted-foreground">
-              <MessageCircle className="h-4 w-4" />
-              <span className="text-sm font-alata">{post.comment_count}</span>
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <MessageCircle className="h-5 w-5" />
+              <span className="text-base font-alata">{post.comment_count}</span>
             </div>
             <button
               onClick={handleShare}
-              className="flex items-center space-x-1.5 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
+              className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
             >
-              <Share2 className="h-4 w-4 group-hover/share:scale-110 transition-transform" />
+              <Share2 className="h-5 w-5 group-hover/share:scale-110 transition-transform" />
             </button>
           </div>
 
           {/* Trending Indicator (if high engagement) */}
           {likeCount > 10 && (
-            <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-xs font-alata">
+            <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
               <span className="animate-pulse">🔥</span>
               <span>Trending</span>
             </div>
