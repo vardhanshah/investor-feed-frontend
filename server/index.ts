@@ -1,8 +1,33 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Proxy /api requests to backend in development
+if (process.env.NODE_ENV === "development") {
+  const apiTarget = process.env.API_PROXY_TARGET || "https://dev.investorfeed.in";
+  app.use(
+    "/api",
+    createProxyMiddleware({
+      target: apiTarget,
+      changeOrigin: true,
+      secure: true,
+      pathRewrite: (path) => `/api${path}`, // Re-add /api prefix since Express strips it
+      on: {
+        proxyReq: (proxyReq, req) => {
+          console.log(`[proxy] ${req.method} /api${req.url} -> ${apiTarget}/api${req.url}`);
+        },
+        error: (err, req, res) => {
+          console.error(`[proxy] Error: ${err.message}`);
+        },
+      },
+    })
+  );
+  log(`Proxying /api requests to ${apiTarget}`);
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

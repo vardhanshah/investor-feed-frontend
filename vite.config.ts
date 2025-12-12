@@ -35,5 +35,12 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_PROXY_TARGET || "https://dev.investorfeed.in",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
 });
