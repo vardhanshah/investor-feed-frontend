@@ -688,10 +688,6 @@ export default function Feed() {
                   </h1>
                 </div>
 
-                {/* Post Count */}
-                <Badge variant="outline" className="border-border text-muted-foreground font-alata">
-                  {posts.length} updates
-                </Badge>
               </div>
 
               {/* Sort Dropdown - only show if more than one option */}
