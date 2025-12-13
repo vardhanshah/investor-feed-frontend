@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,12 +12,10 @@ import Feed from "@/pages/feed";
 import PostDetail from "@/pages/post-detail";
 import Profile from "@/pages/profile";
 import UserActivity from "@/pages/user-activity";
-import UserPublicProfile from "@/pages/user-public-profile";
 import Filters from "@/pages/filters";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import AuthCallback from "@/pages/auth-callback";
-import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
@@ -33,7 +31,7 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/auth/callback" component={AuthCallback} />
-      <Route component={NotFound} />
+      <Route>{() => <Redirect to="/" />}</Route>
     </Switch>
   );
 }
