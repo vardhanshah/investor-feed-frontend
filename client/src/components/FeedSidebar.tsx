@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Save, X } from 'lucide-react';
 import { filtersApi, feedConfigApi, FilterConfig, FilterGroup } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
@@ -18,8 +17,8 @@ interface FilterValue {
 }
 
 interface NumberFilterState {
-  value: string;
-  operator: string;
+  from: string;
+  to: string;
 }
 
 interface FeedSidebarProps {
@@ -51,13 +50,13 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
         // Groups are already sorted by backend
         setFilterGroups(response.groups || []);
 
-        // Initialize number filter states with default operators
+        // Initialize number filter states with from/to values
         const initialStates: Record<string, NumberFilterState> = {};
         response.filters.forEach(config => {
-          if (config.type === 'number' && config.operators && config.operators.length > 0) {
+          if (config.type === 'number') {
             initialStates[config.field] = {
-              value: '',
-              operator: config.operators[0], // Use first operator as default
+              from: '',
+              to: '',
             };
           }
         });
@@ -80,10 +79,18 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
               if (config?.type === 'boolean') {
                 newFilterValues[filter.field] = filter.value;
               } else if (config?.type === 'number') {
-                newNumberStates[filter.field] = {
-                  value: filter.value.toString(),
-                  operator: filter.operator,
-                };
+                // Map gte to 'from' and lte to 'to'
+                if (filter.operator === 'gte') {
+                  newNumberStates[filter.field] = {
+                    ...newNumberStates[filter.field],
+                    from: filter.value.toString(),
+                  };
+                } else if (filter.operator === 'lte') {
+                  newNumberStates[filter.field] = {
+                    ...newNumberStates[filter.field],
+                    to: filter.value.toString(),
+                  };
+                }
               }
             });
 
@@ -126,10 +133,10 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
       // Reset number filter states
       const initialStates: Record<string, NumberFilterState> = {};
       filterConfigs.forEach(config => {
-        if (config.type === 'number' && config.operators && config.operators.length > 0) {
+        if (config.type === 'number') {
           initialStates[config.field] = {
-            value: '',
-            operator: config.operators[0],
+            from: '',
+            to: '',
           };
         }
       });
@@ -145,38 +152,26 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
     }));
   };
 
-  // Handle number filter value change
-  const handleNumberFilterValueChange = (field: string, value: string) => {
+  // Handle number filter from value change
+  const handleNumberFilterFromChange = (field: string, value: string) => {
     setNumberFilterStates(prev => ({
       ...prev,
       [field]: {
         ...prev[field],
-        value,
+        from: value,
       },
     }));
   };
 
-  // Handle number filter operator change
-  const handleNumberFilterOperatorChange = (field: string, operator: string) => {
+  // Handle number filter to value change
+  const handleNumberFilterToChange = (field: string, value: string) => {
     setNumberFilterStates(prev => ({
       ...prev,
       [field]: {
         ...prev[field],
-        operator,
+        to: value,
       },
     }));
-  };
-
-  // Get operator symbol
-  const getOperatorLabel = (operator: string): string => {
-    const labels: Record<string, string> = {
-      'gte': '≥',
-      'lte': '≤',
-      'gt': '>',
-      'lt': '<',
-      'eq': '=',
-    };
-    return labels[operator] || operator;
   };
 
   // Handle save feed configuration (create or update)
@@ -193,28 +188,54 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
     // Build filter criteria from selected values
     const filters: FilterValue[] = [];
 
-    // Add number filters
+    // Add number filters (from/to logic)
     Object.entries(numberFilterStates).forEach(([field, state]) => {
-      if (state.value && state.value.trim() !== '') {
-        const config = filterConfigs.find(c => c.field === field);
-        const numValue = parseFloat(state.value);
+      const config = filterConfigs.find(c => c.field === field);
+      const hasFrom = state.from && state.from.trim() !== '';
+      const hasTo = state.to && state.to.trim() !== '';
 
+      if (hasFrom) {
+        const fromValue = parseFloat(state.from);
         // Validate range if provided
-        if (config?.range) {
-          if (numValue < config.range.min || numValue > config.range.max) {
-            toast({
-              variant: 'destructive',
-              title: 'Validation Error',
-              description: `${config.label} must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
-            });
-            return;
-          }
+        if (config?.range && (fromValue < config.range.min || fromValue > config.range.max)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "From" value must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
+          });
+          return;
         }
-
         filters.push({
           field,
-          operator: state.operator,
-          value: numValue,
+          operator: 'gte',
+          value: fromValue,
+        });
+      }
+
+      if (hasTo) {
+        const toValue = parseFloat(state.to);
+        // Validate range if provided
+        if (config?.range && (toValue < config.range.min || toValue > config.range.max)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "To" value must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
+          });
+          return;
+        }
+        // Validate that "To" is greater than or equal to "From"
+        if (hasFrom && toValue < parseFloat(state.from)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "To" value must be greater than or equal to "From" value`,
+          });
+          return;
+        }
+        filters.push({
+          field,
+          operator: 'lte',
+          value: toValue,
         });
       }
     });
@@ -276,10 +297,10 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
 
           // Initialize with defaults
           filterConfigs.forEach(config => {
-            if (config.type === 'number' && config.operators && config.operators.length > 0) {
+            if (config.type === 'number') {
               newNumberStates[config.field] = {
-                value: '',
-                operator: config.operators[0],
+                from: '',
+                to: '',
               };
             }
           });
@@ -289,10 +310,18 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
             if (config?.type === 'boolean') {
               newFilterValues[filter.field] = filter.value;
             } else if (config?.type === 'number') {
-              newNumberStates[filter.field] = {
-                value: filter.value.toString(),
-                operator: filter.operator,
-              };
+              // Map gte to 'from' and lte to 'to'
+              if (filter.operator === 'gte') {
+                newNumberStates[filter.field] = {
+                  ...newNumberStates[filter.field],
+                  from: filter.value.toString(),
+                };
+              } else if (filter.operator === 'lte') {
+                newNumberStates[filter.field] = {
+                  ...newNumberStates[filter.field],
+                  to: filter.value.toString(),
+                };
+              }
             }
           });
 
@@ -370,10 +399,20 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
       return filterValues[config.field] === true ? config.label : null;
     } else if (config.type === 'number') {
       const state = numberFilterStates[config.field];
-      if (state && state.value && state.value.trim() !== '') {
-        const operatorLabel = getOperatorLabel(state.operator);
-        const formattedValue = formatNumber(state.value);
-        return `${config.label} ${operatorLabel} ${formattedValue}${config.unit ? ' ' + config.unit : ''}`;
+      if (!state) return null;
+
+      const hasFrom = state.from && state.from.trim() !== '';
+      const hasTo = state.to && state.to.trim() !== '';
+
+      if (hasFrom && hasTo) {
+        // Both values: show as range
+        return `${config.label}: ${formatNumber(state.from)} - ${formatNumber(state.to)}${config.unit ? ' ' + config.unit : ''}`;
+      } else if (hasFrom) {
+        // Only from: show as ≥
+        return `${config.label} ≥ ${formatNumber(state.from)}${config.unit ? ' ' + config.unit : ''}`;
+      } else if (hasTo) {
+        // Only to: show as ≤
+        return `${config.label} ≤ ${formatNumber(state.to)}${config.unit ? ' ' + config.unit : ''}`;
       }
     }
     return null;
@@ -466,56 +505,58 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
             <p className="text-sm text-muted-foreground font-alata">{config.description}</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            {/* Operator Selection */}
-            {config.operators && config.operators.length > 1 && (
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground font-alata">Operator</Label>
-                <Select
-                  value={state.operator}
-                  onValueChange={(value) => handleNumberFilterOperatorChange(config.field, value)}
-                >
-                  <SelectTrigger className="bg-background border-border text-foreground font-mono text-2xl h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {config.operators.map((op) => (
-                      <SelectItem key={op} value={op} className="font-mono text-xl">
-                        {getOperatorLabel(op)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Value Input */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* From Input */}
             <div className="space-y-2">
               <Label className="text-sm text-muted-foreground font-alata">
-                Value
+                From
                 {config.range && (
-                  <span className="ml-1">
-                    ({formatNumber(config.range.min.toString())} - {formatNumber(config.range.max.toString())})
+                  <span className="ml-1 text-xs">
+                    (min: {formatNumber(config.range.min.toString())})
                   </span>
                 )}
               </Label>
               <div className="relative">
                 <Input
-                  id={config.field}
+                  id={`${config.field}-from`}
                   type="text"
                   inputMode="numeric"
-                  placeholder={config.range ? `e.g., ${formatNumber(config.range.min.toString())}` : 'Enter value'}
-                  value={state.value ? formatNumberForInput(state.value) : ''}
+                  placeholder={config.range ? formatNumber(config.range.min.toString()) : 'Min'}
+                  value={state.from ? formatNumberForInput(state.from) : ''}
                   onChange={(e) => {
                     const rawValue = parseFormattedNumber(e.target.value);
-                    handleNumberFilterValueChange(config.field, rawValue);
+                    handleNumberFilterFromChange(config.field, rawValue);
                   }}
-                  onBlur={(e) => {
-                    // Format on blur for better UX
+                  className="bg-background border-border text-foreground font-mono text-lg tracking-wider pr-12 h-11"
+                />
+                {config.unit && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-alata">
+                    {config.unit}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* To Input */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground font-alata">
+                To
+                {config.range && (
+                  <span className="ml-1 text-xs">
+                    (max: {formatNumber(config.range.max.toString())})
+                  </span>
+                )}
+              </Label>
+              <div className="relative">
+                <Input
+                  id={`${config.field}-to`}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder={config.range ? formatNumber(config.range.max.toString()) : 'Max'}
+                  value={state.to ? formatNumberForInput(state.to) : ''}
+                  onChange={(e) => {
                     const rawValue = parseFormattedNumber(e.target.value);
-                    if (rawValue) {
-                      handleNumberFilterValueChange(config.field, rawValue);
-                    }
+                    handleNumberFilterToChange(config.field, rawValue);
                   }}
                   className="bg-background border-border text-foreground font-mono text-lg tracking-wider pr-12 h-11"
                 />
