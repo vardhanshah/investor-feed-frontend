@@ -126,39 +126,18 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
 
     const postUrl = `${window.location.origin}/posts/${post.id}`;
 
-    // Try to use Web Share API if available (mobile devices)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Post by ${post.profile.title || 'Investor Feed'}`,
-          text: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
-          url: postUrl,
-        });
-        toast({
-          title: 'Shared!',
-          description: 'Post shared successfully.',
-        });
-      } catch (err) {
-        // User cancelled or error occurred
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Share failed:', err);
-        }
-      }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        await navigator.clipboard.writeText(postUrl);
-        toast({
-          title: 'Link Copied!',
-          description: 'Post link copied to clipboard.',
-        });
-      } catch (err) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to copy',
-          description: 'Could not copy link to clipboard.',
-        });
-      }
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      toast({
+        title: 'Link Copied!',
+        description: 'Post link copied to clipboard.',
+      });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to copy',
+        description: 'Could not copy link to clipboard.',
+      });
     }
   };
 
