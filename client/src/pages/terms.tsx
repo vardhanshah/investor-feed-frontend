@@ -46,20 +46,22 @@ export default function Terms() {
               as a recommendation to buy, sell, or hold any security.
             </p>
 
-            <h3 className="text-xl font-alata text-yellow-400 mb-3">DATA ACCURACY</h3>
+            <h3 className="text-xl font-alata text-yellow-400 mb-3">DATA ACCURACY & SOURCE VERIFICATION</h3>
             <p className="text-gray-300 font-alata mb-4">
               The information displayed on Investor Feed is sourced from publicly available data
-              from stock exchanges and company filings. However:
+              from stock exchanges and company filings. We provide source links wherever possible
+              so you can verify information directly from official sources. However:
             </p>
             <ul className="text-gray-300 font-alata mb-4 list-disc pl-6">
+              <li>Company data and announcements may contain errors, omissions, or inaccuracies</li>
               <li>We do NOT guarantee the accuracy, completeness, timeliness, or reliability of any information</li>
-              <li>Data may contain errors, omissions, delays, or inaccuracies</li>
               <li>Information may be outdated by the time you view it</li>
               <li>Technical issues may cause data to display incorrectly</li>
             </ul>
             <p className="text-gray-300 font-alata mb-4 font-semibold">
-              You MUST independently verify all information from official sources (BSE, NSE, company websites,
-              SEBI filings) before making any decisions.
+              We provide source links for verification. You MUST use these links to independently verify
+              all information from official sources (BSE, NSE, company websites, SEBI filings) before
+              making any decisions. Do not rely solely on the information displayed on our platform.
             </p>
 
             <h3 className="text-xl font-alata text-yellow-400 mb-3">NO LIABILITY FOR INVESTMENT DECISIONS</h3>
