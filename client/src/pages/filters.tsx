@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowLeft, Save, Filter as FilterIcon } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,8 +18,8 @@ interface FilterValue {
 }
 
 interface NumberFilterState {
-  value: string;
-  operator: string;
+  from: string;
+  to: string;
 }
 
 export default function Filters() {
@@ -50,13 +49,13 @@ export default function Filters() {
         const response = await filtersApi.getFilterConfig();
         setFilterConfigs(response.filters);
 
-        // Initialize number filter states with default operators
+        // Initialize number filter states with from/to values
         const initialStates: Record<string, NumberFilterState> = {};
         response.filters.forEach(config => {
-          if (config.type === 'number' && config.operators && config.operators.length > 0) {
+          if (config.type === 'number') {
             initialStates[config.field] = {
-              value: '',
-              operator: config.operators[0], // Use first operator as default
+              from: '',
+              to: '',
             };
           }
         });
@@ -86,38 +85,26 @@ export default function Filters() {
     }));
   };
 
-  // Handle number filter value change
-  const handleNumberFilterValueChange = (field: string, value: string) => {
+  // Handle number filter from value change
+  const handleNumberFilterFromChange = (field: string, value: string) => {
     setNumberFilterStates(prev => ({
       ...prev,
       [field]: {
         ...prev[field],
-        value,
+        from: value,
       },
     }));
   };
 
-  // Handle number filter operator change
-  const handleNumberFilterOperatorChange = (field: string, operator: string) => {
+  // Handle number filter to value change
+  const handleNumberFilterToChange = (field: string, value: string) => {
     setNumberFilterStates(prev => ({
       ...prev,
       [field]: {
         ...prev[field],
-        operator,
+        to: value,
       },
     }));
-  };
-
-  // Get operator label
-  const getOperatorLabel = (operator: string): string => {
-    const labels: Record<string, string> = {
-      'gte': '≥ (Greater than or equal)',
-      'lte': '≤ (Less than or equal)',
-      'gt': '> (Greater than)',
-      'lt': '< (Less than)',
-      'eq': '= (Equal to)',
-    };
-    return labels[operator] || operator;
   };
 
   // Handle save feed configuration
@@ -134,28 +121,54 @@ export default function Filters() {
     // Build filter criteria from selected values
     const filters: FilterValue[] = [];
 
-    // Add number filters
+    // Add number filters (from/to logic)
     Object.entries(numberFilterStates).forEach(([field, state]) => {
-      if (state.value && state.value.trim() !== '') {
-        const config = filterConfigs.find(c => c.field === field);
-        const numValue = parseFloat(state.value);
+      const config = filterConfigs.find(c => c.field === field);
+      const hasFrom = state.from && state.from.trim() !== '';
+      const hasTo = state.to && state.to.trim() !== '';
 
+      if (hasFrom) {
+        const fromValue = parseFloat(state.from);
         // Validate range if provided
-        if (config?.range) {
-          if (numValue < config.range.min || numValue > config.range.max) {
-            toast({
-              variant: 'destructive',
-              title: 'Validation Error',
-              description: `${config.label} must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
-            });
-            return;
-          }
+        if (config?.range && (fromValue < config.range.min || fromValue > config.range.max)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "From" value must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
+          });
+          return;
         }
-
         filters.push({
           field,
-          operator: state.operator,
-          value: numValue,
+          operator: 'gte',
+          value: fromValue,
+        });
+      }
+
+      if (hasTo) {
+        const toValue = parseFloat(state.to);
+        // Validate range if provided
+        if (config?.range && (toValue < config.range.min || toValue > config.range.max)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "To" value must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
+          });
+          return;
+        }
+        // Validate that "To" is greater than or equal to "From"
+        if (hasFrom && toValue < parseFloat(state.from)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "To" value must be greater than or equal to "From" value`,
+          });
+          return;
+        }
+        filters.push({
+          field,
+          operator: 'lte',
+          value: toValue,
         });
       }
     });
@@ -228,49 +241,56 @@ export default function Filters() {
             <p className="text-sm text-muted-foreground font-alata">{config.description}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Operator Selection */}
-            {config.operators && config.operators.length > 1 && (
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground font-alata">Operator</Label>
-                <Select
-                  value={state.operator}
-                  onValueChange={(value) => handleNumberFilterOperatorChange(config.field, value)}
-                >
-                  <SelectTrigger className="bg-background border-border text-foreground font-alata">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {config.operators.map((op) => (
-                      <SelectItem key={op} value={op} className="font-alata">
-                        {getOperatorLabel(op)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Value Input */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* From Input */}
             <div className="space-y-2">
               <Label className="text-sm text-muted-foreground font-alata">
-                Value
+                From
                 {config.range && (
-                  <span className="ml-1">
-                    ({config.range.min} - {config.range.max})
+                  <span className="ml-1 text-xs">
+                    (min: {config.range.min.toLocaleString('en-IN')})
                   </span>
                 )}
               </Label>
               <div className="relative">
                 <Input
-                  id={config.field}
+                  id={`${config.field}-from`}
                   type="number"
-                  placeholder={config.range ? `${config.range.min} - ${config.range.max}` : 'Enter value'}
-                  value={state.value}
-                  onChange={(e) => handleNumberFilterValueChange(config.field, e.target.value)}
+                  placeholder={config.range ? config.range.min.toLocaleString('en-IN') : 'Min'}
+                  value={state.from}
+                  onChange={(e) => handleNumberFilterFromChange(config.field, e.target.value)}
                   min={config.range?.min}
                   max={config.range?.max}
-                  className="bg-background border-border text-foreground font-alata"
+                  className="bg-background border-border text-foreground font-alata pr-12"
+                />
+                {config.unit && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-alata">
+                    {config.unit}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* To Input */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground font-alata">
+                To
+                {config.range && (
+                  <span className="ml-1 text-xs">
+                    (max: {config.range.max.toLocaleString('en-IN')})
+                  </span>
+                )}
+              </Label>
+              <div className="relative">
+                <Input
+                  id={`${config.field}-to`}
+                  type="number"
+                  placeholder={config.range ? config.range.max.toLocaleString('en-IN') : 'Max'}
+                  value={state.to}
+                  onChange={(e) => handleNumberFilterToChange(config.field, e.target.value)}
+                  min={config.range?.min}
+                  max={config.range?.max}
+                  className="bg-background border-border text-foreground font-alata pr-12"
                 />
                 {config.unit && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-alata">
