@@ -299,9 +299,9 @@ export default function Feed() {
     if (!selectedFeedId) return;
 
     setShowNewPostsButton(false);
+    setNewPostsCount(0);
     setIsLoadingPosts(true);
     setOffset(0);
-    lastFetchTime.current = Date.now();
     await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
 
     // Scroll to top smoothly
