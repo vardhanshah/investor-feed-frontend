@@ -327,7 +327,7 @@ describe('API Layer', () => {
                 value: true,
               },
             ],
-            sort_by: 'created_at',
+            sort_by: 'submission_date',
             sort_order: 'desc',
           },
         };
@@ -347,7 +347,7 @@ describe('API Layer', () => {
             name: 'Test',
             filter_criteria: {
               filters: [],
-              sort_by: 'created_at',
+              sort_by: 'submission_date',
               sort_order: 'desc',
             },
           })
@@ -429,6 +429,13 @@ describe('API Layer', () => {
         const result = await feedsApi.getFeedPosts(1, 10, 5);
 
         expect(result).toHaveProperty('posts');
+      });
+
+      it('should handle sorting parameters', async () => {
+        const result = await feedsApi.getFeedPosts(1, 20, 0, 'mcap', 'desc');
+
+        expect(result).toHaveProperty('posts');
+        expect(Array.isArray(result.posts)).toBe(true);
       });
 
       it('should require authentication', async () => {

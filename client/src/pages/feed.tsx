@@ -8,6 +8,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { feedsApi, feedConfigApi, subscriptionsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +45,8 @@ export default function Feed() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingFeedId, setEditingFeedId] = useState<number | null>(null);
   const [subscribedFeeds, setSubscribedFeeds] = useState<Set<number>>(new Set());
+  const [sortBy, setSortBy] = useState<string | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(undefined);
 
   const LIMIT = 20;
 
@@ -117,10 +120,10 @@ export default function Feed() {
   }, [user]);
 
   // Fetch posts from a feed
-  const fetchPosts = async (feedId: number, currentOffset: number = 0) => {
+  const fetchPosts = async (feedId: number, currentOffset: number = 0, sort_by?: string, sort_order?: 'asc' | 'desc') => {
     try {
       setError(null);
-      const response = await feedsApi.getFeedPosts(feedId, LIMIT, currentOffset);
+      const response = await feedsApi.getFeedPosts(feedId, LIMIT, currentOffset, sort_by, sort_order);
 
       if (currentOffset === 0) {
         // Initial load
@@ -150,28 +153,31 @@ export default function Feed() {
     }
   };
 
-  // Load posts when feed is selected
+  // Load posts when feed is selected or sort changes
   useEffect(() => {
     const loadPosts = async () => {
       if (selectedFeedId) {
         setIsLoadingPosts(true);
         setOffset(0);
-        await fetchPosts(selectedFeedId, 0);
+        await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
       }
     };
 
     loadPosts();
-  }, [selectedFeedId]);
+  }, [selectedFeedId, sortBy, sortOrder]);
 
   const handleLoadMore = () => {
     if (!isLoadingPosts && hasMore && selectedFeedId) {
       setIsLoadingPosts(true);
-      fetchPosts(selectedFeedId, offset);
+      fetchPosts(selectedFeedId, offset, sortBy, sortOrder);
     }
   };
 
   const handleFeedSelect = (feedId: number) => {
     setSelectedFeedId(feedId);
+    // Reset sort to default when changing feeds
+    setSortBy(undefined);
+    setSortOrder(undefined);
     // Save to localStorage for persistence across refreshes
     localStorage.setItem('selectedFeedId', feedId.toString());
   };
@@ -245,12 +251,14 @@ export default function Feed() {
       if (feedId) {
         // Select the created/updated feed by its ID
         setSelectedFeedId(feedId);
+        // Reset sort to default for new/updated feed
+        setSortBy(undefined);
+        setSortOrder(undefined);
         localStorage.setItem('selectedFeedId', feedId.toString());
 
-        // Reload posts for the feed
+        // Reload posts for the feed (useEffect will handle this due to state changes)
         setIsLoadingPosts(true);
         setOffset(0);
-        await fetchPosts(feedId, 0);
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
@@ -518,6 +526,53 @@ export default function Feed() {
                 </Badge>
               </div>
 
+              {/* Sort Dropdown */}
+              {selectedFeedId && (() => {
+                const selectedFeed = feedConfigs.find(f => f.id === selectedFeedId);
+                if (!selectedFeed?.sort_options?.length) return null;
+
+                // Build combined options: field + order
+                const combinedOptions: { value: string; label: string }[] = [];
+                selectedFeed.sort_options.forEach(opt => {
+                  selectedFeed.orders.forEach(order => {
+                    const orderLabel = opt.type === 'date'
+                      ? (order === 'desc' ? 'Newest first' : 'Oldest first')
+                      : opt.type === 'number'
+                        ? (order === 'desc' ? 'Highest first' : 'Lowest first')
+                        : (order === 'desc' ? 'Z to A' : 'A to Z');
+                    combinedOptions.push({
+                      value: `${opt.field}:${order}`,
+                      label: `${opt.label} (${orderLabel})`,
+                    });
+                  });
+                });
+
+                const currentValue = sortBy && sortOrder
+                  ? `${sortBy}:${sortOrder}`
+                  : `${selectedFeed.default_sort}:${selectedFeed.default_order}`;
+
+                return (
+                  <Select
+                    value={currentValue}
+                    onValueChange={(value) => {
+                      const [field, order] = value.split(':');
+                      setSortBy(field);
+                      setSortOrder(order as 'asc' | 'desc');
+                    }}
+                  >
+                    <SelectTrigger className="w-[200px] border-border text-foreground font-alata">
+                      <SelectValue placeholder="Sort by..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {combinedOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value} className="font-alata">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
 
             {/* Posts List */}
@@ -558,7 +613,7 @@ export default function Feed() {
                     onClick={async () => {
                       if (selectedFeedId) {
                         setIsLoadingPosts(true);
-                        await fetchPosts(selectedFeedId, 0);
+                        await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
                       }
                     }}
                     className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"

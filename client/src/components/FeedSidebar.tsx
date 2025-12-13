@@ -247,7 +247,7 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
         description: feedDescription || undefined,
         filter_criteria: {
           filters,
-          sort_by: 'created_at',
+          sort_by: 'submission_date',
           sort_order: 'desc',
         },
       };

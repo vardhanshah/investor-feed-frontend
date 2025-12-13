@@ -14,10 +14,11 @@ if (process.env.NODE_ENV === "development") {
       target: apiTarget,
       changeOrigin: true,
       secure: true,
-      pathRewrite: (path) => `/api${path}`, // Re-add /api prefix since Express strips it
+      // Don't rewrite - just forward the path as-is (Express strips /api, we forward to target/api/...)
+      pathRewrite: { '^/': '/api/' },
       on: {
         proxyReq: (proxyReq, req) => {
-          console.log(`[proxy] ${req.method} /api${req.url} -> ${apiTarget}/api${req.url}`);
+          console.log(`[proxy] ${req.method} ${req.originalUrl} -> ${apiTarget}${proxyReq.path}`);
         },
         error: (err, req, res) => {
           console.error(`[proxy] Error: ${err.message}`);

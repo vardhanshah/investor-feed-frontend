@@ -136,6 +136,12 @@ export interface PostDetailResponse extends Post {
   posts_attributes_metadata?: PostAttributesMetadata;
 }
 
+export interface SortOption {
+  field: string;
+  label: string;
+  type: 'date' | 'number' | 'string';
+}
+
 export interface FeedConfiguration {
   id: number;
   name: string;
@@ -153,6 +159,11 @@ export interface FeedConfiguration {
   created_by: number;
   created_at: string;
   updated_at: string;
+  // Sorting metadata
+  sort_options: SortOption[];
+  orders: ('asc' | 'desc')[];
+  default_sort: string;
+  default_order: 'asc' | 'desc';
 }
 
 export interface Subscription {
@@ -555,9 +566,21 @@ export const subscriptionsApi = {
 
 // Feeds API
 export const feedsApi = {
-  async getFeedPosts(feedId: number, limit = 20, offset = 0): Promise<FeedPostsResponse> {
+  async getFeedPosts(
+    feedId: number,
+    limit = 20,
+    offset = 0,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<FeedPostsResponse> {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    if (sortBy) params.append('sort_by', sortBy);
+    if (sortOrder) params.append('sort_order', sortOrder);
+
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/feeds/${feedId}/posts?limit=${limit}&offset=${offset}`,
+      `${API_BASE_URL}/feeds/${feedId}/posts?${params.toString()}`,
       {
         headers: getAuthHeaders(),
       }
