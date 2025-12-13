@@ -156,11 +156,10 @@ export const mockFeedConfigs: FeedConfiguration[] = [
     created_by: 1,
     created_at: '2025-01-01T00:00:00',
     updated_at: '2025-01-01T00:00:00',
-    // Default feed has restricted sort options
+    // Default feed has restricted sort options (only desc, no dropdown shown)
     sort_options: [
-      { field: 'submission_date', label: 'Date', type: 'date' },
+      { field: 'submission_date', label: 'Date', type: 'date', orders: ['desc'] },
     ],
-    orders: ['desc'],
     default_sort: 'submission_date',
     default_order: 'desc',
   },
@@ -183,17 +182,16 @@ export const mockFeedConfigs: FeedConfiguration[] = [
     created_by: 1,
     created_at: '2025-01-05T00:00:00',
     updated_at: '2025-01-05T00:00:00',
-    // Custom feeds have all sort options
+    // Custom feeds have all sort options with per-field orders
     sort_options: [
-      { field: 'submission_date', label: 'Date', type: 'date' },
-      { field: 'mcap', label: 'Market Cap', type: 'number' },
-      { field: 'pe_ratio', label: 'P/E Ratio', type: 'number' },
-      { field: 'roe', label: 'ROE', type: 'number' },
-      { field: 'pb', label: 'P/B Ratio', type: 'number' },
-      { field: 'sector', label: 'Sector', type: 'string' },
-      { field: 'subsector', label: 'Sub-Sector', type: 'string' },
+      { field: 'submission_date', label: 'Date', type: 'date', orders: ['desc', 'asc'] },
+      { field: 'mcap', label: 'Market Cap', type: 'number', orders: ['desc', 'asc'] },
+      { field: 'pe_ratio', label: 'P/E Ratio', type: 'number', orders: ['desc', 'asc'] },
+      { field: 'roe', label: 'ROE', type: 'number', orders: ['desc', 'asc'] },
+      { field: 'pb', label: 'P/B Ratio', type: 'number', orders: ['desc', 'asc'] },
+      { field: 'sector', label: 'Sector', type: 'string', orders: ['asc'] },
+      { field: 'subsector', label: 'Sub-Sector', type: 'string', orders: ['asc'] },
     ],
-    orders: ['asc', 'desc'],
     default_sort: 'submission_date',
     default_order: 'desc',
   },

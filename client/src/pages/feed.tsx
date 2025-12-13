@@ -526,15 +526,15 @@ export default function Feed() {
                 </Badge>
               </div>
 
-              {/* Sort Dropdown */}
+              {/* Sort Dropdown - only show if more than one option */}
               {selectedFeedId && (() => {
                 const selectedFeed = feedConfigs.find(f => f.id === selectedFeedId);
                 if (!selectedFeed?.sort_options?.length) return null;
 
-                // Build combined options: field + order
+                // Build combined options: field + order (using per-field orders)
                 const combinedOptions: { value: string; label: string }[] = [];
                 selectedFeed.sort_options.forEach(opt => {
-                  selectedFeed.orders.forEach(order => {
+                  (opt.orders || ['desc', 'asc']).forEach(order => {
                     const orderLabel = opt.type === 'date'
                       ? (order === 'desc' ? 'Newest first' : 'Oldest first')
                       : opt.type === 'number'
@@ -546,6 +546,9 @@ export default function Feed() {
                     });
                   });
                 });
+
+                // Don't show dropdown if only one option
+                if (combinedOptions.length <= 1) return null;
 
                 const currentValue = sortBy && sortOrder
                   ? `${sortBy}:${sortOrder}`

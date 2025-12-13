@@ -140,6 +140,7 @@ export interface SortOption {
   field: string;
   label: string;
   type: 'date' | 'number' | 'string';
+  orders: ('asc' | 'desc')[];  // Allowed orders for this field, first is default
 }
 
 export interface FeedConfiguration {
@@ -161,7 +162,6 @@ export interface FeedConfiguration {
   updated_at: string;
   // Sorting metadata
   sort_options: SortOption[];
-  orders: ('asc' | 'desc')[];
   default_sort: string;
   default_order: 'asc' | 'desc';
 }
