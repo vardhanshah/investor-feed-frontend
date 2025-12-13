@@ -50,10 +50,15 @@ export default function Feed() {
   const [showNewPostsButton, setShowNewPostsButton] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
   const [newPostsCount, setNewPostsCount] = useState(0);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const latestPostId = useRef<number | null>(null);
+  const touchStartY = useRef<number>(0);
 
   const LIMIT = 20;
   const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
+  const PULL_THRESHOLD = 80; // Pixels to pull before triggering refresh
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -187,6 +192,68 @@ export default function Feed() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Pull-to-refresh touch handlers
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0 && !isRefreshing) {
+        touchStartY.current = e.touches[0].clientY;
+        setIsPulling(true);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isPulling || isRefreshing) return;
+
+      const touchY = e.touches[0].clientY;
+      const diff = touchY - touchStartY.current;
+
+      if (diff > 0 && window.scrollY === 0) {
+        // Apply resistance - pull distance is less than actual finger movement
+        const resistance = 0.4;
+        setPullDistance(Math.min(diff * resistance, PULL_THRESHOLD * 1.5));
+
+        // Prevent default scroll when pulling
+        if (diff > 10) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleTouchEnd = async () => {
+      if (!isPulling) return;
+
+      if (pullDistance >= PULL_THRESHOLD && selectedFeedId && !isRefreshing) {
+        // Trigger refresh
+        setIsRefreshing(true);
+        setPullDistance(PULL_THRESHOLD); // Keep showing spinner
+
+        try {
+          setShowNewPostsButton(false);
+          setNewPostsCount(0);
+          setOffset(0);
+          await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
+        } finally {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        }
+      } else {
+        // Reset without refresh
+        setPullDistance(0);
+      }
+      setIsPulling(false);
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isPulling, isRefreshing, pullDistance, selectedFeedId, sortBy, sortOrder]);
 
   // Periodic check for new posts by polling the API
   useEffect(() => {
@@ -479,6 +546,32 @@ export default function Feed() {
           </div>
         </div>
       </header>
+
+      {/* Pull to Refresh Indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          className="flex justify-center items-center overflow-hidden transition-all duration-200"
+          style={{ height: pullDistance }}
+        >
+          <div
+            className={`flex items-center justify-center ${isRefreshing ? 'animate-spin' : ''}`}
+            style={{
+              opacity: Math.min(pullDistance / PULL_THRESHOLD, 1),
+              transform: `rotate(${isRefreshing ? 0 : (pullDistance / PULL_THRESHOLD) * 180}deg)`,
+            }}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-6 w-6 text-[hsl(280,100%,70%)]" />
+            ) : (
+              <ArrowUp
+                className={`h-6 w-6 transition-colors ${
+                  pullDistance >= PULL_THRESHOLD ? 'text-[hsl(280,100%,70%)]' : 'text-muted-foreground'
+                }`}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-4">
