@@ -40,6 +40,14 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
   const [likeCount, setLikeCount] = useState(post.reaction_count);
   const [isLiking, setIsLiking] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Character limit for truncation
+  const CONTENT_CHAR_LIMIT = 300;
+  const shouldTruncate = post.content.length > CONTENT_CHAR_LIMIT;
+  const displayContent = shouldTruncate && !isExpanded
+    ? post.content.slice(0, CONTENT_CHAR_LIMIT).trimEnd() + '...'
+    : post.content;
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -208,7 +216,18 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
 
         {/* Post Content */}
         <div className="mb-4">
-          <p className="text-foreground font-alata whitespace-pre-wrap text-base leading-relaxed">{post.content}</p>
+          <p className="text-foreground font-alata whitespace-pre-wrap text-base leading-relaxed">{displayContent}</p>
+          {shouldTruncate && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] font-alata text-sm mt-1 transition-colors"
+            >
+              {isExpanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
         </div>
 
         {/* Images */}
