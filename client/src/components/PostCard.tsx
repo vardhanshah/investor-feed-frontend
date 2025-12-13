@@ -100,6 +100,11 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
   };
 
   const handleCardClick = () => {
+    // Don't navigate if user is selecting text
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      return;
+    }
     setLocation(`/posts/${post.id}`);
   };
 
