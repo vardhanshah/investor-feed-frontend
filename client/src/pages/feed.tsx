@@ -49,11 +49,11 @@ export default function Feed() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(undefined);
   const [showNewPostsButton, setShowNewPostsButton] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
-  const lastFetchTime = useRef<number>(Date.now());
-  const feedContainerRef = useRef<HTMLDivElement>(null);
+  const [newPostsCount, setNewPostsCount] = useState(0);
+  const latestPostId = useRef<number | null>(null);
 
   const LIMIT = 20;
-  const NEW_POSTS_CHECK_INTERVAL = 60000; // Check for new posts every 60 seconds
+  const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -136,9 +136,12 @@ export default function Feed() {
         // Store response-level metadata
         setProfilesAttributesMetadata(response.profiles_attributes_metadata);
         setPostsAttributesMetadata(response.posts_attributes_metadata);
-        // Update last fetch time for new posts button
-        lastFetchTime.current = Date.now();
+        // Track latest post ID for new posts detection
+        if (response.posts.length > 0) {
+          latestPostId.current = response.posts[0].id;
+        }
         setShowNewPostsButton(false);
+        setNewPostsCount(0);
       } else {
         // Load more
         setPosts(prev => [...prev, ...response.posts]);
@@ -185,19 +188,44 @@ export default function Feed() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Periodic check to show "new posts" button (only when at top and enough time has passed)
+  // Periodic check for new posts by polling the API
   useEffect(() => {
-    if (!selectedFeedId || !isAtTop) return;
+    if (!selectedFeedId || !user) return;
 
-    const checkInterval = setInterval(() => {
-      const timeSinceLastFetch = Date.now() - lastFetchTime.current;
-      if (timeSinceLastFetch >= NEW_POSTS_CHECK_INTERVAL && isAtTop) {
-        setShowNewPostsButton(true);
+    const checkForNewPosts = async () => {
+      try {
+        // Fetch just 1 post to check if there's something newer
+        const response = await feedsApi.getFeedPosts(selectedFeedId, 1, 0, sortBy, sortOrder);
+
+        if (response.posts.length > 0 && latestPostId.current !== null) {
+          const newestPostId = response.posts[0].id;
+
+          // If the newest post ID is different and greater than what we have, there are new posts
+          if (newestPostId !== latestPostId.current && newestPostId > latestPostId.current) {
+            // Count how many new posts (fetch a few more to count)
+            const countResponse = await feedsApi.getFeedPosts(selectedFeedId, 10, 0, sortBy, sortOrder);
+            let count = 0;
+            for (const post of countResponse.posts) {
+              if (post.id > latestPostId.current!) {
+                count++;
+              } else {
+                break;
+              }
+            }
+            setNewPostsCount(count);
+            setShowNewPostsButton(true);
+          }
+        }
+      } catch (err) {
+        // Silently fail - don't disrupt user experience
+        console.error('Failed to check for new posts:', err);
       }
-    }, 10000); // Check every 10 seconds
+    };
+
+    const checkInterval = setInterval(checkForNewPosts, NEW_POSTS_CHECK_INTERVAL);
 
     return () => clearInterval(checkInterval);
-  }, [selectedFeedId, isAtTop]);
+  }, [selectedFeedId, user, sortBy, sortOrder]);
 
   // Handle refresh for new posts
   const handleRefreshPosts = useCallback(async () => {
@@ -626,14 +654,18 @@ export default function Feed() {
             </div>
 
             {/* New Posts Button - Twitter style */}
-            {showNewPostsButton && isAtTop && (
+            {showNewPostsButton && (
               <div className="flex justify-center mb-4">
                 <Button
                   onClick={handleRefreshPosts}
                   className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata shadow-lg animate-in fade-in slide-in-from-top-2 duration-300"
                 >
                   <ArrowUp className="h-4 w-4 mr-2" />
-                  New posts available
+                  {newPostsCount > 1
+                    ? `${newPostsCount} new posts`
+                    : newPostsCount === 1
+                      ? '1 new post'
+                      : 'New posts available'}
                 </Button>
               </div>
             )}
