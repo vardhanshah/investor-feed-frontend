@@ -418,8 +418,8 @@ export default function Feed() {
   };
 
   const handleNewFeedClick = () => {
-    setEditingFeedId(null);
-    setIsSidebarOpen(true);
+    // Navigate to full-page filters for creating new feed
+    setLocation('/filters');
   };
 
   const handleSubscribeToggle = async (feed: FeedConfiguration, e: React.MouseEvent) => {
