@@ -595,8 +595,8 @@ export default function Feed() {
                         onClick={() => handleFeedSelect(feed.id)}
                         className={
                           selectedFeedId === feed.id
-                            ? "bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black font-alata border-0 whitespace-nowrap pr-20"
-                            : "border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap pr-20"
+                            ? `bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black font-alata border-0 whitespace-nowrap ${feed.is_default ? '' : 'pr-20'}`
+                            : `border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap ${feed.is_default ? '' : 'pr-20'}`
                         }
                       >
                         {feed.is_default && (
