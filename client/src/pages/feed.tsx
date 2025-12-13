@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, BellOff, Loader2, TrendingUp, Radio, Sun, Moon, Plus, X, Edit2 } from 'lucide-react';
+import { Bell, BellOff, Loader2, TrendingUp, Radio, Sun, Moon, Plus, X, Edit2, ArrowUp } from 'lucide-react';
 import { FaCog as FaCogIcon, FaSignOutAlt as FaSignOutAltIcon } from 'react-icons/fa';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,8 +47,13 @@ export default function Feed() {
   const [subscribedFeeds, setSubscribedFeeds] = useState<Set<number>>(new Set());
   const [sortBy, setSortBy] = useState<string | undefined>(undefined);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(undefined);
+  const [showNewPostsButton, setShowNewPostsButton] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const lastFetchTime = useRef<number>(Date.now());
+  const feedContainerRef = useRef<HTMLDivElement>(null);
 
   const LIMIT = 20;
+  const NEW_POSTS_CHECK_INTERVAL = 60000; // Check for new posts every 60 seconds
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -131,6 +136,9 @@ export default function Feed() {
         // Store response-level metadata
         setProfilesAttributesMetadata(response.profiles_attributes_metadata);
         setPostsAttributesMetadata(response.posts_attributes_metadata);
+        // Update last fetch time for new posts button
+        lastFetchTime.current = Date.now();
+        setShowNewPostsButton(false);
       } else {
         // Load more
         setPosts(prev => [...prev, ...response.posts]);
@@ -164,6 +172,45 @@ export default function Feed() {
     };
 
     loadPosts();
+  }, [selectedFeedId, sortBy, sortOrder]);
+
+  // Scroll detection for "new posts" button
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsAtTop(scrollTop < 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Periodic check to show "new posts" button (only when at top and enough time has passed)
+  useEffect(() => {
+    if (!selectedFeedId || !isAtTop) return;
+
+    const checkInterval = setInterval(() => {
+      const timeSinceLastFetch = Date.now() - lastFetchTime.current;
+      if (timeSinceLastFetch >= NEW_POSTS_CHECK_INTERVAL && isAtTop) {
+        setShowNewPostsButton(true);
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(checkInterval);
+  }, [selectedFeedId, isAtTop]);
+
+  // Handle refresh for new posts
+  const handleRefreshPosts = useCallback(async () => {
+    if (!selectedFeedId) return;
+
+    setShowNewPostsButton(false);
+    setIsLoadingPosts(true);
+    setOffset(0);
+    lastFetchTime.current = Date.now();
+    await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
+
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedFeedId, sortBy, sortOrder]);
 
   const handleLoadMore = () => {
@@ -577,6 +624,19 @@ export default function Feed() {
                 );
               })()}
             </div>
+
+            {/* New Posts Button - Twitter style */}
+            {showNewPostsButton && isAtTop && (
+              <div className="flex justify-center mb-4">
+                <Button
+                  onClick={handleRefreshPosts}
+                  className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata shadow-lg animate-in fade-in slide-in-from-top-2 duration-300"
+                >
+                  <ArrowUp className="h-4 w-4 mr-2" />
+                  New posts available
+                </Button>
+              </div>
+            )}
 
             {/* Posts List */}
             <div className="space-y-4">
