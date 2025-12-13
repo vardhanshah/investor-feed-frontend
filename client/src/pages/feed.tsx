@@ -599,6 +599,15 @@ export default function Feed() {
                             : "border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap pr-20"
                         }
                       >
+                        {feed.is_default && (
+                          <span className="relative mr-1.5">
+                            <Radio className="h-3.5 w-3.5" />
+                            <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-current"></span>
+                            </span>
+                          </span>
+                        )}
                         {feed.name}
                       </Button>
                       {/* Action buttons - show for all feeds */}
@@ -666,25 +675,8 @@ export default function Feed() {
               </div>
             ) : null}
 
-            {/* Live Updates Header */}
-            <div className="mb-4 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                {/* Live Indicator */}
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Radio className="h-5 w-5 text-[hsl(280,100%,70%)]" />
-                    <span className="absolute top-0 right-0 flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(280,100%,70%)] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(280,100%,70%)]"></span>
-                    </span>
-                  </div>
-                  <h1 className="text-xl font-alata font-bold text-foreground">
-                    Market <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)]">Pulse</span>
-                  </h1>
-                </div>
-
-              </div>
-
+            {/* Sort Controls */}
+            <div className="mb-4 flex justify-end items-center">
               {/* Sort Dropdown - only show if more than one option */}
               {selectedFeedId && (() => {
                 const selectedFeed = feedConfigs.find(f => f.id === selectedFeedId);
