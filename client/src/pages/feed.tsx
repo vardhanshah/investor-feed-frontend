@@ -600,11 +600,6 @@ export default function Feed() {
                         }
                       >
                         {feed.name}
-                        {feed.is_default && (
-                          <Badge className="ml-2 bg-background/20 text-inherit text-xs border-0">
-                            Default
-                          </Badge>
-                        )}
                       </Button>
                       {/* Action buttons - show for all feeds */}
                       <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
