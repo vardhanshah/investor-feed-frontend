@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
-import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
+import { formatTimeAgo, formatTimeAgoTwoUnits } from '@/lib/dateUtils';
 
 // Helper to format attribute value with unit
 function formatAttributeValue(value: any, metadata?: { unit?: string | null; type?: string }): string {
@@ -50,6 +50,11 @@ interface PostProfile {
   id: number;
   title: string;
   external_id?: string;
+  meta_attributes?: {
+    logo_url?: string | null;
+    symbol?: string | null;
+    company_bse_id?: string | null;
+  } | null;
   attributes?: Record<string, any>;
 }
 
