@@ -5,7 +5,7 @@ import Signup from './signup';
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'https://dev.investorfeed.in/api';
+const API_BASE_URL = '/api';
 
 // Mock useLocation from wouter
 const mockSetLocation = vi.fn();
@@ -23,10 +23,12 @@ describe('Signup Page', () => {
     mockSetLocation.mockClear();
   });
 
-  it('should render signup form', () => {
+  it('should render signup form', async () => {
     render(<Signup />);
 
-    expect(screen.getByText(/create your/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/create your/i)).toBeInTheDocument();
+    });
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
     expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
@@ -34,23 +36,31 @@ describe('Signup Page', () => {
     expect(screen.getByRole('button', { name: /complete form to continue/i })).toBeInTheDocument();
   });
 
-  it('should display social signup buttons', () => {
+  it('should display social signup buttons', async () => {
     render(<Signup />);
 
-    expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument();
+    });
     expect(screen.getByRole('button', { name: /x \(twitter\)/i })).toBeInTheDocument();
   });
 
-  it('should have link to login page', () => {
+  it('should have link to login page', async () => {
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByText(/sign in here/i)).toBeInTheDocument();
+    });
     const loginLink = screen.getByText(/sign in here/i);
-    expect(loginLink).toBeInTheDocument();
     expect(loginLink.closest('a')).toHaveAttribute('href', '/login');
   });
 
-  it('should require all form fields', () => {
+  it('should require all form fields', async () => {
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/^email$/i);
@@ -66,6 +76,10 @@ describe('Signup Page', () => {
   it('should validate name in real-time', async () => {
     const user = userEvent.setup();
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
 
     const nameInput = screen.getByLabelText(/full name/i);
 
@@ -85,6 +99,10 @@ describe('Signup Page', () => {
     const user = userEvent.setup();
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
+    });
+
     const emailInput = screen.getByLabelText(/^email$/i);
 
     // Invalid email
@@ -103,6 +121,10 @@ describe('Signup Page', () => {
     const user = userEvent.setup();
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
+    });
+
     const passwordInput = screen.getAllByLabelText(/password/i)[0];
 
     // Weak password
@@ -118,6 +140,10 @@ describe('Signup Page', () => {
     const user = userEvent.setup();
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
+    });
+
     const passwordInput = screen.getAllByLabelText(/password/i)[0];
 
     // Strong password
@@ -131,6 +157,10 @@ describe('Signup Page', () => {
   it('should validate password confirmation match', async () => {
     const user = userEvent.setup();
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
+    });
 
     const passwordInput = screen.getAllByLabelText(/password/i)[0];
     const confirmInput = screen.getByLabelText(/confirm password/i);
@@ -146,6 +176,10 @@ describe('Signup Page', () => {
     const user = userEvent.setup();
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
+    });
+
     const passwordInput = screen.getAllByLabelText(/password/i)[0];
     const confirmInput = screen.getByLabelText(/confirm password/i);
 
@@ -157,8 +191,12 @@ describe('Signup Page', () => {
     });
   });
 
-  it('should require terms acceptance', () => {
+  it('should require terms acceptance', async () => {
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('checkbox', { name: /i agree to the/i })).toBeInTheDocument();
+    });
 
     const termsCheckbox = screen.getByRole('checkbox', { name: /i agree to the/i });
     expect(termsCheckbox).toBeInTheDocument();
@@ -167,6 +205,10 @@ describe('Signup Page', () => {
   it('should disable submit button until form is valid', async () => {
     const user = userEvent.setup();
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /complete form to continue/i })).toBeInTheDocument();
+    });
 
     const submitButton = screen.getByRole('button', { name: /complete form to continue/i });
     expect(submitButton).toBeDisabled();
@@ -187,6 +229,10 @@ describe('Signup Page', () => {
     const user = userEvent.setup();
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
+
     // Fill in valid data
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
     await user.type(screen.getByLabelText(/^email$/i), 'newuser@example.com');
@@ -206,6 +252,10 @@ describe('Signup Page', () => {
   it('should show error when email already exists', async () => {
     const user = userEvent.setup();
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
 
     // Fill with existing email
     await user.type(screen.getByLabelText(/full name/i), 'Existing User');
@@ -243,6 +293,10 @@ describe('Signup Page', () => {
 
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
     await user.type(screen.getByLabelText(/^email$/i), 'test@example.com');
     await user.type(screen.getAllByLabelText(/password/i)[0], 'Test123!');
@@ -278,6 +332,10 @@ describe('Signup Page', () => {
 
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
     await user.type(screen.getByLabelText(/^email$/i), '  TEST@EXAMPLE.COM  ');
     await user.type(screen.getAllByLabelText(/password/i)[0], 'Test123!');
@@ -307,6 +365,10 @@ describe('Signup Page', () => {
 
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
     await user.type(screen.getByLabelText(/^email$/i), 'test@example.com');
     await user.type(screen.getAllByLabelText(/password/i)[0], 'Test123!');
@@ -328,6 +390,10 @@ describe('Signup Page', () => {
   it('should toggle password visibility', async () => {
     const user = userEvent.setup();
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getAllByLabelText(/^password$/i)[0]).toBeInTheDocument();
+    });
 
     const passwordInput = screen.getAllByLabelText(/^password$/i)[0] as HTMLInputElement;
 
@@ -352,6 +418,10 @@ describe('Signup Page', () => {
     const user = userEvent.setup();
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
+
     // Fill all fields but with weak password (validation fails)
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
     await user.type(screen.getByLabelText(/^email$/i), 'test@example.com');
@@ -374,6 +444,10 @@ describe('Signup Page', () => {
 
     render(<Signup />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
     await user.type(screen.getByLabelText(/^email$/i), 'test@example.com');
     await user.type(screen.getAllByLabelText(/password/i)[0], 'Test123!');
@@ -388,8 +462,12 @@ describe('Signup Page', () => {
     });
   });
 
-  it('should have links to terms and privacy policy', () => {
+  it('should have links to terms and privacy policy', async () => {
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/terms of service/i)).toBeInTheDocument();
+    });
 
     const termsLink = screen.getByText(/terms of service/i);
     const privacyLink = screen.getByText(/privacy policy/i);
@@ -401,6 +479,10 @@ describe('Signup Page', () => {
   it('should prevent form submission without terms acceptance', async () => {
     const user = userEvent.setup();
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
 
     // Fill all fields except terms
     await user.type(screen.getByLabelText(/full name/i), 'John Doe');
@@ -429,6 +511,10 @@ describe('Signup Page', () => {
     );
 
     render(<Signup />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    });
 
     await user.type(screen.getByLabelText(/full name/i), '  John Doe  ');
     await user.type(screen.getByLabelText(/^email$/i), 'test@example.com');

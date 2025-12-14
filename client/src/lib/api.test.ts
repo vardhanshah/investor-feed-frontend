@@ -12,7 +12,8 @@ import {
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'https://dev.investorfeed.in/api';
+// Use relative URL to match what the app uses when VITE_API_BASE_URL is not set
+const API_BASE_URL = '/api';
 
 describe('API Layer', () => {
   beforeEach(() => {

@@ -5,7 +5,7 @@ import Profile from './profile';
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'https://dev.investorfeed.in/api';
+const API_BASE_URL = '/api';
 
 // Mock useLocation and useRoute from wouter
 const mockSetLocation = vi.fn();

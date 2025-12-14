@@ -5,7 +5,7 @@ import Login from './login';
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'https://dev.investorfeed.in/api';
+const API_BASE_URL = '/api';
 
 // Mock useLocation from wouter
 const mockSetLocation = vi.fn();
@@ -23,39 +23,51 @@ describe('Login Page', () => {
     mockSetLocation.mockClear();
   });
 
-  it('should render login form', () => {
+  it('should render login form', async () => {
     render(<Login />);
 
-    expect(screen.getByText(/sign in to your/i)).toBeInTheDocument();
+    // Wait for auth loading to complete
+    await waitFor(() => {
+      expect(screen.getByText(/sign in to your/i)).toBeInTheDocument();
+    });
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it('should display social login buttons', () => {
+  it('should display social login buttons', async () => {
     render(<Login />);
 
-    expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument();
+    });
     expect(screen.getByRole('button', { name: /x \(twitter\)/i })).toBeInTheDocument();
   });
 
-  it('should have link to signup page', () => {
+  it('should have link to signup page', async () => {
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByText(/create a new account/i)).toBeInTheDocument();
+    });
     const signupLink = screen.getByText(/create a new account/i);
-    expect(signupLink).toBeInTheDocument();
     expect(signupLink.closest('a')).toHaveAttribute('href', '/signup');
   });
 
-  it('should have link to home page', () => {
+  it('should have link to home page', async () => {
     render(<Login />);
 
-    const homeLinks = screen.getAllByText(/back to home/i);
-    expect(homeLinks[0]).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByText(/back to home/i)[0]).toBeInTheDocument();
+    });
   });
 
-  it('should require email and password fields', () => {
+  it('should require email and password fields', async () => {
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -68,6 +80,11 @@ describe('Login Page', () => {
     const user = userEvent.setup();
 
     render(<Login />);
+
+    // Wait for auth loading to complete
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     // Fill in the form
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
@@ -89,6 +106,10 @@ describe('Login Page', () => {
     const user = userEvent.setup();
 
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     // Fill in with wrong credentials
     await user.type(screen.getByLabelText(/email/i), 'wrong@example.com');
@@ -127,6 +148,10 @@ describe('Login Page', () => {
     );
 
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -168,6 +193,10 @@ describe('Login Page', () => {
 
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'Test123!');
 
@@ -185,6 +214,10 @@ describe('Login Page', () => {
     const user = userEvent.setup();
 
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     // First submission with wrong credentials
     await user.type(screen.getByLabelText(/email/i), 'wrong@example.com');
@@ -225,6 +258,10 @@ describe('Login Page', () => {
 
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'Test123!');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
@@ -236,25 +273,36 @@ describe('Login Page', () => {
     expect(mockSetLocation).not.toHaveBeenCalled();
   });
 
-  it('should validate email format', () => {
+  it('should validate email format', async () => {
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
     expect(emailInput.type).toBe('email');
   });
 
-  it('should validate password field type', () => {
+  it('should validate password field type', async () => {
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    });
 
     const passwordInput = screen.getByLabelText(/password/i) as HTMLInputElement;
     expect(passwordInput.type).toBe('password');
   });
 
-  it('should have forgot password link', () => {
+  it('should have forgot password link', async () => {
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByText(/forgot your password/i)).toBeInTheDocument();
+    });
+
     const forgotLink = screen.getByText(/forgot your password/i);
-    expect(forgotLink).toBeInTheDocument();
     expect(forgotLink.closest('a')).toHaveAttribute('href', '/forgot-password');
   });
 
@@ -276,6 +324,10 @@ describe('Login Page', () => {
 
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'Test123!');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
@@ -292,6 +344,10 @@ describe('Login Page', () => {
     const user = userEvent.setup();
 
     render(<Login />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
 
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'Test123!');
@@ -319,6 +375,10 @@ describe('Login Page', () => {
 
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'wrong');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
@@ -332,9 +392,11 @@ describe('Login Page', () => {
   it('should prevent form submission when already loading', async () => {
     const user = userEvent.setup();
 
+    let loginCallCount = 0;
     server.use(
       http.post(`${API_BASE_URL}/user/login`, async () => {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        loginCallCount++;
+        await new Promise((resolve) => setTimeout(resolve, 500));
         return HttpResponse.json({
           access_token: 'mock-token-123',
           token_type: 'bearer',
@@ -346,6 +408,10 @@ describe('Login Page', () => {
 
     render(<Login />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
+
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/password/i), 'Test123!');
 
@@ -354,14 +420,20 @@ describe('Login Page', () => {
     // Click once
     await user.click(submitButton);
 
-    // Button should be disabled
-    expect(submitButton).toBeDisabled();
+    // Button should be disabled while loading
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
 
-    // Try to click again - should not trigger another request
+    // Try to click again - should not trigger another request since button is disabled
     await user.click(submitButton);
 
+    // Wait for the login to complete
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledTimes(1);
+      expect(mockSetLocation).toHaveBeenCalledWith('/home');
     });
+
+    // Only one API call should have been made
+    expect(loginCallCount).toBe(1);
   });
 });

@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const API_BASE_URL = 'https://dev.investorfeed.in/api';
+const API_BASE_URL = '/api';
 
 // Test component to access auth context
 function TestComponent() {

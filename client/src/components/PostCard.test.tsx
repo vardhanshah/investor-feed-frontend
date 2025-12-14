@@ -19,6 +19,13 @@ vi.mock('wouter', () => ({
   Route: ({ component: Component }: { component: React.ComponentType }) => <Component />,
 }));
 
+// Use a recent date so formatTimeAgoTwoUnits returns "X ago" format
+const getRecentDate = () => {
+  const date = new Date();
+  date.setHours(date.getHours() - 2); // 2 hours ago
+  return date.toISOString();
+};
+
 const mockPost: Post = {
   id: 1,
   content: 'Excited to announce our Q3 results - 25% growth!',
@@ -27,8 +34,8 @@ const mockPost: Post = {
     title: 'Tech Corp',
   },
   source: 'https://example.com/news/1',
-  submission_date: '2024-10-15T10:00:00',
-  created_at: '2024-10-15T10:00:00',
+  submission_date: getRecentDate(),
+  created_at: getRecentDate(),
   images: [],
   reaction_count: 42,
   comment_count: 5,
