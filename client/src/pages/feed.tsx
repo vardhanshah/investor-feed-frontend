@@ -14,6 +14,7 @@ import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
 import FeedSidebar from '@/components/FeedSidebar';
 import { NotificationBell } from '@/components/NotificationBell';
+import { ProfileSearch } from '@/components/ProfileSearch';
 import {
   Dialog,
   DialogContent,
@@ -510,6 +511,7 @@ export default function Feed() {
                 )}
               </Button>
               <NotificationBell />
+              <ProfileSearch />
               <Button
                 variant="ghost"
                 size="icon"

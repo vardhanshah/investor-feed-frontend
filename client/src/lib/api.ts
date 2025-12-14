@@ -51,6 +51,14 @@ export interface ProfileMetaAttributes {
   nse_symbol?: string | null;
 }
 
+// Profile autocomplete result
+export interface ProfileAutocompleteItem {
+  id: number;
+  title: string;
+  symbol: string | null;
+  logo_url: string | null;
+}
+
 export interface Profile {
   id: number;
   title: string;
@@ -452,6 +460,23 @@ export const profilesApi = {
       headers: getAuthHeaders(),
     });
     return handleResponse<Profile>(response);
+  },
+
+  async autocomplete(query: string, limit = 10): Promise<ProfileAutocompleteItem[]> {
+    if (!query.trim()) {
+      return [];
+    }
+    const params = new URLSearchParams();
+    params.append('q', query);
+    params.append('limit', limit.toString());
+
+    const response = await fetchWithAuth(
+      `${API_BASE_URL}/profiles/autocomplete?${params.toString()}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    return handleResponse<ProfileAutocompleteItem[]>(response);
   },
 };
 
