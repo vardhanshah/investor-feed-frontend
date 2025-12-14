@@ -1,7 +1,8 @@
 import { http, HttpResponse } from 'msw';
 import { mockUsers, mockPosts, mockProfiles, mockFeedConfigs, mockProfilesAttributesMetadata, mockPostsAttributesMetadata } from './mockData';
 
-const API_BASE_URL = 'https://dev.investorfeed.in/api';
+// Use relative URL to match what the app uses when VITE_API_BASE_URL is not set
+const API_BASE_URL = '/api';
 
 export const handlers = [
   // Auth endpoints
