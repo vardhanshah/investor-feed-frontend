@@ -144,25 +144,25 @@ export function ProfileSearch() {
                     key={profile.id}
                     value={profile.id.toString()}
                     onSelect={() => handleSelect(profile)}
-                    className="cursor-pointer"
+                    className="cursor-pointer data-[selected=true]:bg-muted"
                   >
                     <div className="flex items-center gap-3 w-full">
                       {profile.logo_url ? (
                         <img
                           src={profile.logo_url}
                           alt=""
-                          className="h-8 w-8 rounded-md object-contain bg-muted p-0.5"
+                          className="h-8 w-8 rounded-md object-contain bg-background border border-border p-0.5"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}
                         />
                       ) : (
-                        <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                        <div className="h-8 w-8 rounded-md bg-background border border-border flex items-center justify-center text-xs font-medium text-muted-foreground">
                           {profile.title.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="text-sm font-medium truncate">
+                        <span className="text-sm font-medium truncate text-foreground">
                           {profile.title}
                         </span>
                         {profile.symbol && (
