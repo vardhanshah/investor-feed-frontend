@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === "development") {
       pathRewrite: { '^/': '/api/' },
       on: {
         proxyReq: (proxyReq, req) => {
-          console.log(`[proxy] ${req.method} ${req.originalUrl} -> ${apiTarget}${proxyReq.path}`);
+          console.log(`[proxy] ${req.method} ${req.url} -> ${apiTarget}${proxyReq.path}`);
         },
         error: (err, req, res) => {
           console.error(`[proxy] Error: ${err.message}`);
