@@ -73,71 +73,94 @@ export default function CompanyConfidence({
   };
 
   const isSmall = size === 'sm';
-  const iconSize = isSmall ? 'h-4 w-4' : 'h-5 w-5';
   const textSize = isSmall ? 'text-sm' : 'text-base';
-  const buttonPadding = isSmall ? 'px-2 py-1' : 'px-3 py-1.5';
+  const buttonPadding = isSmall ? 'px-3 py-1' : 'px-4 py-1.5';
 
   const hasVotes = localConfidence && localConfidence.total_votes > 0;
   const userVote = localConfidence?.user_vote;
+  const yesPercentage = localConfidence?.yes_percentage ?? null;
+  const noPercentage = localConfidence?.no_percentage ?? null;
+  const totalVotes = localConfidence?.total_votes ?? 0;
+
+  // Show the percentage of the option user voted for
+  const displayPercentage = userVote === 'yes' ? yesPercentage : userVote === 'no' ? noPercentage : null;
 
   return (
     <div
-      className="flex items-center gap-2"
+      className="flex flex-col gap-1"
       onClick={(e) => e.stopPropagation()}
     >
-      <span className={`text-muted-foreground font-alata ${textSize} whitespace-nowrap`}>
-        Company Confidence?
-      </span>
+      <div className="flex items-center gap-2">
+        {/* Show percentage if user has voted */}
+        {displayPercentage !== null && (
+          <span className={`font-alata font-bold ${textSize} ${
+            userVote === 'yes' ? 'text-green-500' : 'text-red-500'
+          }`}>
+            {displayPercentage}%
+          </span>
+        )}
 
-      {/* YES Button */}
-      <button
-        onClick={(e) => handleVote(e, 'yes')}
-        disabled={isVoting}
-        className={`
-          flex items-center gap-1 rounded-full font-alata font-medium transition-all
-          ${buttonPadding} ${textSize}
-          ${userVote === 'yes'
-            ? 'bg-green-500/20 text-green-500 border border-green-500/50'
-            : 'bg-muted/50 text-muted-foreground hover:bg-green-500/10 hover:text-green-500 border border-transparent'
-          }
-          ${isVoting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        `}
-      >
-        {isVoting && userVote !== 'yes' ? (
-          <Loader2 className={`${iconSize} animate-spin`} />
-        ) : (
-          <ThumbsUp className={`${iconSize} ${userVote === 'yes' ? 'fill-current' : ''}`} />
-        )}
-        <span>YES</span>
-        {hasVotes && localConfidence.yes_percentage !== null && (
-          <span className="opacity-75">{localConfidence.yes_percentage}%</span>
-        )}
-      </button>
+        {/* YES Button */}
+        <button
+          onClick={(e) => handleVote(e, 'yes')}
+          disabled={isVoting}
+          className={`
+            group relative flex items-center justify-center rounded font-alata font-medium transition-all
+            ${buttonPadding} ${textSize}
+            ${userVote === 'yes'
+              ? 'bg-green-500/20 text-green-500 border border-green-500/50'
+              : 'bg-muted/50 text-muted-foreground hover:bg-green-500/10 hover:text-green-500 border border-transparent'
+            }
+            ${isVoting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          `}
+        >
+          {isVoting && userVote !== 'yes' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <span className="group-hover:hidden">Yes</span>
+              {hasVotes && yesPercentage !== null && (
+                <span className="hidden group-hover:inline">{yesPercentage}%</span>
+              )}
+              {!hasVotes && <span className="hidden group-hover:inline">Yes</span>}
+            </>
+          )}
+        </button>
 
-      {/* NO Button */}
-      <button
-        onClick={(e) => handleVote(e, 'no')}
-        disabled={isVoting}
-        className={`
-          flex items-center gap-1 rounded-full font-alata font-medium transition-all
-          ${buttonPadding} ${textSize}
-          ${userVote === 'no'
-            ? 'bg-red-500/20 text-red-500 border border-red-500/50'
-            : 'bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 border border-transparent'
-          }
-          ${isVoting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        `}
-      >
-        {isVoting && userVote !== 'no' ? (
-          <Loader2 className={`${iconSize} animate-spin`} />
-        ) : (
-          <ThumbsDown className={`${iconSize} ${userVote === 'no' ? 'fill-current' : ''}`} />
-        )}
-        <span>NO</span>
-        {hasVotes && localConfidence.no_percentage !== null && (
-          <span className="opacity-75">{localConfidence.no_percentage}%</span>
-        )}
-      </button>
+        {/* NO Button */}
+        <button
+          onClick={(e) => handleVote(e, 'no')}
+          disabled={isVoting}
+          className={`
+            group relative flex items-center justify-center rounded font-alata font-medium transition-all
+            ${buttonPadding} ${textSize}
+            ${userVote === 'no'
+              ? 'bg-red-500/20 text-red-500 border border-red-500/50'
+              : 'bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 border border-transparent'
+            }
+            ${isVoting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          `}
+        >
+          {isVoting && userVote !== 'no' ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <span className="group-hover:hidden">No</span>
+              {hasVotes && noPercentage !== null && (
+                <span className="hidden group-hover:inline">{noPercentage}%</span>
+              )}
+              {!hasVotes && <span className="hidden group-hover:inline">No</span>}
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Total Votes */}
+      {hasVotes && (
+        <span className={`text-xs text-muted-foreground font-alata`}>
+          Total Votes: {totalVotes}
+        </span>
+      )}
     </div>
   );
 }

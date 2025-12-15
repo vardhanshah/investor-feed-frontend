@@ -39,47 +39,64 @@ describe('CompanyConfidence', () => {
   });
 
   describe('Rendering', () => {
-    it('should render "Company Confidence?" label', () => {
-      render(<CompanyConfidence profileId={1} confidence={null} />);
-      expect(screen.getByText('Company Confidence?')).toBeInTheDocument();
+    it('should render Yes and No buttons', () => {
+      const { container } = render(<CompanyConfidence profileId={1} confidence={null} />);
+      const buttons = container.querySelectorAll('button');
+      expect(buttons.length).toBe(2);
+      expect(buttons[0]).toHaveTextContent('Yes');
+      expect(buttons[1]).toHaveTextContent('No');
     });
 
-    it('should render YES and NO buttons', () => {
-      render(<CompanyConfidence profileId={1} confidence={null} />);
-      expect(screen.getByText('YES')).toBeInTheDocument();
-      expect(screen.getByText('NO')).toBeInTheDocument();
+    it('should not show percentage when user has not voted', () => {
+      const { container } = render(<CompanyConfidence profileId={1} confidence={mockConfidenceNoUserVote} />);
+      // Check that there's no standalone percentage displayed (before buttons)
+      const percentageSpan = container.querySelector('span.font-bold');
+      expect(percentageSpan).not.toBeInTheDocument();
     });
 
-    it('should not show percentages when no votes exist', () => {
-      render(<CompanyConfidence profileId={1} confidence={mockConfidenceNoVotes} />);
-      expect(screen.queryByText('%')).not.toBeInTheDocument();
+    it('should show user vote percentage when user voted yes', () => {
+      const { container } = render(<CompanyConfidence profileId={1} confidence={mockConfidenceWithVotes} />);
+      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
+      expect(percentageSpan).toBeInTheDocument();
+      expect(percentageSpan).toHaveTextContent('67%');
     });
 
-    it('should show percentages when votes exist', () => {
+    it('should show user vote percentage when user voted no', () => {
+      const confidenceNoVote: ProfileConfidence = {
+        yes_percentage: 33,
+        no_percentage: 67,
+        total_votes: 3,
+        user_vote: 'no',
+      };
+      const { container } = render(<CompanyConfidence profileId={1} confidence={confidenceNoVote} />);
+      const percentageSpan = container.querySelector('span.font-bold.text-red-500');
+      expect(percentageSpan).toBeInTheDocument();
+      expect(percentageSpan).toHaveTextContent('67%');
+    });
+
+    it('should show total votes when votes exist', () => {
       render(<CompanyConfidence profileId={1} confidence={mockConfidenceWithVotes} />);
-      expect(screen.getByText('67%')).toBeInTheDocument();
-      expect(screen.getByText('33%')).toBeInTheDocument();
+      expect(screen.getByText('Total Votes: 3')).toBeInTheDocument();
     });
 
-    it('should show percentages when user has not voted but votes exist', () => {
-      render(<CompanyConfidence profileId={1} confidence={mockConfidenceNoUserVote} />);
-      // Both YES and NO should show 50%
-      const percentages = screen.getAllByText('50%');
-      expect(percentages.length).toBe(2);
+    it('should not show total votes when no votes exist', () => {
+      render(<CompanyConfidence profileId={1} confidence={mockConfidenceNoVotes} />);
+      expect(screen.queryByText(/Total Votes:/)).not.toBeInTheDocument();
     });
   });
 
   describe('User Vote Highlighting', () => {
-    it('should highlight YES button when user voted yes', () => {
+    it('should highlight Yes button when user voted yes', () => {
       const { container } = render(
         <CompanyConfidence profileId={1} confidence={mockConfidenceWithVotes} />
       );
-      const yesButton = container.querySelector('button:first-of-type');
+      const buttons = container.querySelectorAll('button');
+      const yesButton = buttons[0];
       expect(yesButton?.className).toContain('text-green-500');
       expect(yesButton?.className).toContain('bg-green-500/20');
     });
 
-    it('should highlight NO button when user voted no', () => {
+    it('should highlight No button when user voted no', () => {
       const confidenceWithNoVote: ProfileConfidence = {
         ...mockConfidenceWithVotes,
         user_vote: 'no',
@@ -87,7 +104,8 @@ describe('CompanyConfidence', () => {
       const { container } = render(
         <CompanyConfidence profileId={1} confidence={confidenceWithNoVote} />
       );
-      const noButton = container.querySelector('button:last-of-type');
+      const buttons = container.querySelectorAll('button');
+      const noButton = buttons[1];
       expect(noButton?.className).toContain('text-red-500');
       expect(noButton?.className).toContain('bg-red-500/20');
     });
@@ -96,11 +114,32 @@ describe('CompanyConfidence', () => {
       const { container } = render(
         <CompanyConfidence profileId={1} confidence={mockConfidenceNoUserVote} />
       );
-      const yesButton = container.querySelector('button:first-of-type');
-      const noButton = container.querySelector('button:last-of-type');
+      const buttons = container.querySelectorAll('button');
+      const yesButton = buttons[0];
+      const noButton = buttons[1];
       // Check for the active (non-hover) highlight classes
       expect(yesButton?.className).not.toContain('bg-green-500/20');
       expect(noButton?.className).not.toContain('bg-red-500/20');
+    });
+
+    it('should show green percentage when user voted yes', () => {
+      const { container } = render(<CompanyConfidence profileId={1} confidence={mockConfidenceWithVotes} />);
+      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
+      expect(percentageSpan).toBeInTheDocument();
+      expect(percentageSpan?.className).toContain('text-green-500');
+    });
+
+    it('should show red percentage when user voted no', () => {
+      const confidenceWithNoVote: ProfileConfidence = {
+        yes_percentage: 33,
+        no_percentage: 67,
+        total_votes: 3,
+        user_vote: 'no',
+      };
+      const { container } = render(<CompanyConfidence profileId={1} confidence={confidenceWithNoVote} />);
+      const percentageSpan = container.querySelector('span.font-bold.text-red-500');
+      expect(percentageSpan).toBeInTheDocument();
+      expect(percentageSpan?.className).toContain('text-red-500');
     });
   });
 
@@ -160,13 +199,16 @@ describe('CompanyConfidence', () => {
         }), 100))
       );
 
-      render(<CompanyConfidence profileId={1} confidence={null} />);
+      const { container } = render(<CompanyConfidence profileId={1} confidence={null} />);
 
-      const yesButton = screen.getByRole('button', { name: /yes/i });
+      const buttons = container.querySelectorAll('button');
+      const yesButton = buttons[0];
       await user.click(yesButton);
 
-      // Check optimistic update shows immediately
-      expect(screen.getByText('100%')).toBeInTheDocument();
+      // Check optimistic update shows immediately - percentage should be displayed
+      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
+      expect(percentageSpan).toBeInTheDocument();
+      expect(percentageSpan).toHaveTextContent('100%');
     });
 
     it('should call onVoteSuccess callback after successful vote', async () => {
@@ -313,15 +355,15 @@ describe('CompanyConfidence', () => {
     it('should stop click propagation on container', async () => {
       const parentClickHandler = vi.fn();
 
-      render(
+      const { container } = render(
         <div onClick={parentClickHandler}>
           <CompanyConfidence profileId={1} confidence={null} />
         </div>
       );
 
-      const container = screen.getByText('Company Confidence?').parentElement;
-      if (container) {
-        await userEvent.click(container);
+      const confidenceContainer = container.querySelector('.flex.flex-col');
+      if (confidenceContainer) {
+        await userEvent.click(confidenceContainer as HTMLElement);
       }
 
       expect(parentClickHandler).not.toHaveBeenCalled();
@@ -379,18 +421,18 @@ describe('CompanyConfidence', () => {
   describe('Size Variants', () => {
     it('should render small size by default', () => {
       const { container } = render(
-        <CompanyConfidence profileId={1} confidence={null} />
+        <CompanyConfidence profileId={1} confidence={mockConfidenceWithVotes} />
       );
-      const label = screen.getByText('Company Confidence?');
-      expect(label.className).toContain('text-sm');
+      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
+      expect(percentageSpan?.className).toContain('text-sm');
     });
 
     it('should render medium size when specified', () => {
       const { container } = render(
-        <CompanyConfidence profileId={1} confidence={null} size="md" />
+        <CompanyConfidence profileId={1} confidence={mockConfidenceWithVotes} size="md" />
       );
-      const label = screen.getByText('Company Confidence?');
-      expect(label.className).toContain('text-base');
+      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
+      expect(percentageSpan?.className).toContain('text-base');
     });
   });
 });
