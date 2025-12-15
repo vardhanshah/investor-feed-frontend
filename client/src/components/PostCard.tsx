@@ -302,7 +302,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
             {/* Company Confidence */}
             <CompanyConfidence
               profileId={post.profile.id}
-              confidence={post.profile.confidence || null}
+              confidence={post.confidence || null}
               size="sm"
             />
           </div>

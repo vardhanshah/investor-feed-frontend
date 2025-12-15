@@ -86,7 +86,6 @@ export const mockPosts: Post[] = [
       id: 1,
       title: 'TechCorp Inc',
       attributes: { sector: 'Technology', region: 'North America' },
-      confidence: mockConfidenceWithVotes,
     },
     source: 'https://example.com/news/1',
     created_at: '2025-10-15T10:00:00',
@@ -95,6 +94,7 @@ export const mockPosts: Post[] = [
     reaction_count: 42,
     comment_count: 5,
     user_liked: false,
+    confidence: mockConfidenceWithVotes,
   },
   {
     id: 2,
@@ -103,7 +103,6 @@ export const mockPosts: Post[] = [
       id: 1,
       title: 'TechCorp Inc',
       attributes: { sector: 'Technology', region: 'North America' },
-      confidence: mockConfidenceWithVotes,
     },
     source: null,
     created_at: '2025-10-15T09:00:00',
@@ -112,6 +111,7 @@ export const mockPosts: Post[] = [
     reaction_count: 128,
     comment_count: 12,
     user_liked: true,
+    confidence: mockConfidenceWithVotes,
   },
   {
     id: 3,
@@ -120,7 +120,6 @@ export const mockPosts: Post[] = [
       id: 2,
       title: 'InvestPro Capital',
       attributes: { sector: 'Finance', type: 'Venture Capital' },
-      confidence: mockConfidenceNoUserVote,
     },
     source: 'https://example.com/news/3',
     created_at: '2025-10-15T08:00:00',
@@ -129,6 +128,7 @@ export const mockPosts: Post[] = [
     reaction_count: 67,
     comment_count: 8,
     user_liked: false,
+    confidence: mockConfidenceNoUserVote,
   },
   {
     id: 4,
@@ -137,7 +137,6 @@ export const mockPosts: Post[] = [
       id: 3,
       title: 'FinanceHub',
       attributes: { sector: 'Financial Services', region: 'Asia Pacific' },
-      confidence: null,
     },
     source: null,
     created_at: '2025-10-14T15:00:00',
@@ -146,6 +145,7 @@ export const mockPosts: Post[] = [
     reaction_count: 34,
     comment_count: 3,
     user_liked: false,
+    confidence: null,
   },
   {
     id: 5,
@@ -154,7 +154,6 @@ export const mockPosts: Post[] = [
       id: 1,
       title: 'TechCorp Inc',
       attributes: { sector: 'Technology', region: 'North America' },
-      confidence: mockConfidenceWithVotes,
     },
     source: 'https://example.com/news/5',
     created_at: '2025-10-14T12:00:00',
@@ -163,6 +162,7 @@ export const mockPosts: Post[] = [
     reaction_count: 89,
     comment_count: 15,
     user_liked: true,
+    confidence: mockConfidenceWithVotes,
   },
 ];
 

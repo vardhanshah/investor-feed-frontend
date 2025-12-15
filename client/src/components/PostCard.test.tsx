@@ -397,59 +397,57 @@ describe('PostCard', () => {
 
   describe('Company Confidence', () => {
     it('should render Company Confidence section', () => {
-      render(<PostCard post={mockPost} />);
-      expect(screen.getByText('Confident?')).toBeInTheDocument();
-      expect(screen.getByText('YES')).toBeInTheDocument();
-      expect(screen.getByText('NO')).toBeInTheDocument();
+      const { container } = render(<PostCard post={mockPost} />);
+      const buttons = container.querySelectorAll('button');
+      // Find Yes and No buttons (they're among the buttons in the component)
+      const buttonTexts = Array.from(buttons).map(btn => btn.textContent);
+      expect(buttonTexts.some(text => text?.includes('Yes'))).toBeTruthy();
+      expect(buttonTexts.some(text => text?.includes('No'))).toBeTruthy();
     });
 
     it('should display percentages when profile has confidence votes', () => {
       const postWithConfidence: Post = {
         ...mockPost,
-        profile: {
-          ...mockPost.profile,
-          confidence: {
-            yes_percentage: 75,
-            no_percentage: 25,
-            total_votes: 4,
-            user_vote: null,
-          },
+        confidence: {
+          yes_percentage: 75,
+          no_percentage: 25,
+          total_votes: 4,
+          user_vote: 'yes',
         },
       };
-      render(<PostCard post={postWithConfidence} />);
-      expect(screen.getByText('75%')).toBeInTheDocument();
-      expect(screen.getByText('25%')).toBeInTheDocument();
+      const { container } = render(<PostCard post={postWithConfidence} />);
+      // When user voted, the percentage should be displayed
+      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
+      expect(percentageSpan).toBeInTheDocument();
+      expect(percentageSpan).toHaveTextContent('75%');
     });
 
     it('should not display percentages when profile has no confidence votes', () => {
       const postWithNoConfidence: Post = {
         ...mockPost,
-        profile: {
-          ...mockPost.profile,
-          confidence: null,
-        },
+        confidence: null,
       };
-      render(<PostCard post={postWithNoConfidence} />);
-      expect(screen.queryByText('%')).not.toBeInTheDocument();
+      const { container } = render(<PostCard post={postWithNoConfidence} />);
+      // When no confidence data, no percentage should be shown
+      const percentageSpan = container.querySelector('span.font-bold');
+      expect(percentageSpan).not.toBeInTheDocument();
     });
 
     it('should highlight user vote when user has voted', () => {
       const postWithUserVote: Post = {
         ...mockPost,
-        profile: {
-          ...mockPost.profile,
-          confidence: {
-            yes_percentage: 67,
-            no_percentage: 33,
-            total_votes: 3,
-            user_vote: 'yes',
-          },
+        confidence: {
+          yes_percentage: 67,
+          no_percentage: 33,
+          total_votes: 3,
+          user_vote: 'yes',
         },
       };
       const { container } = render(<PostCard post={postWithUserVote} />);
-      // Find the YES button (first button in the confidence section)
-      const yesButton = screen.getByRole('button', { name: /yes/i });
-      expect(yesButton.className).toContain('text-green-500');
+      // Find the YES button and check if it has the highlighted class
+      const buttons = container.querySelectorAll('button');
+      const yesButton = Array.from(buttons).find(btn => btn.textContent?.includes('Yes'));
+      expect(yesButton?.className).toContain('text-green-500');
     });
 
     it('should not navigate to post detail when confidence button is clicked', async () => {

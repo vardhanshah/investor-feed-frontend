@@ -142,6 +142,7 @@ export interface Post {
   user_liked: boolean;
   attributes?: PostAttributes | null;
   attributes_metadata?: PostAttributesMetadata;
+  confidence?: ProfileConfidence | null;
 }
 
 export interface PostsResponse {
