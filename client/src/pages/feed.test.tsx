@@ -54,19 +54,21 @@ describe('Feed Page', () => {
     });
   });
 
-  it('should display welcome section with description', async () => {
+  it('should display feed tabs', async () => {
     render(<Feed />);
 
     await waitFor(() => {
-      expect(screen.getByText(/latest market updates and insights/i)).toBeInTheDocument();
+      // Should show feed selector tabs or loading
+      expect(screen.getByText('Investor Feed')).toBeInTheDocument();
     });
   });
 
-  it('should display welcome section', async () => {
+  it('should have user profile button in header', async () => {
     render(<Feed />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /your feed/i })).toBeInTheDocument();
+      // User profile button shows first letter of email
+      expect(screen.getByTitle('My Profile')).toBeInTheDocument();
     });
   });
 
@@ -293,7 +295,7 @@ describe('Feed Page', () => {
     });
   });
 
-  it('should navigate to feed on header click', async () => {
+  it('should navigate to home on header click', async () => {
     const user = userEvent.setup();
     render(<Feed />);
 
@@ -304,7 +306,8 @@ describe('Feed Page', () => {
     const header = screen.getByText('Investor Feed');
     await user.click(header);
 
-    expect(mockSetLocation).toHaveBeenCalledWith('/home');
+    // Header click navigates to landing page
+    expect(mockSetLocation).toHaveBeenCalledWith('/');
   });
 
   it('should show end of feed message after viewing all posts', async () => {

@@ -171,12 +171,7 @@ describe('Home Page', () => {
   });
 
   it('should handle transition from loading to unauthenticated', () => {
-    // Clear any previous calls from setup
-    mockSetLocation.mockClear();
-
-    const { rerender } = render(<Home />);
-
-    // Start with loading state
+    // Set up loading state BEFORE first render
     const loadingAuth = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
@@ -185,7 +180,12 @@ describe('Home Page', () => {
       logout: vi.fn(),
     });
 
-    rerender(<Home />);
+    // Clear any previous calls from setup
+    mockSetLocation.mockClear();
+
+    const { rerender } = render(<Home />);
+
+    // Should show loading state
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
 
     // Transition to unauthenticated state

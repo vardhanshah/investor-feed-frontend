@@ -36,6 +36,32 @@ vi.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+// Use recent dates for proper time formatting
+const getRecentDate = (hoursAgo: number = 2) => {
+  const date = new Date();
+  date.setHours(date.getHours() - hoursAgo);
+  return date.toISOString();
+};
+
+const mockComments = [
+  {
+    id: 1,
+    user_id: 2,
+    content: 'Great news!',
+    reaction_count: 3,
+    thread: [],
+    created_at: getRecentDate(1),
+  },
+  {
+    id: 2,
+    user_id: 3,
+    content: 'Congratulations!',
+    reaction_count: 1,
+    thread: [],
+    created_at: getRecentDate(0.5),
+  },
+];
+
 const mockPostDetail = {
   id: 123,
   content: 'This is a test post about our Q3 results',
@@ -44,36 +70,27 @@ const mockPostDetail = {
     title: 'Test Company',
   },
   source: 'https://example.com/news',
-  created_at: '2024-10-15T10:00:00',
-  submission_date: '2024-10-15T10:00:00',
+  created_at: getRecentDate(3),
+  submission_date: getRecentDate(3),
   images: [],
   reaction_count: 15,
   comment_count: 2,
-  comments: [
-    {
-      id: 1,
-      user_id: 2,
-      content: 'Great news!',
-      reaction_count: 3,
-      thread: [],
-      created_at: '2024-10-15T11:00:00',
-    },
-    {
-      id: 2,
-      user_id: 3,
-      content: 'Congratulations!',
-      reaction_count: 1,
-      thread: [],
-      created_at: '2024-10-15T12:00:00',
-    },
-  ],
   user_liked: false,
+};
+
+const mockCommentsResponse = {
+  comments: mockComments,
+  total: 2,
+  page_no: 1,
+  page_size: 40,
+  total_pages: 1,
 };
 
 describe('PostDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.postsApi.getPost).mockResolvedValue(mockPostDetail);
+    vi.mocked(api.commentsApi.getComments).mockResolvedValue(mockCommentsResponse);
   });
 
   describe('Initial Loading and Rendering', () => {
@@ -324,9 +341,12 @@ describe('PostDetailPage', () => {
     });
 
     it('should show empty state when no comments', async () => {
-      vi.mocked(api.postsApi.getPost).mockResolvedValue({
-        ...mockPostDetail,
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
         comments: [],
+        total: 0,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 0,
       });
 
       render(<PostDetailPage />);
@@ -419,22 +439,6 @@ describe('PostDetailPage', () => {
     it('should reload comments after posting', async () => {
       const user = userEvent.setup();
       vi.mocked(api.commentsApi.addComment).mockResolvedValueOnce();
-      vi.mocked(api.postsApi.getPost)
-        .mockResolvedValueOnce(mockPostDetail)
-        .mockResolvedValueOnce({
-          ...mockPostDetail,
-          comments: [
-            ...mockPostDetail.comments,
-            {
-              id: 3,
-              user_id: 1,
-              content: 'My new comment',
-              reaction_count: 0,
-              thread: [],
-              created_at: '2024-10-15T13:00:00',
-            },
-          ],
-        });
 
       render(<PostDetailPage />);
 
@@ -449,7 +453,9 @@ describe('PostDetailPage', () => {
       await user.click(postButton);
 
       await waitFor(() => {
-        expect(api.postsApi.getPost).toHaveBeenCalledTimes(2);
+        // Comments are reloaded via commentsApi.getComments after posting
+        // Initial load (1) + reload after post (1) = 2 calls
+        expect(api.commentsApi.getComments).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -492,37 +498,41 @@ describe('PostDetailPage', () => {
 
   describe('Paginated Comments Loading', () => {
     it('should load more comments when scrolling near bottom', async () => {
-      // Create a post with more than 40 comments to enable pagination
-      const manyComments = Array.from({ length: 45 }, (_, i) => ({
+      // Create many comments for initial page - mark as having more pages
+      const manyComments = Array.from({ length: 40 }, (_, i) => ({
         id: i + 1,
         user_id: i + 1,
         content: `Comment ${i + 1}`,
         reaction_count: 0,
         thread: [],
-        created_at: '2024-10-15T13:00:00',
+        created_at: getRecentDate(1),
       }));
 
-      vi.mocked(api.postsApi.getPost).mockResolvedValueOnce({
-        ...mockPostDetail,
-        comments: manyComments,
-      });
-
-      vi.mocked(api.commentsApi.getComments).mockResolvedValueOnce({
-        comments: [
-          {
-            id: 46,
-            user_id: 46,
-            content: 'Comment from page 2',
-            reaction_count: 0,
-            thread: [],
-            created_at: '2024-10-15T13:00:00',
-          },
-        ],
-        total: 50,
-        page_no: 2,
-        page_size: 40,
-        total_pages: 2,
-      });
+      // Initial load returns page 1 with more pages available
+      vi.mocked(api.commentsApi.getComments)
+        .mockResolvedValueOnce({
+          comments: manyComments,
+          total: 50,
+          page_no: 1,
+          page_size: 40,
+          total_pages: 2,
+        })
+        .mockResolvedValueOnce({
+          comments: [
+            {
+              id: 46,
+              user_id: 46,
+              content: 'Comment from page 2',
+              reaction_count: 0,
+              thread: [],
+              created_at: getRecentDate(0.5),
+            },
+          ],
+          total: 50,
+          page_no: 2,
+          page_size: 40,
+          total_pages: 2,
+        });
 
       render(<PostDetailPage />);
 
@@ -543,15 +553,24 @@ describe('PostDetailPage', () => {
     });
 
     it('should show loading indicator when loading more comments', async () => {
-      vi.mocked(api.commentsApi.getComments).mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve({
-          comments: [],
+      // Initial comments load with more pages
+      vi.mocked(api.commentsApi.getComments)
+        .mockResolvedValueOnce({
+          comments: mockComments,
           total: 50,
-          page_no: 2,
+          page_no: 1,
           page_size: 40,
           total_pages: 2,
-        }), 1000))
-      );
+        })
+        .mockImplementationOnce(
+          () => new Promise(resolve => setTimeout(() => resolve({
+            comments: [],
+            total: 50,
+            page_no: 2,
+            page_size: 40,
+            total_pages: 2,
+          }), 1000))
+        );
 
       render(<PostDetailPage />);
 
@@ -574,11 +593,7 @@ describe('PostDetailPage', () => {
     });
 
     it('should show end message when all comments are loaded', async () => {
-      vi.mocked(api.postsApi.getPost).mockResolvedValue({
-        ...mockPostDetail,
-        comments: mockPostDetail.comments,
-      });
-
+      // Default mock already has total_pages: 1, so no more comments to load
       render(<PostDetailPage />);
 
       await waitFor(() => {
@@ -671,18 +686,26 @@ describe('PostDetailPage', () => {
     });
 
     it('should handle post with many comments', async () => {
-      const manyComments = Array.from({ length: 100 }, (_, i) => ({
+      const manyComments = Array.from({ length: 40 }, (_, i) => ({
         id: i + 1,
         user_id: i + 1,
         content: `Comment ${i + 1}`,
         reaction_count: i,
         thread: [],
-        created_at: '2024-10-15T13:00:00',
+        created_at: getRecentDate(1),
       }));
 
       vi.mocked(api.postsApi.getPost).mockResolvedValue({
         ...mockPostDetail,
+        comment_count: 100,
+      });
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
         comments: manyComments,
+        total: 100,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 3,
       });
 
       render(<PostDetailPage />);

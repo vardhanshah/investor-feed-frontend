@@ -13,7 +13,7 @@ describe('Privacy Page', () => {
   it('should display last updated date', () => {
     render(<Privacy />);
 
-    expect(screen.getByText('Last updated: January 2025')).toBeInTheDocument();
+    expect(screen.getByText('Last updated: December 2025')).toBeInTheDocument();
   });
 
   it('should render all privacy policy sections', () => {
@@ -24,10 +24,12 @@ describe('Privacy Page', () => {
     expect(screen.getByText('2. How We Use Your Information')).toBeInTheDocument();
     expect(screen.getByText('3. Information Sharing')).toBeInTheDocument();
     expect(screen.getByText('4. Third-Party Services')).toBeInTheDocument();
-    expect(screen.getByText('5. Data Security')).toBeInTheDocument();
-    expect(screen.getByText('6. Your Rights')).toBeInTheDocument();
-    expect(screen.getByText('7. Cookies')).toBeInTheDocument();
-    expect(screen.getByText('8. Contact Us')).toBeInTheDocument();
+    expect(screen.getByText('5. Cookies & Sessions')).toBeInTheDocument();
+    expect(screen.getByText('6. Data Retention')).toBeInTheDocument();
+    expect(screen.getByText('7. Data Security')).toBeInTheDocument();
+    expect(screen.getByText('8. Your Rights')).toBeInTheDocument();
+    expect(screen.getByText('9. Changes to This Policy')).toBeInTheDocument();
+    expect(screen.getByText('10. Contact Us')).toBeInTheDocument();
   });
 
   it('should have a back to home link', () => {
@@ -46,37 +48,39 @@ describe('Privacy Page', () => {
     expect(emailLink).toHaveAttribute('href', 'mailto:investor@investorfeed.in');
   });
 
-  it('should list information collection types', () => {
+  it('should list account information collected', () => {
     render(<Privacy />);
 
-    expect(screen.getByText(/Website Analytics:/)).toBeInTheDocument();
-    expect(screen.getByText(/Contact Information:/)).toBeInTheDocument();
-    expect(screen.getByText(/Social Media Data:/)).toBeInTheDocument();
+    expect(screen.getByText('Account Information')).toBeInTheDocument();
+    expect(screen.getByText('Email address')).toBeInTheDocument();
+    expect(screen.getByText('First name and last name')).toBeInTheDocument();
+    expect(screen.getByText('Profile picture (if provided via OAuth)')).toBeInTheDocument();
   });
 
   it('should list data usage purposes', () => {
     render(<Privacy />);
 
-    expect(screen.getByText('Improve our website and content delivery')).toBeInTheDocument();
-    expect(screen.getByText('Respond to your inquiries and support requests')).toBeInTheDocument();
-    expect(screen.getByText('Analyze content performance and user engagement')).toBeInTheDocument();
+    expect(screen.getByText('Create and manage your account')).toBeInTheDocument();
+    expect(screen.getByText('Provide access to our filtering and sorting tools')).toBeInTheDocument();
+    expect(screen.getByText('Authenticate your identity when you log in')).toBeInTheDocument();
+    expect(screen.getByText('Send important service-related communications')).toBeInTheDocument();
+    expect(screen.getByText('Improve our website and services')).toBeInTheDocument();
     expect(screen.getByText('Comply with legal obligations')).toBeInTheDocument();
   });
 
   it('should state information sharing policy', () => {
     render(<Privacy />);
 
-    expect(
-      screen.getByText(/We do NOT sell, trade, or rent your personal information to third parties/)
-    ).toBeInTheDocument();
+    // The text has "NOT" inside a <strong> tag, so we search for parts of it
+    expect(screen.getByText(/sell, trade, or rent your personal information/)).toBeInTheDocument();
   });
 
   it('should list third-party services', () => {
     render(<Privacy />);
 
+    expect(screen.getByText(/Google:/)).toBeInTheDocument();
     expect(screen.getByText(/Twitter\/X:/)).toBeInTheDocument();
     expect(screen.getByText(/Razorpay:/)).toBeInTheDocument();
-    expect(screen.getByText(/Web Analytics:/)).toBeInTheDocument();
   });
 
   it('should list user rights', () => {
@@ -84,17 +88,15 @@ describe('Privacy Page', () => {
 
     expect(screen.getByText('Access your personal information we hold')).toBeInTheDocument();
     expect(screen.getByText('Request correction of inaccurate data')).toBeInTheDocument();
-    expect(screen.getByText('Request deletion of your data')).toBeInTheDocument();
+    expect(screen.getByText('Request deletion of your account and data')).toBeInTheDocument();
     expect(screen.getByText('Withdraw consent where applicable')).toBeInTheDocument();
-    expect(screen.getByText('File complaints with relevant authorities')).toBeInTheDocument();
+    expect(screen.getByText('File complaints with relevant data protection authorities')).toBeInTheDocument();
   });
 
   it('should mention cookie usage', () => {
     render(<Privacy />);
 
-    expect(
-      screen.getByText(/Our website may use cookies and similar technologies/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/We use essential cookies and session storage/)).toBeInTheDocument();
   });
 
   it('should apply correct styling to main container', () => {
@@ -125,7 +127,7 @@ describe('Privacy Page', () => {
     const { container } = render(<Privacy />);
 
     const sections = container.querySelectorAll('.bg-gradient-to-br.from-gray-900.to-black');
-    expect(sections.length).toBeGreaterThan(0);
+    expect(sections.length).toBe(10); // 10 sections
 
     // Each section should have proper styling
     sections.forEach(section => {
@@ -142,7 +144,7 @@ describe('Privacy Page', () => {
 
     // Section headings
     const sectionHeadings = screen.getAllByRole('heading', { level: 2 });
-    expect(sectionHeadings).toHaveLength(8); // 8 sections
+    expect(sectionHeadings).toHaveLength(10); // 10 sections
   });
 
   it('should style contact email with brand colors', () => {
@@ -193,7 +195,7 @@ describe('Privacy Page', () => {
     const { container } = render(<Privacy />);
 
     const sections = container.querySelectorAll('.mb-8');
-    expect(sections.length).toBeGreaterThan(0);
+    expect(sections.length).toBe(10);
   });
 
   it('should center align the title section', () => {
@@ -208,5 +210,20 @@ describe('Privacy Page', () => {
 
     const footerSection = container.querySelector('.text-center.mt-12');
     expect(footerSection).toBeInTheDocument();
+  });
+
+  it('should list data security measures', () => {
+    render(<Privacy />);
+
+    expect(screen.getByText('Encrypted data transmission (HTTPS)')).toBeInTheDocument();
+    expect(screen.getByText('Secure password storage using industry-standard hashing')).toBeInTheDocument();
+    expect(screen.getByText('Regular security assessments')).toBeInTheDocument();
+  });
+
+  it('should explain data retention', () => {
+    render(<Privacy />);
+
+    expect(screen.getByText(/Account data:/)).toBeInTheDocument();
+    expect(screen.getByText(/Session data:/)).toBeInTheDocument();
   });
 });
