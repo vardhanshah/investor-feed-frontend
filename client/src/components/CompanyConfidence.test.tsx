@@ -283,16 +283,16 @@ describe('CompanyConfidence', () => {
       const user = userEvent.setup();
       vi.mocked(api.confidenceApi.vote).mockRejectedValueOnce(new Error('Network error'));
 
-      render(<CompanyConfidence profileId={1} confidence={mockConfidenceNoUserVote} />);
+      const { container } = render(<CompanyConfidence profileId={1} confidence={mockConfidenceNoUserVote} />);
 
-      const yesButton = screen.getByRole('button', { name: /yes/i });
+      const buttons = container.querySelectorAll('button');
+      const yesButton = buttons[0];
       await user.click(yesButton);
 
-      // Should revert to original state
+      // Should revert to original state (no user vote, so no percentage displayed)
       await waitFor(() => {
-        // Original state had 50% each
-        const percentages = screen.getAllByText('50%');
-        expect(percentages.length).toBe(2);
+        const percentageSpan = container.querySelector('span.font-bold');
+        expect(percentageSpan).not.toBeInTheDocument();
       });
     });
   });

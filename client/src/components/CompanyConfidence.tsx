@@ -20,6 +20,7 @@ export default function CompanyConfidence({
   const { toast } = useToast();
   const [isVoting, setIsVoting] = useState(false);
   const [localConfidence, setLocalConfidence] = useState<ProfileConfidence | null>(confidence);
+  const [hoveredButton, setHoveredButton] = useState<'yes' | 'no' | null>(null);
 
   // Sync local state with prop changes
   useEffect(() => {
@@ -108,9 +109,11 @@ export default function CompanyConfidence({
         {/* YES Button */}
         <button
           onClick={(e) => handleVote(e, 'yes')}
+          onMouseEnter={() => setHoveredButton('yes')}
+          onMouseLeave={() => setHoveredButton(null)}
           disabled={isVoting}
           className={`
-            group relative flex items-center justify-center rounded font-alata font-medium transition-all
+            relative flex items-center justify-center rounded font-alata font-medium transition-all
             ${buttonPadding} ${textSize}
             ${userVote === 'yes'
               ? 'bg-green-500/20 text-green-500 border border-green-500/50'
@@ -123,11 +126,11 @@ export default function CompanyConfidence({
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <span className="group-hover:hidden">Yes</span>
-              {hasVotes && yesPercentage !== null && (
-                <span className="hidden group-hover:inline">{yesPercentage}%</span>
+              {hoveredButton === 'yes' && hasVotes && yesPercentage !== null ? (
+                <span>{yesPercentage}%</span>
+              ) : (
+                <span>Yes</span>
               )}
-              {!hasVotes && <span className="hidden group-hover:inline">Yes</span>}
             </>
           )}
         </button>
@@ -135,9 +138,11 @@ export default function CompanyConfidence({
         {/* NO Button */}
         <button
           onClick={(e) => handleVote(e, 'no')}
+          onMouseEnter={() => setHoveredButton('no')}
+          onMouseLeave={() => setHoveredButton(null)}
           disabled={isVoting}
           className={`
-            group relative flex items-center justify-center rounded font-alata font-medium transition-all
+            relative flex items-center justify-center rounded font-alata font-medium transition-all
             ${buttonPadding} ${textSize}
             ${userVote === 'no'
               ? 'bg-red-500/20 text-red-500 border border-red-500/50'
@@ -150,11 +155,11 @@ export default function CompanyConfidence({
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <span className="group-hover:hidden">No</span>
-              {hasVotes && noPercentage !== null && (
-                <span className="hidden group-hover:inline">{noPercentage}%</span>
+              {hoveredButton === 'no' && hasVotes && noPercentage !== null ? (
+                <span>{noPercentage}%</span>
+              ) : (
+                <span>No</span>
               )}
-              {!hasVotes && <span className="hidden group-hover:inline">No</span>}
             </>
           )}
         </button>
