@@ -319,6 +319,7 @@ export default function ProfilePage() {
                   post={post}
                   profilesAttributesMetadata={profilesAttributesMetadata}
                   postsAttributesMetadata={postsAttributesMetadata}
+                  showConfidence={false}
                 />
               ))}
 

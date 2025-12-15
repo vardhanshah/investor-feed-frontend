@@ -490,5 +490,43 @@ describe('PostCard', () => {
         expect(api.confidenceApi.vote).toHaveBeenCalledWith(1, 'yes');
       });
     });
+
+    it('should hide confidence component when showConfidence is false', () => {
+      const postWithConfidence: Post = {
+        ...mockPost,
+        confidence: {
+          yes_percentage: 75,
+          no_percentage: 25,
+          total_votes: 4,
+          user_vote: 'yes',
+        },
+      };
+      render(<PostCard post={postWithConfidence} showConfidence={false} />);
+
+      // Yes and No buttons should not be present
+      const yesButton = screen.queryByRole('button', { name: /yes/i });
+      const noButton = screen.queryByRole('button', { name: /no/i });
+      expect(yesButton).not.toBeInTheDocument();
+      expect(noButton).not.toBeInTheDocument();
+    });
+
+    it('should show confidence component by default when showConfidence is not specified', () => {
+      const postWithConfidence: Post = {
+        ...mockPost,
+        confidence: {
+          yes_percentage: 75,
+          no_percentage: 25,
+          total_votes: 4,
+          user_vote: 'yes',
+        },
+      };
+      render(<PostCard post={postWithConfidence} />);
+
+      // Yes and No buttons should be present
+      const yesButton = screen.queryByRole('button', { name: /yes/i });
+      const noButton = screen.queryByRole('button', { name: /no/i });
+      expect(yesButton).toBeInTheDocument();
+      expect(noButton).toBeInTheDocument();
+    });
   });
 });

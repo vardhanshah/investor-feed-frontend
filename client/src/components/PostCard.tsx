@@ -15,6 +15,7 @@ interface PostCardProps {
   post: Post;
   profilesAttributesMetadata?: ProfilesAttributesMetadata;
   postsAttributesMetadata?: PostAttributesMetadata;
+  showConfidence?: boolean;
 }
 
 // Helper to format attribute value with unit
@@ -33,7 +34,7 @@ function formatAttributeValue(value: any, metadata?: { unit?: string | null; typ
   return String(value);
 }
 
-export default function PostCard({ post, profilesAttributesMetadata, postsAttributesMetadata }: PostCardProps) {
+export default function PostCard({ post, profilesAttributesMetadata, postsAttributesMetadata, showConfidence = true }: PostCardProps) {
   const timeAgo = formatTimeAgoTwoUnits(post.submission_date || post.created_at);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -300,11 +301,13 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
             )}
 
             {/* Company Confidence */}
-            <CompanyConfidence
-              profileId={post.profile.id}
-              confidence={post.confidence || null}
-              size="sm"
-            />
+            {showConfidence && (
+              <CompanyConfidence
+                profileId={post.profile.id}
+                confidence={post.confidence || null}
+                size="sm"
+              />
+            )}
           </div>
         </div>
       </CardContent>
