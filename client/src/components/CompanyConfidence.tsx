@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { confidenceApi, ProfileConfidence } from '@/lib/api';
@@ -20,6 +20,11 @@ export default function CompanyConfidence({
   const { toast } = useToast();
   const [isVoting, setIsVoting] = useState(false);
   const [localConfidence, setLocalConfidence] = useState<ProfileConfidence | null>(confidence);
+
+  // Sync local state with prop changes
+  useEffect(() => {
+    setLocalConfidence(confidence);
+  }, [confidence]);
 
   const handleVote = async (e: React.MouseEvent, vote: 'yes' | 'no') => {
     e.stopPropagation(); // Prevent card navigation
