@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { mockUsers, mockPosts, mockProfiles, mockFeedConfigs, mockProfilesAttributesMetadata, mockPostsAttributesMetadata } from './mockData';
+import { mockUsers, mockPosts, mockProfiles, mockFeedConfigs, mockProfilesAttributesMetadata, mockPostsAttributesMetadata, mockConfidenceWithVotes } from './mockData';
 
 // Use relative URL to match what the app uses when VITE_API_BASE_URL is not set
 const API_BASE_URL = '/api';
@@ -427,6 +427,55 @@ export const handlers = [
       posts: paginatedPosts,
       profiles_attributes_metadata: mockProfilesAttributesMetadata,
       posts_attributes_metadata: mockPostsAttributesMetadata,
+    });
+  }),
+
+  // Company Confidence vote endpoint
+  http.put(`${API_BASE_URL}/profiles/:profileId/confidence`, async ({ request, params }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return HttpResponse.json(
+        { detail: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    const profileId = parseInt(params.profileId as string);
+    const profile = mockProfiles.find(p => p.id === profileId);
+    if (!profile) {
+      return HttpResponse.json(
+        { detail: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json() as { vote: string };
+    if (body.vote !== 'yes' && body.vote !== 'no') {
+      return HttpResponse.json(
+        { detail: 'Invalid vote value. Must be "yes" or "no"' },
+        { status: 422 }
+      );
+    }
+
+    // Simulate vote response with updated percentages
+    const currentConfidence = profile.confidence || mockConfidenceWithVotes;
+    const newTotalVotes = currentConfidence.total_votes + (currentConfidence.user_vote ? 0 : 1);
+
+    // Simple calculation for mock - in reality backend would compute this
+    const yesVotes = body.vote === 'yes'
+      ? Math.ceil(newTotalVotes * 0.67)
+      : Math.floor(newTotalVotes * 0.33);
+    const noVotes = newTotalVotes - yesVotes;
+
+    return HttpResponse.json({
+      message: currentConfidence.user_vote
+        ? `Vote changed to ${body.vote}`
+        : `Vote recorded as ${body.vote}`,
+      profile_id: profileId,
+      vote: body.vote,
+      yes_percentage: Math.round((yesVotes / newTotalVotes) * 100),
+      no_percentage: Math.round((noVotes / newTotalVotes) * 100),
+      total_votes: newTotalVotes,
     });
   }),
 ];

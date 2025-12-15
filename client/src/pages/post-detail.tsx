@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
@@ -103,6 +103,9 @@ export default function PostDetailPage() {
   const [commentLikes, setCommentLikes] = useState<{ [key: number]: boolean }>({});
   const [threadLikes, setThreadLikes] = useState<{ [key: string]: boolean }>({});
   const [likingInProgress, setLikingInProgress] = useState<{ [key: string]: boolean }>({});
+
+  // Comment deletion state
+  const [isDeletingComment, setIsDeletingComment] = useState<{ [key: number]: boolean }>({});
 
   // Image lightbox state
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -325,6 +328,42 @@ export default function PostDetailPage() {
       });
     } finally {
       setIsSubmittingReply({ ...isSubmittingReply, [commentId]: false });
+    }
+  };
+
+  // Handle comment deletion
+  const handleDeleteComment = async (commentId: number) => {
+    if (!post || isDeletingComment[commentId]) return;
+
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to delete this comment? This will also delete all replies and reactions.')) {
+      return;
+    }
+
+    setIsDeletingComment({ ...isDeletingComment, [commentId]: true });
+    try {
+      await commentsApi.deleteComment(post.id, commentId);
+
+      toast({
+        title: 'Comment deleted',
+        description: 'Your comment has been successfully deleted.',
+      });
+
+      // Remove comment from local state
+      setComments(prev => prev.filter(c => c.id !== commentId));
+
+      // Update post to get new comment count
+      const postData = await postsApi.getPost(post.id);
+      setPost(postData);
+    } catch (err) {
+      const errorInfo = getErrorMessage(err);
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
+      });
+    } finally {
+      setIsDeletingComment({ ...isDeletingComment, [commentId]: false });
     }
   };
 
@@ -662,6 +701,21 @@ export default function PostDetailPage() {
                               >
                                 Reply
                               </button>
+                              {user.user_id === comment.user_id && (
+                                <button
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  disabled={isDeletingComment[comment.id]}
+                                  className={`flex items-center space-x-1 text-xs font-alata transition-colors ${
+                                    isDeletingComment[comment.id]
+                                      ? 'text-muted-foreground cursor-wait opacity-50'
+                                      : 'text-destructive hover:text-destructive/80'
+                                  }`}
+                                  title="Delete comment"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  {isDeletingComment[comment.id] && <span>Deleting...</span>}
+                                </button>
+                              )}
                             </>
                           )}
                           {!user && comment.reaction_count > 0 && (

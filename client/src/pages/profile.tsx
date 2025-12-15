@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, TrendingUp, Building2, TrendingUpIcon, PieChart, Layers } from 'lucide-react';
-import { feedsApi, profilesApi, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
+import { feedsApi, profilesApi, ProfilesAttributesMetadata, PostAttributesMetadata, ProfileConfidence } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
+import CompanyConfidence from '@/components/CompanyConfidence';
 import { useToast } from '@/hooks/use-toast';
 import type { Profile } from '@/lib/api';
 
@@ -253,6 +254,15 @@ export default function ProfilePage() {
                       )}
                     </div>
                   )}
+
+                  {/* Company Confidence */}
+                  <div className="mt-6 pt-6 border-t border-border/50">
+                    <CompanyConfidence
+                      profileId={profile.id}
+                      confidence={profile.confidence || null}
+                      size="md"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>

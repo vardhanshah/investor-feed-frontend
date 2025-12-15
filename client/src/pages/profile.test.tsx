@@ -29,6 +29,23 @@ vi.mock('@/components/PostCard', () => ({
   ),
 }));
 
+// Mock CompanyConfidence component
+vi.mock('@/components/CompanyConfidence', () => ({
+  default: ({ profileId, confidence, size }: { profileId: number; confidence: any; size?: string }) => (
+    <div data-testid="company-confidence">
+      <span data-testid="confidence-profile-id">{profileId}</span>
+      <span data-testid="confidence-size">{size || 'sm'}</span>
+      {confidence && (
+        <>
+          <span data-testid="confidence-yes-pct">{confidence.yes_percentage}%</span>
+          <span data-testid="confidence-no-pct">{confidence.no_percentage}%</span>
+          <span data-testid="confidence-user-vote">{confidence.user_vote || 'none'}</span>
+        </>
+      )}
+    </div>
+  ),
+}));
+
 describe('Profile Page', () => {
   beforeEach(() => {
     mockSetLocation.mockClear();
@@ -421,5 +438,105 @@ describe('Profile Page', () => {
       const errorText = screen.queryByText(/error|failed|unable/i);
       expect(alert || errorText).toBeTruthy();
     }, { timeout: 3000 });
+  });
+
+  describe('Company Confidence', () => {
+    it('should render CompanyConfidence component in profile header', async () => {
+      render(<Profile />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('company-confidence')).toBeInTheDocument();
+      });
+    });
+
+    it('should pass correct profile ID to CompanyConfidence', async () => {
+      render(<Profile />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('confidence-profile-id')).toHaveTextContent('1');
+      });
+    });
+
+    it('should use medium size for CompanyConfidence in profile header', async () => {
+      render(<Profile />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('confidence-size')).toHaveTextContent('md');
+      });
+    });
+
+    it('should display confidence percentages when profile has votes', async () => {
+      server.use(
+        http.get(`${API_BASE_URL}/profiles/:profileId`, () => {
+          return HttpResponse.json({
+            id: 1,
+            title: 'TechCorp Inc',
+            description: 'Leading technology company',
+            created_at: '2025-01-01',
+            confidence: {
+              yes_percentage: 75,
+              no_percentage: 25,
+              total_votes: 4,
+              user_vote: 'yes',
+            },
+          });
+        })
+      );
+
+      render(<Profile />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('confidence-yes-pct')).toHaveTextContent('75%');
+        expect(screen.getByTestId('confidence-no-pct')).toHaveTextContent('25%');
+      });
+    });
+
+    it('should show user vote status in CompanyConfidence', async () => {
+      server.use(
+        http.get(`${API_BASE_URL}/profiles/:profileId`, () => {
+          return HttpResponse.json({
+            id: 1,
+            title: 'TechCorp Inc',
+            description: 'Leading technology company',
+            created_at: '2025-01-01',
+            confidence: {
+              yes_percentage: 67,
+              no_percentage: 33,
+              total_votes: 3,
+              user_vote: 'yes',
+            },
+          });
+        })
+      );
+
+      render(<Profile />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('confidence-user-vote')).toHaveTextContent('yes');
+      });
+    });
+
+    it('should handle profile with null confidence', async () => {
+      server.use(
+        http.get(`${API_BASE_URL}/profiles/:profileId`, () => {
+          return HttpResponse.json({
+            id: 1,
+            title: 'New Profile',
+            description: 'New profile with no votes',
+            created_at: '2025-01-01',
+            confidence: null,
+          });
+        })
+      );
+
+      render(<Profile />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('company-confidence')).toBeInTheDocument();
+      });
+
+      // Should not show percentages when confidence is null
+      expect(screen.queryByTestId('confidence-yes-pct')).not.toBeInTheDocument();
+    });
   });
 });

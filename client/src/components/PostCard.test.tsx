@@ -9,6 +9,9 @@ vi.mock('@/lib/api', () => ({
   reactionsApi: {
     addReaction: vi.fn(),
   },
+  confidenceApi: {
+    vote: vi.fn(),
+  },
 }));
 
 // Mock wouter
@@ -389,6 +392,105 @@ describe('PostCard', () => {
       const { container } = render(<PostCard post={mockPost} />);
       const engagementSection = container.querySelector('.border-t');
       expect(engagementSection).toBeInTheDocument();
+    });
+  });
+
+  describe('Company Confidence', () => {
+    it('should render Company Confidence section', () => {
+      render(<PostCard post={mockPost} />);
+      expect(screen.getByText('Confident?')).toBeInTheDocument();
+      expect(screen.getByText('YES')).toBeInTheDocument();
+      expect(screen.getByText('NO')).toBeInTheDocument();
+    });
+
+    it('should display percentages when profile has confidence votes', () => {
+      const postWithConfidence: Post = {
+        ...mockPost,
+        profile: {
+          ...mockPost.profile,
+          confidence: {
+            yes_percentage: 75,
+            no_percentage: 25,
+            total_votes: 4,
+            user_vote: null,
+          },
+        },
+      };
+      render(<PostCard post={postWithConfidence} />);
+      expect(screen.getByText('75%')).toBeInTheDocument();
+      expect(screen.getByText('25%')).toBeInTheDocument();
+    });
+
+    it('should not display percentages when profile has no confidence votes', () => {
+      const postWithNoConfidence: Post = {
+        ...mockPost,
+        profile: {
+          ...mockPost.profile,
+          confidence: null,
+        },
+      };
+      render(<PostCard post={postWithNoConfidence} />);
+      expect(screen.queryByText('%')).not.toBeInTheDocument();
+    });
+
+    it('should highlight user vote when user has voted', () => {
+      const postWithUserVote: Post = {
+        ...mockPost,
+        profile: {
+          ...mockPost.profile,
+          confidence: {
+            yes_percentage: 67,
+            no_percentage: 33,
+            total_votes: 3,
+            user_vote: 'yes',
+          },
+        },
+      };
+      const { container } = render(<PostCard post={postWithUserVote} />);
+      // Find the YES button (first button in the confidence section)
+      const yesButton = screen.getByRole('button', { name: /yes/i });
+      expect(yesButton.className).toContain('text-green-500');
+    });
+
+    it('should not navigate to post detail when confidence button is clicked', async () => {
+      const user = userEvent.setup();
+      vi.mocked(api.confidenceApi.vote).mockResolvedValueOnce({
+        message: 'Vote recorded',
+        profile_id: 1,
+        vote: 'yes',
+        yes_percentage: 100,
+        no_percentage: 0,
+        total_votes: 1,
+      });
+
+      render(<PostCard post={mockPost} />);
+
+      const yesButton = screen.getByRole('button', { name: /yes/i });
+      await user.click(yesButton);
+
+      // Should not navigate because stopPropagation prevents card click
+      expect(mockSetLocation).not.toHaveBeenCalled();
+    });
+
+    it('should call confidence API when vote button is clicked', async () => {
+      const user = userEvent.setup();
+      vi.mocked(api.confidenceApi.vote).mockResolvedValueOnce({
+        message: 'Vote recorded',
+        profile_id: 1,
+        vote: 'yes',
+        yes_percentage: 100,
+        no_percentage: 0,
+        total_votes: 1,
+      });
+
+      render(<PostCard post={mockPost} />);
+
+      const yesButton = screen.getByRole('button', { name: /yes/i });
+      await user.click(yesButton);
+
+      await waitFor(() => {
+        expect(api.confidenceApi.vote).toHaveBeenCalledWith(1, 'yes');
+      });
     });
   });
 });

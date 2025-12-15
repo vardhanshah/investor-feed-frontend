@@ -8,6 +8,7 @@ import {
   feedsApi,
   reactionsApi,
   commentsApi,
+  confidenceApi,
 } from './api';
 import { server } from '@/test/mocks/server';
 import { http, HttpResponse } from 'msw';
@@ -959,6 +960,116 @@ describe('API Layer', () => {
       await expect(authApi.getCurrentUser()).rejects.toThrow(
         'An unexpected error occurred'
       );
+    });
+  });
+
+  describe('confidenceApi', () => {
+    beforeEach(() => {
+      localStorage.setItem('authToken', 'mock-token-123');
+    });
+
+    describe('vote', () => {
+      it('should successfully vote yes on a profile', async () => {
+        const result = await confidenceApi.vote(1, 'yes');
+
+        expect(result).toHaveProperty('message');
+        expect(result).toHaveProperty('profile_id', 1);
+        expect(result).toHaveProperty('vote', 'yes');
+        expect(result).toHaveProperty('yes_percentage');
+        expect(result).toHaveProperty('no_percentage');
+        expect(result).toHaveProperty('total_votes');
+        expect(result.yes_percentage + result.no_percentage).toBe(100);
+      });
+
+      it('should successfully vote no on a profile', async () => {
+        const result = await confidenceApi.vote(2, 'no');
+
+        expect(result).toHaveProperty('vote', 'no');
+        expect(result).toHaveProperty('profile_id', 2);
+      });
+
+      it('should change vote from yes to no', async () => {
+        // First vote yes
+        await confidenceApi.vote(1, 'yes');
+
+        // Then change to no
+        const result = await confidenceApi.vote(1, 'no');
+
+        expect(result).toHaveProperty('vote', 'no');
+        expect(result.message).toContain('changed');
+      });
+
+      it('should require authentication', async () => {
+        localStorage.clear();
+
+        server.use(
+          http.put(`${API_BASE_URL}/profiles/1/confidence`, () => {
+            return HttpResponse.json(
+              { detail: 'Not authenticated' },
+              { status: 401 }
+            );
+          })
+        );
+
+        await expect(confidenceApi.vote(1, 'yes')).rejects.toThrow('Not authenticated');
+      });
+
+      it('should throw error for non-existent profile', async () => {
+        server.use(
+          http.put(`${API_BASE_URL}/profiles/9999/confidence`, () => {
+            return HttpResponse.json(
+              { detail: 'Profile not found' },
+              { status: 404 }
+            );
+          })
+        );
+
+        await expect(confidenceApi.vote(9999, 'yes')).rejects.toThrow('Profile not found');
+      });
+
+      it('should send correct request body', async () => {
+        let requestBody: any;
+
+        server.use(
+          http.put(`${API_BASE_URL}/profiles/1/confidence`, async ({ request }) => {
+            requestBody = await request.json();
+            return HttpResponse.json({
+              message: 'Vote recorded',
+              profile_id: 1,
+              vote: 'yes',
+              yes_percentage: 67,
+              no_percentage: 33,
+              total_votes: 3,
+            });
+          })
+        );
+
+        await confidenceApi.vote(1, 'yes');
+
+        expect(requestBody).toEqual({ vote: 'yes' });
+      });
+
+      it('should send Authorization header', async () => {
+        let authHeader: string | null = null;
+
+        server.use(
+          http.put(`${API_BASE_URL}/profiles/1/confidence`, ({ request }) => {
+            authHeader = request.headers.get('Authorization');
+            return HttpResponse.json({
+              message: 'Vote recorded',
+              profile_id: 1,
+              vote: 'yes',
+              yes_percentage: 67,
+              no_percentage: 33,
+              total_votes: 3,
+            });
+          })
+        );
+
+        await confidenceApi.vote(1, 'yes');
+
+        expect(authHeader).toBe('Bearer mock-token-123');
+      });
     });
   });
 });

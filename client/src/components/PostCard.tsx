@@ -7,6 +7,7 @@ import { reactionsApi, Post, PostProfile, ProfilesAttributesMetadata, PostAttrib
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
 import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
+import CompanyConfidence from './CompanyConfidence';
 
 export type { Post, PostProfile };
 
@@ -289,13 +290,22 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
             </button>
           </div>
 
-          {/* Trending Indicator (if high engagement) */}
-          {likeCount > 10 && (
-            <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
-              <span className="animate-pulse">🔥</span>
-              <span>Trending</span>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {/* Trending Indicator (if high engagement) */}
+            {likeCount > 10 && (
+              <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
+                <span className="animate-pulse">🔥</span>
+                <span>Trending</span>
+              </div>
+            )}
+
+            {/* Company Confidence */}
+            <CompanyConfidence
+              profileId={post.profile.id}
+              confidence={post.profile.confidence || null}
+              size="sm"
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

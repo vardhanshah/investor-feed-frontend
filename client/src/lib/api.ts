@@ -51,6 +51,22 @@ export interface ProfileMetaAttributes {
   nse_symbol?: string | null;
 }
 
+export interface ProfileConfidence {
+  yes_percentage: number | null;
+  no_percentage: number | null;
+  total_votes: number;
+  user_vote: 'yes' | 'no' | null;
+}
+
+export interface ConfidenceVoteResponse {
+  message: string;
+  profile_id: number;
+  vote: 'yes' | 'no';
+  yes_percentage: number;
+  no_percentage: number;
+  total_votes: number;
+}
+
 // Profile autocomplete result
 export interface ProfileAutocompleteItem {
   id: number;
@@ -72,6 +88,7 @@ export interface Profile {
     sector?: string | null;
     subsector?: string | null;
   } | null;
+  confidence?: ProfileConfidence | null;
 }
 
 export interface PostAttributes {
@@ -107,6 +124,7 @@ export interface PostProfile {
   external_id?: string;
   meta_attributes?: ProfileMetaAttributes | null;
   attributes?: Record<string, any>;
+  confidence?: ProfileConfidence | null;
 }
 
 export interface Post {
@@ -689,6 +707,14 @@ export const commentsApi = {
     });
     return handleResponse<void>(response);
   },
+
+  async deleteComment(postId: number, commentId: number): Promise<{ message: string; comment_id: number; post_id: number }> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/posts/${postId}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<{ message: string; comment_id: number; post_id: number }>(response);
+  },
 };
 
 // Filters API
@@ -808,5 +834,17 @@ export const notificationsApi = {
     }) as EventSource;
 
     return eventSource;
+  },
+};
+
+// Company Confidence API
+export const confidenceApi = {
+  async vote(profileId: number, vote: 'yes' | 'no'): Promise<ConfidenceVoteResponse> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/profiles/${profileId}/confidence`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ vote }),
+    });
+    return handleResponse<ConfidenceVoteResponse>(response);
   },
 };

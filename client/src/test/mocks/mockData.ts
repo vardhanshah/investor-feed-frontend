@@ -1,4 +1,4 @@
-import type { User, Post, Profile, FeedConfiguration, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
+import type { User, Post, Profile, FeedConfiguration, ProfilesAttributesMetadata, PostAttributesMetadata, ProfileConfidence } from '@/lib/api';
 
 // Shared metadata for profile attributes
 export const mockProfilesAttributesMetadata: ProfilesAttributesMetadata = {
@@ -15,6 +15,28 @@ export const mockPostsAttributesMetadata: PostAttributesMetadata = {
   future_guidance: { label: 'Future Guidance', type: 'boolean' },
   revenue_insights: { label: 'Revenue Insights', type: 'boolean' },
   funding_related: { label: 'Funding Related', type: 'boolean' },
+};
+
+// Mock confidence data for testing different scenarios
+export const mockConfidenceWithVotes: ProfileConfidence = {
+  yes_percentage: 67,
+  no_percentage: 33,
+  total_votes: 3,
+  user_vote: 'yes',
+};
+
+export const mockConfidenceNoUserVote: ProfileConfidence = {
+  yes_percentage: 50,
+  no_percentage: 50,
+  total_votes: 2,
+  user_vote: null,
+};
+
+export const mockConfidenceNoVotes: ProfileConfidence = {
+  yes_percentage: null,
+  no_percentage: null,
+  total_votes: 0,
+  user_vote: null,
 };
 
 export const mockUsers: User[] = [
@@ -38,18 +60,21 @@ export const mockProfiles: Profile[] = [
     title: 'TechCorp Inc',
     description: 'Leading technology company',
     created_at: '2025-01-01T00:00:00',
+    confidence: mockConfidenceWithVotes,
   },
   {
     id: 2,
     title: 'InvestPro Capital',
     description: 'Venture capital firm',
     created_at: '2025-01-02T00:00:00',
+    confidence: mockConfidenceNoUserVote,
   },
   {
     id: 3,
     title: 'FinanceHub',
     description: 'Financial services provider',
     created_at: '2025-01-03T00:00:00',
+    confidence: null, // No votes yet
   },
 ];
 
@@ -61,6 +86,7 @@ export const mockPosts: Post[] = [
       id: 1,
       title: 'TechCorp Inc',
       attributes: { sector: 'Technology', region: 'North America' },
+      confidence: mockConfidenceWithVotes,
     },
     source: 'https://example.com/news/1',
     created_at: '2025-10-15T10:00:00',
@@ -77,6 +103,7 @@ export const mockPosts: Post[] = [
       id: 1,
       title: 'TechCorp Inc',
       attributes: { sector: 'Technology', region: 'North America' },
+      confidence: mockConfidenceWithVotes,
     },
     source: null,
     created_at: '2025-10-15T09:00:00',
@@ -93,6 +120,7 @@ export const mockPosts: Post[] = [
       id: 2,
       title: 'InvestPro Capital',
       attributes: { sector: 'Finance', type: 'Venture Capital' },
+      confidence: mockConfidenceNoUserVote,
     },
     source: 'https://example.com/news/3',
     created_at: '2025-10-15T08:00:00',
@@ -109,6 +137,7 @@ export const mockPosts: Post[] = [
       id: 3,
       title: 'FinanceHub',
       attributes: { sector: 'Financial Services', region: 'Asia Pacific' },
+      confidence: null,
     },
     source: null,
     created_at: '2025-10-14T15:00:00',
@@ -125,6 +154,7 @@ export const mockPosts: Post[] = [
       id: 1,
       title: 'TechCorp Inc',
       attributes: { sector: 'Technology', region: 'North America' },
+      confidence: mockConfidenceWithVotes,
     },
     source: 'https://example.com/news/5',
     created_at: '2025-10-14T12:00:00',
