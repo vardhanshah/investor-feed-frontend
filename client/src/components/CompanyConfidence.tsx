@@ -96,6 +96,11 @@ export default function CompanyConfidence({
       className="flex flex-col gap-1"
       onClick={(e) => e.stopPropagation()}
     >
+      {/* Label */}
+      <span className="text-sm text-muted-foreground font-alata">
+        Company Confidence?
+      </span>
+
       <div className="flex items-center gap-2">
         {/* Show percentage if user has voted */}
         {displayPercentage !== null && (
