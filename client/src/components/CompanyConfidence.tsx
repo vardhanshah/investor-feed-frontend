@@ -86,7 +86,7 @@ export default function CompanyConfidence({
       onClick={(e) => e.stopPropagation()}
     >
       <span className={`text-muted-foreground font-alata ${textSize} whitespace-nowrap`}>
-        Confident?
+        Company Confidence?
       </span>
 
       {/* YES Button */}

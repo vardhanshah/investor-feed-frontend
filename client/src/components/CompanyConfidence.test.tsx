@@ -39,9 +39,9 @@ describe('CompanyConfidence', () => {
   });
 
   describe('Rendering', () => {
-    it('should render "Confident?" label', () => {
+    it('should render "Company Confidence?" label', () => {
       render(<CompanyConfidence profileId={1} confidence={null} />);
-      expect(screen.getByText('Confident?')).toBeInTheDocument();
+      expect(screen.getByText('Company Confidence?')).toBeInTheDocument();
     });
 
     it('should render YES and NO buttons', () => {
@@ -319,7 +319,7 @@ describe('CompanyConfidence', () => {
         </div>
       );
 
-      const container = screen.getByText('Confident?').parentElement;
+      const container = screen.getByText('Company Confidence?').parentElement;
       if (container) {
         await userEvent.click(container);
       }
@@ -381,7 +381,7 @@ describe('CompanyConfidence', () => {
       const { container } = render(
         <CompanyConfidence profileId={1} confidence={null} />
       );
-      const label = screen.getByText('Confident?');
+      const label = screen.getByText('Company Confidence?');
       expect(label.className).toContain('text-sm');
     });
 
@@ -389,7 +389,7 @@ describe('CompanyConfidence', () => {
       const { container } = render(
         <CompanyConfidence profileId={1} confidence={null} size="md" />
       );
-      const label = screen.getByText('Confident?');
+      const label = screen.getByText('Company Confidence?');
       expect(label.className).toContain('text-base');
     });
   });
