@@ -15,6 +15,7 @@ vi.mock('@/lib/api', () => ({
   commentsApi: {
     getComments: vi.fn(),
     addComment: vi.fn(),
+    deleteComment: vi.fn(),
   },
 }));
 
@@ -735,6 +736,238 @@ describe('PostDetailPage', () => {
       await waitFor(() => {
         expect(api.commentsApi.addComment).toHaveBeenCalledWith(123, 'My comment with spaces');
       });
+    });
+  });
+
+  describe('Delete Comment Functionality', () => {
+    it('should show delete button only for comment owner', async () => {
+      // Mock user is user_id: 1, comment 1 has user_id: 2, comment 2 has user_id: 3
+      const commentsWithOwnership = [
+        { id: 1, user_id: 2, content: 'Not my comment', reaction_count: 0, thread: [], created_at: getRecentDate(1) },
+        { id: 2, user_id: 1, content: 'My comment', reaction_count: 0, thread: [], created_at: getRecentDate(0.5) },
+      ];
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: commentsWithOwnership,
+        total: 2,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My comment')).toBeInTheDocument();
+      });
+
+      // Should have delete button for owned comment only
+      const deleteButtons = screen.queryAllByTitle('Delete comment');
+      expect(deleteButtons).toHaveLength(1);
+    });
+
+    it('should successfully delete a comment when confirmed', async () => {
+      const user = userEvent.setup();
+      const commentsWithOwnership = [
+        { id: 1, user_id: 1, content: 'My comment to delete', reaction_count: 0, thread: [], created_at: getRecentDate(1) },
+      ];
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: commentsWithOwnership,
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      vi.mocked(api.commentsApi.deleteComment).mockResolvedValueOnce({
+        message: 'Comment deleted successfully',
+        comment_id: 1,
+        post_id: 123,
+      });
+
+      // Mock window.confirm to return true
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My comment to delete')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete comment');
+      await user.click(deleteButton);
+
+      // Should show confirmation dialog
+      expect(confirmSpy).toHaveBeenCalledWith(
+        'Are you sure you want to delete this comment? This will also delete all replies and reactions.'
+      );
+
+      await waitFor(() => {
+        expect(api.commentsApi.deleteComment).toHaveBeenCalledWith(123, 1);
+      });
+
+      confirmSpy.mockRestore();
+    });
+
+    it('should not delete comment when user cancels confirmation', async () => {
+      const user = userEvent.setup();
+      const commentsWithOwnership = [
+        { id: 1, user_id: 1, content: 'My comment', reaction_count: 0, thread: [], created_at: getRecentDate(1) },
+      ];
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: commentsWithOwnership,
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      // Mock window.confirm to return false (user cancels)
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My comment')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete comment');
+      await user.click(deleteButton);
+
+      // Should NOT call delete API
+      expect(api.commentsApi.deleteComment).not.toHaveBeenCalled();
+
+      confirmSpy.mockRestore();
+    });
+
+    it('should handle delete error gracefully', async () => {
+      const user = userEvent.setup();
+      const commentsWithOwnership = [
+        { id: 1, user_id: 1, content: 'My comment', reaction_count: 0, thread: [], created_at: getRecentDate(1) },
+      ];
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: commentsWithOwnership,
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      vi.mocked(api.commentsApi.deleteComment).mockRejectedValueOnce(
+        new Error('You can only delete your own comments')
+      );
+
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My comment')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete comment');
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(api.commentsApi.deleteComment).toHaveBeenCalled();
+      });
+
+      // Comment should still be visible after error
+      await waitFor(() => {
+        expect(screen.getByText('My comment')).toBeInTheDocument();
+      });
+
+      confirmSpy.mockRestore();
+    });
+
+    it('should disable delete button while deletion is in progress', async () => {
+      const user = userEvent.setup();
+      const commentsWithOwnership = [
+        { id: 1, user_id: 1, content: 'My comment', reaction_count: 0, thread: [], created_at: getRecentDate(1) },
+      ];
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: commentsWithOwnership,
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      // Mock slow delete operation
+      vi.mocked(api.commentsApi.deleteComment).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({
+          message: 'Comment deleted successfully',
+          comment_id: 1,
+          post_id: 123,
+        }), 100))
+      );
+
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My comment')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete comment');
+      await user.click(deleteButton);
+
+      // Button should be disabled during deletion
+      await waitFor(() => {
+        expect(deleteButton).toBeDisabled();
+      });
+
+      confirmSpy.mockRestore();
+    });
+
+    it('should update comment count after successful deletion', async () => {
+      const user = userEvent.setup();
+      const commentsWithOwnership = [
+        { id: 1, user_id: 1, content: 'My comment to delete', reaction_count: 0, thread: [], created_at: getRecentDate(1) },
+      ];
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: commentsWithOwnership,
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      vi.mocked(api.commentsApi.deleteComment).mockResolvedValueOnce({
+        message: 'Comment deleted successfully',
+        comment_id: 1,
+        post_id: 123,
+      });
+
+      // Mock updated post with decreased comment count
+      vi.mocked(api.postsApi.getPost).mockResolvedValueOnce({
+        ...mockPostDetail,
+        comment_count: 1, // Updated count after deletion
+      });
+
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My comment to delete')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete comment');
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        // Post should be refetched to update count
+        expect(api.postsApi.getPost).toHaveBeenCalledTimes(2);
+      });
+
+      confirmSpy.mockRestore();
     });
   });
 });

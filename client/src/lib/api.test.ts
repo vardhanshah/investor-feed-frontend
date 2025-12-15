@@ -693,6 +693,102 @@ describe('API Layer', () => {
         await expect(commentsApi.addComment(1, '')).rejects.toThrow('Comment content is required');
       });
     });
+
+    describe('deleteComment', () => {
+      it('should successfully delete a comment', async () => {
+        server.use(
+          http.delete(`${API_BASE_URL}/posts/1/comments/123`, () => {
+            return HttpResponse.json({
+              message: 'Comment deleted successfully',
+              comment_id: 123,
+              post_id: 1,
+            });
+          })
+        );
+
+        const result = await commentsApi.deleteComment(1, 123);
+
+        expect(result).toHaveProperty('message', 'Comment deleted successfully');
+        expect(result).toHaveProperty('comment_id', 123);
+        expect(result).toHaveProperty('post_id', 1);
+      });
+
+      it('should require authentication', async () => {
+        localStorage.clear();
+
+        server.use(
+          http.delete(`${API_BASE_URL}/posts/1/comments/123`, () => {
+            return HttpResponse.json(
+              { detail: 'Authentication required' },
+              { status: 401 }
+            );
+          })
+        );
+
+        await expect(commentsApi.deleteComment(1, 123)).rejects.toThrow('Authentication required');
+      });
+
+      it('should throw error if user is not comment owner', async () => {
+        server.use(
+          http.delete(`${API_BASE_URL}/posts/1/comments/123`, () => {
+            return HttpResponse.json(
+              { detail: 'You can only delete your own comments' },
+              { status: 403 }
+            );
+          })
+        );
+
+        await expect(commentsApi.deleteComment(1, 123)).rejects.toThrow('You can only delete your own comments');
+      });
+
+      it('should throw error if comment not found', async () => {
+        server.use(
+          http.delete(`${API_BASE_URL}/posts/1/comments/9999`, () => {
+            return HttpResponse.json(
+              { detail: 'Comment not found' },
+              { status: 404 }
+            );
+          })
+        );
+
+        await expect(commentsApi.deleteComment(1, 9999)).rejects.toThrow('Comment not found');
+      });
+
+      it('should throw error if comment does not belong to post', async () => {
+        server.use(
+          http.delete(`${API_BASE_URL}/posts/1/comments/456`, () => {
+            return HttpResponse.json(
+              { detail: 'Comment 456 does not belong to post 1' },
+              { status: 404 }
+            );
+          })
+        );
+
+        await expect(commentsApi.deleteComment(1, 456)).rejects.toThrow('Comment 456 does not belong to post 1');
+      });
+
+      it('should send correct DELETE request with auth header', async () => {
+        let authHeader: string | null = null;
+        let requestMethod: string = '';
+
+        server.use(
+          http.delete(`${API_BASE_URL}/posts/1/comments/123`, ({ request }) => {
+            authHeader = request.headers.get('Authorization');
+            requestMethod = request.method;
+            return HttpResponse.json({
+              message: 'Comment deleted successfully',
+              comment_id: 123,
+              post_id: 1,
+            });
+          })
+        );
+
+        await commentsApi.deleteComment(1, 123);
+
+        expect(requestMethod).toBe('DELETE');
+        expect(authHeader).toBe('Bearer mock-token-123');
+      });
+    });
   });
 
   describe('Token Refresh', () => {

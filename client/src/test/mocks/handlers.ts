@@ -347,6 +347,57 @@ export const handlers = [
     return HttpResponse.json(newComment, { status: 201 });
   }),
 
+  http.delete(`${API_BASE_URL}/posts/:postId/comments/:commentId`, ({ request, params }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return HttpResponse.json(
+        { detail: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { postId, commentId } = params;
+    const token = authHeader.replace('Bearer ', '');
+
+    // Mock: check if token is valid
+    if (token !== 'mock-token-123' && token !== 'new-refreshed-token') {
+      return HttpResponse.json(
+        { detail: 'Could not validate credentials' },
+        { status: 401 }
+      );
+    }
+
+    // Mock: Comment 9999 doesn't exist
+    if (commentId === '9999') {
+      return HttpResponse.json(
+        { detail: 'Comment not found' },
+        { status: 404 }
+      );
+    }
+
+    // Mock: Comment 456 doesn't belong to post 1
+    if (postId === '1' && commentId === '456') {
+      return HttpResponse.json(
+        { detail: `Comment ${commentId} does not belong to post ${postId}` },
+        { status: 404 }
+      );
+    }
+
+    // Mock: User owns comment 123 but not comment 999
+    if (commentId === '999') {
+      return HttpResponse.json(
+        { detail: 'You can only delete your own comments' },
+        { status: 403 }
+      );
+    }
+
+    return HttpResponse.json({
+      message: 'Comment deleted successfully',
+      comment_id: parseInt(commentId as string),
+      post_id: parseInt(postId as string),
+    });
+  }),
+
   // Filters endpoint
   http.get(`${API_BASE_URL}/filters/config`, () => {
     return HttpResponse.json({
