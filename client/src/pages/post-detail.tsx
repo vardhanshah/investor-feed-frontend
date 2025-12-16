@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Heart, MessageCircle, ExternalLink, Loader2, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata } from '@/lib/api';
+import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMetadata, ProfilesAttributesMetadata, ProfileConfidence } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo, formatTimeAgoTwoUnits } from '@/lib/dateUtils';
+import CompanyConfidence from '@/components/CompanyConfidence';
 
 // Helper to format attribute value with unit
 function formatAttributeValue(value: any, metadata?: { unit?: string | null; type?: string }): string {
@@ -30,6 +31,7 @@ function formatAttributeValue(value: any, metadata?: { unit?: string | null; typ
 interface Thread {
   id: number;
   user_id: number;
+  user_name: string;
   content: string;
   reaction_count: number;
   user_liked?: boolean;
@@ -39,6 +41,7 @@ interface Thread {
 interface Comment {
   id: number;
   user_id: number;
+  user_name: string;
   content: string;
   reaction_count: number;
   user_liked?: boolean;
@@ -71,6 +74,7 @@ interface PostDetail {
   user_liked: boolean;
   attributes?: PostAttributes | null;
   attributes_metadata?: PostAttributesMetadata;
+  confidence?: ProfileConfidence | null;
   // Response-level metadata
   profiles_attributes_metadata?: ProfilesAttributesMetadata;
   posts_attributes_metadata?: PostAttributesMetadata;
@@ -336,7 +340,7 @@ export default function PostDetailPage() {
     if (!post || isDeletingComment[commentId]) return;
 
     // Confirm deletion
-    if (!window.confirm('Are you sure you want to delete this comment? This will also delete all replies and reactions.')) {
+    if (!window.confirm('Are you sure you want to delete this comment?')) {
       return;
     }
 
@@ -349,8 +353,12 @@ export default function PostDetailPage() {
         description: 'Your comment has been successfully deleted.',
       });
 
-      // Remove comment from local state
-      setComments(prev => prev.filter(c => c.id !== commentId));
+      // Reload comments to get updated state from backend (replies might still exist)
+      const commentsResponse = await commentsApi.getComments(post.id, 1, PAGE_SIZE);
+      setComments(commentsResponse.comments);
+      setPageNo(1);
+      setTotalPages(commentsResponse.total_pages);
+      setHasMore(1 < commentsResponse.total_pages);
 
       // Update post to get new comment count
       const postData = await postsApi.getPost(post.id);
@@ -546,23 +554,32 @@ export default function PostDetailPage() {
             )}
 
             {/* Engagement Stats */}
-            <div className="flex items-center space-x-6 pt-5 border-t border-border">
-              <button
-                onClick={handleLike}
-                disabled={!user}
-                className={`flex items-center space-x-2 transition-colors cursor-pointer ${
-                  isLiked
-                    ? 'text-[hsl(280,100%,70%)]'
-                    : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
-                } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="text-base font-alata">{likeCount}</span>
-              </button>
-              <div className="flex items-center space-x-2 text-muted-foreground">
-                <MessageCircle className="h-5 w-5" />
-                <span className="text-base font-alata">{post.comment_count}</span>
+            <div className="flex items-center justify-between pt-5 border-t border-border">
+              <div className="flex items-center space-x-6">
+                <button
+                  onClick={handleLike}
+                  disabled={!user}
+                  className={`flex items-center space-x-2 transition-colors cursor-pointer ${
+                    isLiked
+                      ? 'text-[hsl(280,100%,70%)]'
+                      : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
+                  } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                  <span className="text-base font-alata">{likeCount}</span>
+                </button>
+                <div className="flex items-center space-x-2 text-muted-foreground">
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="text-base font-alata">{post.comment_count}</span>
+                </div>
               </div>
+
+              {/* Company Confidence */}
+              <CompanyConfidence
+                profileId={post.profile.id}
+                confidence={post.confidence || null}
+                size="sm"
+              />
             </div>
           </CardContent>
         </Card>
@@ -628,7 +645,7 @@ export default function PostDetailPage() {
                             onClick={() => setLocationPath(`/users/${comment.user_id}`)}
                             className="text-sm font-medium text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] font-alata transition-colors"
                           >
-                            User #{comment.user_id}
+                            {comment.user_name}
                           </button>
                         </div>
                         <p className="text-foreground font-alata">{comment.content}</p>
@@ -743,7 +760,7 @@ export default function PostDetailPage() {
                                       onClick={() => setLocationPath(`/users/${reply.user_id}`)}
                                       className="text-xs font-medium text-[hsl(200,100%,70%)] hover:text-[hsl(200,100%,80%)] font-alata transition-colors"
                                     >
-                                      User #{reply.user_id}
+                                      {reply.user_name}
                                     </button>
                                   </div>
                                   <p className="text-foreground font-alata text-sm">{reply.content}</p>
