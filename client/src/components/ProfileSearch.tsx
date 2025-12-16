@@ -100,11 +100,17 @@ export function ProfileSearch() {
       return;
     }
 
-    // Lazy load: only fetch if not already fetched for this tab
-    if (!fetched[activeTab]) {
-      fetchResults(activeTab, debouncedQuery);
-    }
-  }, [debouncedQuery, activeTab, fetchResults, fetched]);
+    // Lazy load: check inside setFetched to avoid stale closures
+    setFetched((currentFetched) => {
+      // Only fetch if not already fetched for this tab
+      if (!currentFetched[activeTab]) {
+        fetchResults(activeTab, debouncedQuery);
+        // Return current state (will be updated by fetchResults)
+        return currentFetched;
+      }
+      return currentFetched;
+    });
+  }, [debouncedQuery, activeTab, fetchResults]);
 
   // When tab changes, just update the active tab
   // The useEffect below will handle fetching
