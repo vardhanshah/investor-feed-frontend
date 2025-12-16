@@ -38,10 +38,10 @@ export default function ProfilesListPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await profilesApi.listProfiles(LIMIT, 0, sector, subsector);
-        setProfiles(response.profiles || []);
-        setHasMore((response.profiles || []).length === LIMIT);
-        setOffset((response.profiles || []).length);
+        const profilesData = await profilesApi.listProfiles(LIMIT, 0, sector, subsector);
+        setProfiles(profilesData);
+        setHasMore(profilesData.length === LIMIT);
+        setOffset(profilesData.length);
       } catch (err) {
         const errorInfo = getErrorMessage(err);
         setError(errorInfo.message);
@@ -63,10 +63,10 @@ export default function ProfilesListPage() {
 
     setIsLoading(true);
     try {
-      const response = await profilesApi.listProfiles(LIMIT, offset, sector, subsector);
-      setProfiles(prev => [...prev, ...(response.profiles || [])]);
-      setHasMore((response.profiles || []).length === LIMIT);
-      setOffset(prev => prev + (response.profiles || []).length);
+      const profilesData = await profilesApi.listProfiles(LIMIT, offset, sector, subsector);
+      setProfiles(prev => [...prev, ...profilesData]);
+      setHasMore(profilesData.length === LIMIT);
+      setOffset(prev => prev + profilesData.length);
     } catch (err) {
       const errorInfo = getErrorMessage(err);
       toast({

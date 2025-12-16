@@ -495,7 +495,7 @@ export const profilesApi = {
     offset = 0,
     sector?: string,
     subsector?: string
-  ): Promise<{ profiles: Profile[]; total: number; limit: number; offset: number }> {
+  ): Promise<Profile[]> {
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
     params.append('offset', offset.toString());
@@ -508,7 +508,7 @@ export const profilesApi = {
         headers: getAuthHeaders(),
       }
     );
-    return handleResponse(response);
+    return handleResponse<Profile[]>(response);
   },
 
   async getProfile(profileId: number): Promise<Profile> {
