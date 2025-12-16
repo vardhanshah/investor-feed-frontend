@@ -16,6 +16,7 @@ vi.mock('@/lib/api', () => ({
     getComments: vi.fn(),
     addComment: vi.fn(),
     deleteComment: vi.fn(),
+    deleteThreadReply: vi.fn(),
   },
 }));
 
@@ -800,7 +801,7 @@ describe('PostDetailPage', () => {
 
       // Should show confirmation dialog
       expect(confirmSpy).toHaveBeenCalledWith(
-        'Are you sure you want to delete this comment? This will also delete all replies and reactions.'
+        'Are you sure you want to delete this comment?'
       );
 
       await waitFor(() => {
@@ -965,6 +966,349 @@ describe('PostDetailPage', () => {
       await waitFor(() => {
         // Post should be refetched to update count
         expect(api.postsApi.getPost).toHaveBeenCalledTimes(2);
+      });
+
+      confirmSpy.mockRestore();
+    });
+  });
+
+  describe('Deleted Comment Display', () => {
+    it('should display [deleted] placeholder for deleted comments', async () => {
+      const deletedComment = {
+        id: 1,
+        deleted: true,
+        thread: [],
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [deletedComment],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('[deleted]')).toBeInTheDocument();
+      });
+
+      // Should not show user info or content
+      expect(screen.queryByText(/User #/)).not.toBeInTheDocument();
+    });
+
+    it('should still show thread replies for deleted comments', async () => {
+      const deletedCommentWithReplies = {
+        id: 1,
+        deleted: true,
+        thread: [
+          {
+            id: 1,
+            user_id: 2,
+            user_name: 'Replier',
+            content: 'This is a reply',
+            reaction_count: 0,
+            created_at: getRecentDate(1),
+          },
+        ],
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [deletedCommentWithReplies],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('[deleted]')).toBeInTheDocument();
+        expect(screen.getByText('This is a reply')).toBeInTheDocument();
+        expect(screen.getByText('Replier')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show like/reply/delete buttons for deleted comments', async () => {
+      const deletedComment = {
+        id: 1,
+        user_id: 1,
+        deleted: true,
+        thread: [],
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [deletedComment],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('[deleted]')).toBeInTheDocument();
+      });
+
+      // Should not show action buttons
+      expect(screen.queryByTitle('Delete comment')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reply')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Thread Reply Deletion', () => {
+    it('should show delete button for thread reply owner', async () => {
+      const commentWithReply = {
+        id: 1,
+        user_id: 2,
+        user_name: 'Commenter',
+        content: 'Parent comment',
+        reaction_count: 0,
+        thread: [
+          {
+            id: 1,
+            user_id: 1,
+            user_name: 'Me',
+            content: 'My reply',
+            reaction_count: 0,
+            created_at: getRecentDate(1),
+          },
+        ],
+        created_at: getRecentDate(2),
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [commentWithReply],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My reply')).toBeInTheDocument();
+      });
+
+      // Should show delete button for own reply
+      const deleteButtons = screen.getAllByTitle('Delete reply');
+      expect(deleteButtons).toHaveLength(1);
+    });
+
+    it('should not show delete button for other users replies', async () => {
+      const commentWithOthersReply = {
+        id: 1,
+        user_id: 2,
+        user_name: 'Commenter',
+        content: 'Parent comment',
+        reaction_count: 0,
+        thread: [
+          {
+            id: 1,
+            user_id: 3,
+            user_name: 'Someone Else',
+            content: 'Their reply',
+            reaction_count: 0,
+            created_at: getRecentDate(1),
+          },
+        ],
+        created_at: getRecentDate(2),
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [commentWithOthersReply],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Their reply')).toBeInTheDocument();
+      });
+
+      // Should NOT show delete button for other's reply
+      expect(screen.queryByTitle('Delete reply')).not.toBeInTheDocument();
+    });
+
+    it('should successfully delete a thread reply when confirmed', async () => {
+      const user = userEvent.setup();
+      const commentWithReply = {
+        id: 1,
+        user_id: 2,
+        user_name: 'Commenter',
+        content: 'Parent comment',
+        reaction_count: 0,
+        thread: [
+          {
+            id: 5,
+            user_id: 1,
+            user_name: 'Me',
+            content: 'My reply to delete',
+            reaction_count: 0,
+            created_at: getRecentDate(1),
+          },
+        ],
+        created_at: getRecentDate(2),
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValueOnce({
+        comments: [commentWithReply],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      // Mock confirmation dialog
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      // Mock successful deletion - reply is removed from thread
+      const commentAfterDeletion = {
+        ...commentWithReply,
+        thread: [], // Reply removed
+      };
+
+      vi.mocked(api.commentsApi.deleteThreadReply).mockResolvedValueOnce({
+        message: 'Thread reply deleted',
+        thread_id: 5,
+        comment_id: 1,
+        post_id: 123,
+      });
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValueOnce({
+        comments: [commentAfterDeletion],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My reply to delete')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete reply');
+      await user.click(deleteButton);
+
+      // Should show confirmation dialog
+      expect(confirmSpy).toHaveBeenCalledWith(
+        'Are you sure you want to delete this reply?'
+      );
+
+      await waitFor(() => {
+        expect(api.commentsApi.deleteThreadReply).toHaveBeenCalledWith(123, 1, 5);
+      });
+
+      // Should reload comments
+      await waitFor(() => {
+        expect(api.commentsApi.getComments).toHaveBeenCalledTimes(2);
+      });
+
+      confirmSpy.mockRestore();
+    });
+
+    it('should not delete reply when user cancels confirmation', async () => {
+      const user = userEvent.setup();
+      const commentWithReply = {
+        id: 1,
+        user_id: 2,
+        user_name: 'Commenter',
+        content: 'Parent comment',
+        reaction_count: 0,
+        thread: [
+          {
+            id: 5,
+            user_id: 1,
+            user_name: 'Me',
+            content: 'My reply',
+            reaction_count: 0,
+            created_at: getRecentDate(1),
+          },
+        ],
+        created_at: getRecentDate(2),
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [commentWithReply],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      // Mock window.confirm to return false (user cancels)
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My reply')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete reply');
+      await user.click(deleteButton);
+
+      // Should NOT call delete API
+      expect(api.commentsApi.deleteThreadReply).not.toHaveBeenCalled();
+
+      confirmSpy.mockRestore();
+    });
+
+    it('should handle thread reply deletion error gracefully', async () => {
+      const user = userEvent.setup();
+      const commentWithReply = {
+        id: 1,
+        user_id: 2,
+        user_name: 'Commenter',
+        content: 'Parent comment',
+        reaction_count: 0,
+        thread: [
+          {
+            id: 5,
+            user_id: 1,
+            user_name: 'Me',
+            content: 'My reply',
+            reaction_count: 0,
+            created_at: getRecentDate(1),
+          },
+        ],
+        created_at: getRecentDate(2),
+      };
+
+      vi.mocked(api.commentsApi.getComments).mockResolvedValue({
+        comments: [commentWithReply],
+        total: 1,
+        page_no: 1,
+        page_size: 40,
+        total_pages: 1,
+      });
+
+      vi.mocked(api.commentsApi.deleteThreadReply).mockRejectedValueOnce(
+        new Error('Failed to delete reply')
+      );
+
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(<PostDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('My reply')).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByTitle('Delete reply');
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Failed to delete/i)).toBeInTheDocument();
       });
 
       confirmSpy.mockRestore();

@@ -753,6 +753,14 @@ export const commentsApi = {
     });
     return handleResponse<{ message: string; comment_id: number; post_id: number }>(response);
   },
+
+  async deleteThreadReply(postId: number, commentId: number, threadId: number): Promise<{ message: string; thread_id: number; comment_id: number; post_id: number }> {
+    const response = await fetchWithAuth(`${API_BASE_URL}/posts/${postId}/comments/${commentId}/threads/${threadId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<{ message: string; thread_id: number; comment_id: number; post_id: number }>(response);
+  },
 };
 
 // Filters API

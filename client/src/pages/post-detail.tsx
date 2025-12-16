@@ -31,7 +31,7 @@ function formatAttributeValue(value: any, metadata?: { unit?: string | null; typ
 interface Thread {
   id: number;
   user_id: number;
-  user_name: string;
+  user_name?: string;
   content: string;
   reaction_count: number;
   user_liked?: boolean;
@@ -40,13 +40,14 @@ interface Thread {
 
 interface Comment {
   id: number;
-  user_id: number;
-  user_name: string;
-  content: string;
-  reaction_count: number;
+  user_id?: number;
+  user_name?: string;
+  content?: string;
+  reaction_count?: number;
   user_liked?: boolean;
   thread: Thread[];
-  created_at: string;
+  created_at?: string;
+  deleted?: boolean;
 }
 
 interface PostProfile {
@@ -110,6 +111,9 @@ export default function PostDetailPage() {
 
   // Comment deletion state
   const [isDeletingComment, setIsDeletingComment] = useState<{ [key: number]: boolean }>({});
+
+  // Thread reply deletion state
+  const [isDeletingThreadReply, setIsDeletingThreadReply] = useState<{ [key: string]: boolean }>({});
 
   // Image lightbox state
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -375,6 +379,47 @@ export default function PostDetailPage() {
     }
   };
 
+  // Handle thread reply deletion
+  const handleDeleteThreadReply = async (commentId: number, threadId: number) => {
+    if (!post || isDeletingThreadReply[`${commentId}-${threadId}`]) return;
+
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to delete this reply?')) {
+      return;
+    }
+
+    const deleteKey = `${commentId}-${threadId}`;
+    setIsDeletingThreadReply({ ...isDeletingThreadReply, [deleteKey]: true });
+    try {
+      await commentsApi.deleteThreadReply(post.id, commentId, threadId);
+
+      toast({
+        title: 'Reply deleted',
+        description: 'Your reply has been successfully deleted.',
+      });
+
+      // Reload comments to get updated state from backend
+      const commentsResponse = await commentsApi.getComments(post.id, 1, PAGE_SIZE);
+      setComments(commentsResponse.comments);
+      setPageNo(1);
+      setTotalPages(commentsResponse.total_pages);
+      setHasMore(1 < commentsResponse.total_pages);
+
+      // Update post to get new comment count
+      const postData = await postsApi.getPost(post.id);
+      setPost(postData);
+    } catch (err) {
+      const errorInfo = getErrorMessage(err);
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
+      });
+    } finally {
+      setIsDeletingThreadReply({ ...isDeletingThreadReply, [deleteKey]: false });
+    }
+  };
+
   // Scroll to load more
   useEffect(() => {
     const handleScroll = () => {
@@ -632,31 +677,40 @@ export default function PostDetailPage() {
               {comments.map((comment) => (
                 <Card key={comment.id} className="bg-card border-border">
                   <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      <button
-                        onClick={() => setLocationPath(`/users/${comment.user_id}`)}
-                        className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
-                      >
-                        U
-                      </button>
-                      <div className="flex-1">
-                        <div className="mb-1">
-                          <button
-                            onClick={() => setLocationPath(`/users/${comment.user_id}`)}
-                            className="text-sm font-medium text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] font-alata transition-colors"
-                          >
-                            {comment.user_name}
-                          </button>
-                        </div>
-                        <p className="text-foreground font-alata">{comment.content}</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <p className="text-xs text-muted-foreground font-alata">
-                            {formatTimeAgo(comment.created_at)}
-                          </p>
-                          {user && (
-                            <>
-                              <button
-                                onClick={async () => {
+                    {comment.deleted ? (
+                      // Deleted comment - show simple placeholder only
+                      <div>
+                        <p className="text-muted-foreground italic font-alata text-sm">[deleted]</p>
+                      </div>
+                    ) : (
+                      // Normal comment - show full content with avatar, username, and interactions
+                      <div className="flex items-start space-x-3">
+                        {/* Avatar */}
+                        <button
+                          onClick={() => setLocationPath(`/users/${comment.user_id}`)}
+                          className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
+                        >
+                          U
+                        </button>
+                        {/* Comment content */}
+                        <div className="flex-1">
+                          <div className="mb-1">
+                            <button
+                              onClick={() => setLocationPath(`/users/${comment.user_id}`)}
+                              className="text-sm font-medium text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] font-alata transition-colors"
+                            >
+                              {comment.user_name || `User #${comment.user_id}`}
+                            </button>
+                          </div>
+                          <p className="text-foreground font-alata mb-2">{comment.content}</p>
+                          <div className="flex items-center space-x-4">
+                            <p className="text-xs text-muted-foreground font-alata">
+                              {formatTimeAgo(comment.created_at || '')}
+                            </p>
+                            {user && (
+                              <>
+                                <button
+                                  onClick={async () => {
                                   if (!post || likingInProgress[`comment-${comment.id}`]) return;
 
                                   const likeKey = `comment-${comment.id}`;
@@ -669,7 +723,7 @@ export default function PostDetailPage() {
                                   setCommentLikes(prev => ({ ...prev, [comment.id]: !wasLiked }));
                                   setComments(prev => prev.map(c =>
                                     c.id === comment.id
-                                      ? { ...c, reaction_count: wasLiked ? c.reaction_count - 1 : c.reaction_count + 1 }
+                                      ? { ...c, reaction_count: wasLiked ? (c.reaction_count || 0) - 1 : (c.reaction_count || 0) + 1 }
                                       : c
                                   ));
 
@@ -686,7 +740,7 @@ export default function PostDetailPage() {
                                     setCommentLikes(prev => ({ ...prev, [comment.id]: wasLiked }));
                                     setComments(prev => prev.map(c =>
                                       c.id === comment.id
-                                        ? { ...c, reaction_count: wasLiked ? c.reaction_count + 1 : c.reaction_count - 1 }
+                                        ? { ...c, reaction_count: wasLiked ? (c.reaction_count || 0) + 1 : (c.reaction_count || 0) - 1 }
                                         : c
                                     ));
 
@@ -735,15 +789,18 @@ export default function PostDetailPage() {
                               )}
                             </>
                           )}
-                          {!user && comment.reaction_count > 0 && (
+                          {!user && (comment.reaction_count || 0) > 0 && (
                             <div className="flex items-center space-x-1 text-muted-foreground">
                               <Heart className="h-3 w-3" />
-                              <span className="text-xs font-alata">{comment.reaction_count}</span>
+                              <span className="text-xs font-alata">{comment.reaction_count || 0}</span>
                             </div>
                           )}
                         </div>
+                      </div>
+                    </div>
+                    )}
 
-                        {/* Thread Replies */}
+                    {/* Thread Replies - shown for both deleted and non-deleted comments */}
                         {comment.thread && comment.thread.length > 0 && (
                           <div className="mt-4 space-y-3 pl-4 border-l-2 border-border">
                             {comment.thread.map((reply: any) => (
@@ -760,7 +817,7 @@ export default function PostDetailPage() {
                                       onClick={() => setLocationPath(`/users/${reply.user_id}`)}
                                       className="text-xs font-medium text-[hsl(200,100%,70%)] hover:text-[hsl(200,100%,80%)] font-alata transition-colors"
                                     >
-                                      {reply.user_name}
+                                      {reply.user_name || `User #${reply.user_id}`}
                                     </button>
                                   </div>
                                   <p className="text-foreground font-alata text-sm">{reply.content}</p>
@@ -842,6 +899,21 @@ export default function PostDetailPage() {
                                         <span>{reply.reaction_count}</span>
                                       </button>
                                     )}
+                                    {user && user.user_id === reply.user_id && (
+                                      <button
+                                        onClick={() => handleDeleteThreadReply(comment.id, reply.id)}
+                                        disabled={isDeletingThreadReply[`${comment.id}-${reply.id}`]}
+                                        className={`flex items-center space-x-1 text-xs font-alata transition-colors ${
+                                          isDeletingThreadReply[`${comment.id}-${reply.id}`]
+                                            ? 'text-muted-foreground cursor-wait opacity-50'
+                                            : 'text-destructive hover:text-destructive/80'
+                                        }`}
+                                        title="Delete reply"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                        {isDeletingThreadReply[`${comment.id}-${reply.id}`] && <span>Deleting...</span>}
+                                      </button>
+                                    )}
                                     {!user && reply.reaction_count > 0 && (
                                       <div className="flex items-center space-x-1 text-muted-foreground">
                                         <Heart className="h-3 w-3" />
@@ -900,8 +972,6 @@ export default function PostDetailPage() {
                             </div>
                           </div>
                         )}
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               ))}
