@@ -11,6 +11,7 @@ import Signup from "@/pages/signup";
 import Feed from "@/pages/feed";
 import PostDetail from "@/pages/post-detail";
 import Profile from "@/pages/profile";
+import ProfilesList from "@/pages/profiles-list";
 import UserActivity from "@/pages/user-activity";
 import Filters from "@/pages/filters";
 import Terms from "@/pages/terms";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/home" component={Feed} />
       <Route path="/posts/:postId" component={PostDetail} />
+      <Route path="/profiles" component={ProfilesList} />
       <Route path="/profiles/:profileId" component={Profile} />
       <Route path="/users/:userId" component={UserActivity} />
       <Route path="/filters" component={Filters} />
