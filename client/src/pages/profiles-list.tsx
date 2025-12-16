@@ -167,16 +167,68 @@ export default function ProfilesListPage() {
                             {profile.meta_attributes.symbol}
                           </p>
                         )}
-                        {profile.attributes?.sector && !sector && (
-                          <p className="text-xs text-muted-foreground font-alata truncate">
-                            {profile.attributes.sector}
-                          </p>
-                        )}
-                        {profile.attributes?.subsector && !subsector && (
-                          <p className="text-xs text-muted-foreground font-alata truncate">
-                            {profile.attributes.subsector}
-                          </p>
-                        )}
+
+                        {/* Display key financial metrics */}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {profile.attributes?.mcap !== undefined && profile.attributes?.mcap !== null && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">
+                                {profile.attributes_metadata?.mcap?.label || 'Market Cap'}:{' '}
+                              </span>
+                              <span className="font-medium text-foreground">
+                                ₹{profile.attributes.mcap.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                {profile.attributes_metadata?.mcap?.unit || 'Cr'}
+                              </span>
+                            </div>
+                          )}
+                          {profile.attributes?.pe_ratio !== undefined && profile.attributes?.pe_ratio !== null && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">
+                                {profile.attributes_metadata?.pe_ratio?.label || 'P/E'}:{' '}
+                              </span>
+                              <span className="font-medium text-foreground">
+                                {profile.attributes.pe_ratio.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {profile.attributes?.roe !== undefined && profile.attributes?.roe !== null && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">
+                                {profile.attributes_metadata?.roe?.label || 'ROE'}:{' '}
+                              </span>
+                              <span className="font-medium text-foreground">
+                                {profile.attributes.roe.toFixed(2)}
+                                {profile.attributes_metadata?.roe?.unit || '%'}
+                              </span>
+                            </div>
+                          )}
+                          {profile.attributes?.pb !== undefined && profile.attributes?.pb !== null && (
+                            <div className="text-xs">
+                              <span className="text-muted-foreground">
+                                {profile.attributes_metadata?.pb?.label || 'P/B'}:{' '}
+                              </span>
+                              <span className="font-medium text-foreground">
+                                {profile.attributes.pb.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Show sector/subsector if not filtering by them */}
+                        {(profile.attributes?.sector && !sector) || (profile.attributes?.subsector && !subsector) ? (
+                          <div className="mt-2 pt-2 border-t border-border/50">
+                            {profile.attributes?.sector && !sector && (
+                              <p className="text-xs text-muted-foreground font-alata truncate">
+                                {profile.attributes.sector}
+                              </p>
+                            )}
+                            {profile.attributes?.subsector && !subsector && (
+                              <p className="text-xs text-muted-foreground font-alata truncate">
+                                {profile.attributes.subsector}
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </CardContent>

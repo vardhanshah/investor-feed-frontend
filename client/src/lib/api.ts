@@ -112,9 +112,12 @@ export interface Profile {
   attributes?: {
     mcap?: number | null;
     pe_ratio?: number | null;
+    pb?: number | null;
+    roe?: number | null;
     sector?: string | null;
     subsector?: string | null;
   } | null;
+  attributes_metadata?: ProfilesAttributesMetadata | null;
   confidence?: ProfileConfidence | null;
 }
 
