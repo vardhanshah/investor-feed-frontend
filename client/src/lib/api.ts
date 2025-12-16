@@ -95,6 +95,7 @@ export interface AutocompleteSectorResult {
 export interface AutocompleteSubsectorResult {
   type: 'subsector';
   value: string; // e.g., "Non Banking Financial Company (NBFC)"
+  sector: string | null; // Parent sector name
   count: number; // Number of companies in this subsector
   url: string; // e.g., "/profiles?subsector=Non%20Banking%20Financial%20Company%20(NBFC)"
 }
@@ -518,13 +519,14 @@ export const profilesApi = {
     return handleResponse<Profile>(response);
   },
 
-  async autocomplete(query: string, limit = 10): Promise<AutocompleteResult[]> {
+  async autocomplete(query: string, limit = 10, type?: 'company' | 'sector' | 'subsector'): Promise<AutocompleteResult[]> {
     if (!query.trim()) {
       return [];
     }
     const params = new URLSearchParams();
     params.append('q', query);
     params.append('limit', limit.toString());
+    if (type) params.append('type', type);
 
     const response = await fetchWithAuth(
       `${API_BASE_URL}/profiles/autocomplete?${params.toString()}`,
