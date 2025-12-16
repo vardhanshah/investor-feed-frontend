@@ -83,7 +83,16 @@ export function ProfileSearch() {
     }
   }, []);
 
-  // When query changes, reset all fetched flags and fetch current tab
+  // Reset fetched flags when query changes
+  const prevQueryRef = useRef(debouncedQuery);
+  useEffect(() => {
+    if (prevQueryRef.current !== debouncedQuery) {
+      setFetched({ company: false, sector: false, subsector: false });
+      prevQueryRef.current = debouncedQuery;
+    }
+  }, [debouncedQuery]);
+
+  // When query or tab changes, fetch if not already fetched
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setResults({ company: [], sector: [], subsector: [] });
@@ -91,23 +100,17 @@ export function ProfileSearch() {
       return;
     }
 
-    // Reset fetched flags for all tabs
-    setFetched({ company: false, sector: false, subsector: false });
-
-    // Fetch results for currently active tab
-    fetchResults(activeTab, debouncedQuery);
-  }, [debouncedQuery, activeTab, fetchResults]);
-
-  // When tab changes, fetch if not already fetched
-  const handleTabChange = useCallback((tab: string) => {
-    const tabType = tab as TabType;
-    setActiveTab(tabType);
-
-    // Lazy load: only fetch if not already fetched
-    if (debouncedQuery.trim() && !fetched[tabType]) {
-      fetchResults(tabType, debouncedQuery);
+    // Lazy load: only fetch if not already fetched for this tab
+    if (!fetched[activeTab]) {
+      fetchResults(activeTab, debouncedQuery);
     }
-  }, [debouncedQuery, fetched, fetchResults]);
+  }, [debouncedQuery, activeTab, fetchResults, fetched]);
+
+  // When tab changes, just update the active tab
+  // The useEffect below will handle fetching
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab as TabType);
+  }, []);
 
   // Handle selection of any result type
   const handleSelect = useCallback(
