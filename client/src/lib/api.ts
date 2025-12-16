@@ -67,13 +67,39 @@ export interface ConfidenceVoteResponse {
   total_votes: number;
 }
 
-// Profile autocomplete result
+// Profile autocomplete result (deprecated - use mixed results below)
 export interface ProfileAutocompleteItem {
   id: number;
   title: string;
   symbol: string | null;
   logo_url: string | null;
 }
+
+// Mixed autocomplete results
+export interface AutocompleteCompanyResult {
+  type: 'company';
+  id: number;
+  title: string;
+  symbol: string | null;
+  logo_url: string | null;
+  url: string; // e.g., "/profiles/123"
+}
+
+export interface AutocompleteSectorResult {
+  type: 'sector';
+  value: string; // e.g., "Finance - Financial Services"
+  count: number; // Number of companies in this sector
+  url: string; // e.g., "/profiles?sector=Finance%20-%20Financial%20Services"
+}
+
+export interface AutocompleteSubsectorResult {
+  type: 'subsector';
+  value: string; // e.g., "Non Banking Financial Company (NBFC)"
+  count: number; // Number of companies in this subsector
+  url: string; // e.g., "/profiles?subsector=Non%20Banking%20Financial%20Company%20(NBFC)"
+}
+
+export type AutocompleteResult = AutocompleteCompanyResult | AutocompleteSectorResult | AutocompleteSubsectorResult;
 
 export interface Profile {
   id: number;
@@ -464,9 +490,20 @@ export const userActivityApi = {
 
 // Profiles API
 export const profilesApi = {
-  async listProfiles(limit = 20, offset = 0): Promise<{ profiles: Profile[]; total: number; limit: number; offset: number }> {
+  async listProfiles(
+    limit = 20,
+    offset = 0,
+    sector?: string,
+    subsector?: string
+  ): Promise<{ profiles: Profile[]; total: number; limit: number; offset: number }> {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    if (sector) params.append('sector', sector);
+    if (subsector) params.append('subsector', subsector);
+
     const response = await fetchWithAuth(
-      `${API_BASE_URL}/profiles?limit=${limit}&offset=${offset}`,
+      `${API_BASE_URL}/profiles?${params.toString()}`,
       {
         headers: getAuthHeaders(),
       }
@@ -481,7 +518,7 @@ export const profilesApi = {
     return handleResponse<Profile>(response);
   },
 
-  async autocomplete(query: string, limit = 10): Promise<ProfileAutocompleteItem[]> {
+  async autocomplete(query: string, limit = 10): Promise<AutocompleteResult[]> {
     if (!query.trim()) {
       return [];
     }
@@ -495,7 +532,7 @@ export const profilesApi = {
         headers: getAuthHeaders(),
       }
     );
-    return handleResponse<ProfileAutocompleteItem[]>(response);
+    return handleResponse<AutocompleteResult[]>(response);
   },
 };
 
