@@ -574,7 +574,7 @@ export function ProfileSelector({ selections, onSelectionsChange }: ProfileSelec
                                           </span>
                                         </div>
                                       </div>
-                                    ) : (
+                                    ) : result.type === 'subsector' ? (
                                       <div className="flex items-start gap-3 w-full">
                                         <div className="h-8 w-8 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 flex items-center justify-center shrink-0">
                                           <FolderTree className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -595,7 +595,7 @@ export function ProfileSelector({ selections, onSelectionsChange }: ProfileSelec
                                           </div>
                                         </div>
                                       </div>
-                                    )}
+                                    ) : null}
                                   </CommandItem>
                                 );
                               })}
