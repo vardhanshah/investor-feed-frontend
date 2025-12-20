@@ -102,7 +102,12 @@ export default function Dashboard() {
               <Button variant="ghost" size="icon" className="text-white hover:bg-gray-800">
                 <Bell className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-gray-800">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation('/settings')}
+                className="text-white hover:bg-gray-800"
+              >
                 <FaCog className="h-5 w-5" />
               </Button>
               <Button

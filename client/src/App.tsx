@@ -14,6 +14,7 @@ import Profile from "@/pages/profile";
 import ProfilesList from "@/pages/profiles-list";
 import UserActivity from "@/pages/user-activity";
 import Filters from "@/pages/filters";
+import Settings from "@/pages/settings";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import AuthCallback from "@/pages/auth-callback";
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/profiles/:profileId" component={Profile} />
       <Route path="/users/:userId" component={UserActivity} />
       <Route path="/filters" component={Filters} />
+      <Route path="/settings" component={Settings} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/auth/callback" component={AuthCallback} />
