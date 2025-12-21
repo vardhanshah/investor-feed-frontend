@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -83,6 +83,37 @@ export function FeedFilterForm({
     }));
   };
 
+  // Auto-expand sections that have active filters when editing a feed
+  useEffect(() => {
+    const sectionsToExpand: Record<string, boolean> = {};
+
+    // Check each group for active filters
+    filterGroups.forEach((group) => {
+      const groupFilters = filterConfigs.filter(f =>
+        f.group === group.group_id && f.field !== 'profile_id'
+      );
+
+      const hasActiveFilters = groupFilters.some(config => {
+        if (config.type === 'boolean') {
+          return filterValues[config.field] === true;
+        } else if (config.type === 'number') {
+          const state = numberFilterStates[config.field];
+          return state && (state.from.trim() !== '' || state.to.trim() !== '');
+        }
+        return false;
+      });
+
+      if (hasActiveFilters) {
+        sectionsToExpand[group.group_id] = true;
+      }
+    });
+
+    // Only update if we have sections to expand
+    if (Object.keys(sectionsToExpand).length > 0) {
+      setExpandedSections(sectionsToExpand);
+    }
+  }, [filterConfigs, filterGroups, filterValues, numberFilterStates]);
+
   // Helper function to get human-readable filter description
   const getFilterDescription = (config: FilterConfig): string | null => {
     if (config.type === 'boolean') {
@@ -107,7 +138,9 @@ export function FeedFilterForm({
 
   // Build query preview for a group
   const buildGroupQueryPreview = (group: FilterGroup): React.ReactNode | null => {
-    const groupFilters = filterConfigs.filter(f => f.group === group.group_id);
+    const groupFilters = filterConfigs.filter(f =>
+      f.group === group.group_id && f.field !== 'profile_id'
+    );
     const activeDescriptions = groupFilters
       .map(config => getFilterDescription(config))
       .filter(desc => desc !== null);
@@ -168,7 +201,9 @@ export function FeedFilterForm({
 
     const groupPreviews = filterGroups
       .map((group, groupIndex) => {
-        const groupFilters = filterConfigs.filter(f => f.group === group.group_id);
+        const groupFilters = filterConfigs.filter(f =>
+          f.group === group.group_id && f.field !== 'profile_id'
+        );
         const activeDescriptions = groupFilters
           .map(config => getFilterDescription(config))
           .filter(desc => desc !== null);
@@ -381,7 +416,10 @@ export function FeedFilterForm({
       {filterGroups.length > 0 ? (
         // Render grouped filters
         filterGroups.map((group, groupIndex) => {
-          const groupFilters = filterConfigs.filter(f => f.group === group.group_id);
+          // Filter out profile_id field - it's handled by ProfileSelector, not as a filter input
+          const groupFilters = filterConfigs.filter(f =>
+            f.group === group.group_id && f.field !== 'profile_id'
+          );
           if (groupFilters.length === 0) return null;
 
           // First group is "Company Filters" - hide when individual companies selected
@@ -508,7 +546,9 @@ export function FeedFilterForm({
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {filterConfigs.map((config) => renderFilterInput(config))}
+                      {filterConfigs
+                        .filter(config => config.field !== 'profile_id')
+                        .map((config) => renderFilterInput(config))}
                     </div>
                   )}
                 </CardContent>
