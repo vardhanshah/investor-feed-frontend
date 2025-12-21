@@ -291,7 +291,9 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
                 <span className="text-base font-alata font-medium">{likeCount}</span>
               </button>
               <button
-                onClick={() => setLocation(`/posts/${post.id}?comment=true`)}
+                onClick={() => {
+                  window.location.href = `/posts/${post.id}?comment=true`;
+                }}
                 className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/comment"
               >
                 <MessageCircle className="h-5 w-5 group-hover/comment:scale-110 transition-transform" />

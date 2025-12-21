@@ -210,8 +210,9 @@ export default function PostDetailPage() {
   // Focus comment input if navigated with ?comment=true
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('comment') === 'true' && !isLoadingPost && user && post) {
-      // Wait for DOM to be ready and element to be rendered
+    const shouldFocus = urlParams.get('comment') === 'true';
+
+    if (shouldFocus && !isLoadingPost && user && post) {
       const focusCommentInput = () => {
         if (commentInputRef.current) {
           commentInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -219,7 +220,6 @@ export default function PostDetailPage() {
             commentInputRef.current?.focus();
           }, 500);
         } else {
-          // Retry if element not yet available
           setTimeout(focusCommentInput, 100);
         }
       };
