@@ -33,7 +33,7 @@ interface Thread {
   id: number;
   user_id: number;
   user_name?: string;
-  avatar_url?: string | null;
+  user_avatar_url?: string | null;
   content: string;
   reaction_count: number;
   user_liked?: boolean;
@@ -44,7 +44,7 @@ interface Comment {
   id: number;
   user_id?: number;
   user_name?: string;
-  avatar_url?: string | null;
+  user_avatar_url?: string | null;
   content?: string;
   reaction_count?: number;
   user_liked?: boolean;
@@ -517,15 +517,6 @@ export default function PostDetailPage() {
                     {post.profile.title || `Profile #${post.profile.id}`}
                   </h3>
                   <p className="text-sm text-muted-foreground font-alata">{timeAgo}</p>
-
-                  {/* Company Confidence - Mobile (stacked below timestamp) */}
-                  <div className="md:hidden mt-2">
-                    <CompanyConfidence
-                      profileId={post.profile.id}
-                      confidence={post.confidence || null}
-                      size="sm"
-                    />
-                  </div>
                 </div>
               </button>
 
@@ -537,6 +528,15 @@ export default function PostDetailPage() {
                   size="sm"
                 />
               </div>
+            </div>
+
+            {/* Company Confidence - Mobile (below profile header) */}
+            <div className="md:hidden mb-5">
+              <CompanyConfidence
+                profileId={post.profile.id}
+                confidence={post.confidence || null}
+                size="sm"
+              />
             </div>
 
             {/* Profile Attributes */}
@@ -698,9 +698,9 @@ export default function PostDetailPage() {
                           onClick={() => setLocationPath(`/users/${comment.user_id}`)}
                           className="w-8 h-8 rounded-full flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
                         >
-                          {comment.avatar_url ? (
+                          {comment.user_avatar_url ? (
                             <img
-                              src={comment.avatar_url}
+                              src={comment.user_avatar_url}
                               alt={comment.user_name || 'User'}
                               className="w-full h-full object-cover"
                             />
@@ -822,9 +822,9 @@ export default function PostDetailPage() {
                                   onClick={() => setLocationPath(`/users/${reply.user_id}`)}
                                   className="w-6 h-6 rounded-full flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
                                 >
-                                  {reply.avatar_url ? (
+                                  {reply.user_avatar_url ? (
                                     <img
-                                      src={reply.avatar_url}
+                                      src={reply.user_avatar_url}
                                       alt={reply.user_name || 'User'}
                                       className="w-full h-full object-cover"
                                     />

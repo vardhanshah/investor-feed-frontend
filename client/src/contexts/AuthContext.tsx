@@ -26,17 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async (token: string) => {
     try {
-      console.log('[AuthContext] Fetching user with token:', token.substring(0, 20) + '...');
       const userData = await authApi.getCurrentUser();
-      console.log('[AuthContext] Got user data:', userData);
       // Add isPremium flag (can be determined from backend later)
       const user = {
         ...userData,
         isPremium: false, // TODO: Get from backend
       };
-      console.log('[AuthContext] Setting user:', user);
       setUser(user);
-      console.log('[AuthContext] User set successfully');
     } catch (error) {
       console.error('[AuthContext] Error fetching user:', error);
 
@@ -44,7 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // The fetchWithAuth wrapper will have already attempted token refresh
       // If we're here with an error, it means refresh failed or token is truly invalid
       if (shouldLogout(error)) {
-        console.log('[AuthContext] Clearing auth due to error');
         localStorage.removeItem('authToken');
         setUser(null);
       }
@@ -52,12 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (token: string) => {
-    console.log('[AuthContext] Login called with token');
     setIsLoading(true);
     localStorage.setItem('authToken', token);
     await fetchUser(token);
     setIsLoading(false);
-    console.log('[AuthContext] Login completed');
   };
 
   const refreshUser = async () => {
@@ -90,19 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // No access token, but we might have a refresh_token cookie
         // Try to refresh to get a new access token
-        console.log('[AuthContext] No access token found, attempting token refresh from cookie...');
         try {
           const refreshResponse = await authApi.refreshToken();
           if (refreshResponse && refreshResponse.access_token) {
-            console.log('[AuthContext] Token refresh successful on init');
             // Store the new token and fetch user
             localStorage.setItem('authToken', refreshResponse.access_token);
             await fetchUser(refreshResponse.access_token);
-          } else {
-            console.log('[AuthContext] No valid refresh token found');
           }
-        } catch (error) {
-          console.log('[AuthContext] Token refresh failed on init:', error);
+        } catch {
           // Silently fail - user is just not logged in
         }
       }

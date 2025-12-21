@@ -113,9 +113,7 @@ export default function UserActivityPage() {
       setAllActivities([]);
 
       try {
-        console.log('[UserActivity] Fetching activity for user:', userId);
         const activity = await userActivityApi.getUserActivity(userId, LIMIT, 0);
-        console.log('[UserActivity] Received activity data:', activity);
         setActivityData(activity);
         setAllActivities(activity.activities || []);
       } catch (err) {
@@ -143,9 +141,7 @@ export default function UserActivityPage() {
 
     setIsLoadingMore(true);
     try {
-      console.log('[UserActivity] Loading more activities, offset:', newOffset);
       const moreActivity = await userActivityApi.getUserActivity(userId, LIMIT, newOffset);
-      console.log('[UserActivity] Received more activity data:', moreActivity);
 
       // Append new activities to existing ones
       setAllActivities(prev => [...prev, ...(moreActivity.activities || [])]);
