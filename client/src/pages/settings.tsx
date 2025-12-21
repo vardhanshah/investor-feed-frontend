@@ -55,7 +55,7 @@ export default function Settings() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch('/feedbacks/questionnaire');
+        const response = await fetch('/api/feedbacks/questionnaire');
         if (response.ok) {
           const data = await response.json();
           setQuestions(data.questions);
@@ -116,7 +116,7 @@ export default function Settings() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/feedbacks', {
+      const response = await fetch('/api/feedbacks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -186,20 +186,20 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-gray-800">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/dashboard')}
-              className="text-white hover:bg-gray-800 font-alata mr-4"
+              onClick={() => setLocation('/home')}
+              className="text-foreground hover:bg-muted font-alata mr-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <span className="text-xl font-alata font-medium text-white">Settings</span>
+            <span className="text-xl font-alata font-medium text-foreground">Settings</span>
           </div>
         </div>
       </header>
@@ -209,7 +209,7 @@ export default function Settings() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0">
-            <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-700">
+            <Card className="bg-card border-border">
               <CardContent className="p-2">
                 <nav className="space-y-1">
                   {sidebarItems.map((item) => (
@@ -218,10 +218,10 @@ export default function Settings() {
                       onClick={() => setActiveSection(item.id)}
                       className={`w-full flex items-center px-4 py-3 rounded-lg font-alata transition-colors ${
                         activeSection === item.id
-                          ? 'bg-gray-800 text-white'
+                          ? 'bg-muted text-foreground'
                           : item.danger
-                          ? 'text-red-400 hover:bg-gray-800/50'
-                          : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
+                          ? 'text-red-400 hover:bg-muted/50'
+                          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                       }`}
                     >
                       <item.icon className={`h-5 w-5 mr-3 ${
@@ -241,17 +241,17 @@ export default function Settings() {
           <div className="flex-1">
             {/* Feedback Section */}
             {activeSection === 'feedback' && (
-              <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-700">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-xl font-alata text-white">Feedback</CardTitle>
-                  <CardDescription className="text-gray-400 font-alata">
+                  <CardTitle className="text-xl font-alata text-foreground">Feedback</CardTitle>
+                  <CardDescription className="text-muted-foreground font-alata">
                     We'd love to hear from you. Help us improve your experience.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Rating */}
                   <div>
-                    <label className="block text-sm font-alata text-gray-300 mb-3">
+                    <label className="block text-sm font-alata text-foreground mb-3">
                       How would you rate your experience? <span className="text-red-400">*</span>
                     </label>
                     <div className="flex gap-1">
@@ -262,7 +262,7 @@ export default function Settings() {
                           className={`w-10 h-10 rounded-lg font-alata font-medium transition-all ${
                             rating >= value
                               ? 'bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black'
-                              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
                           }`}
                         >
                           {value}
@@ -274,16 +274,16 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  <Separator className="bg-gray-700" />
+                  <Separator className="bg-border" />
 
                   {/* Questions */}
                   {isLoadingQuestions ? (
-                    <div className="text-gray-400 font-alata">Loading questions...</div>
+                    <div className="text-muted-foreground font-alata">Loading questions...</div>
                   ) : (
                     <div className="space-y-6">
                       {questions.map((q) => (
                         <div key={q.id}>
-                          <label className="block text-sm font-alata text-gray-300 mb-2">
+                          <label className="block text-sm font-alata text-foreground mb-2">
                             {q.question}
                           </label>
                           <Textarea
@@ -293,10 +293,10 @@ export default function Settings() {
                               ...prev,
                               [q.id]: e.target.value
                             }))}
-                            className="bg-gray-800 border-gray-600 text-white font-alata placeholder:text-gray-500 focus:border-[hsl(280,100%,70%)] min-h-[100px]"
+                            className="bg-muted border-border text-foreground font-alata placeholder:text-muted-foreground focus:border-[hsl(280,100%,70%)] min-h-[100px]"
                             maxLength={2000}
                           />
-                          <p className="text-xs text-gray-500 font-alata mt-1 text-right">
+                          <p className="text-xs text-muted-foreground font-alata mt-1 text-right">
                             {(answers[q.id] || '').length}/2000
                           </p>
                         </div>
@@ -317,31 +317,31 @@ export default function Settings() {
 
             {/* Legal Section */}
             {activeSection === 'legal' && (
-              <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-700">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-xl font-alata text-white">Legal</CardTitle>
-                  <CardDescription className="text-gray-400 font-alata">
+                  <CardTitle className="text-xl font-alata text-foreground">Legal</CardTitle>
+                  <CardDescription className="text-muted-foreground font-alata">
                     Review our policies and terms of service.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <Link href="/privacy">
-                    <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border hover:bg-muted/80 transition-colors cursor-pointer">
                       <div className="flex items-center">
                         <FileText className="h-5 w-5 text-[hsl(280,100%,70%)] mr-3" />
-                        <span className="font-alata text-white">Privacy Policy</span>
+                        <span className="font-alata text-foreground">Privacy Policy</span>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </Link>
 
                   <Link href="/terms">
-                    <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border hover:bg-muted/80 transition-colors cursor-pointer">
                       <div className="flex items-center">
                         <FileText className="h-5 w-5 text-[hsl(200,100%,70%)] mr-3" />
-                        <span className="font-alata text-white">Terms & Conditions</span>
+                        <span className="font-alata text-foreground">Terms & Conditions</span>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </Link>
                 </CardContent>
@@ -350,22 +350,22 @@ export default function Settings() {
 
             {/* Delete Account Section */}
             {activeSection === 'delete' && (
-              <Card className="bg-gradient-to-br from-gray-900 to-black border-red-900/50">
+              <Card className="bg-card border-red-900/50">
                 <CardHeader>
                   <CardTitle className="text-xl font-alata text-red-400">Delete Account</CardTitle>
-                  <CardDescription className="text-gray-400 font-alata">
+                  <CardDescription className="text-muted-foreground font-alata">
                     Permanently delete your account and all associated data.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="p-4 bg-red-900/20 rounded-lg border border-red-900/50">
-                    <p className="text-sm font-alata text-gray-300">
+                    <p className="text-sm font-alata text-foreground">
                       <strong className="text-red-400">Warning:</strong> This action cannot be undone.
                       Once you delete your account, all your data will be permanently removed from our servers.
                     </p>
                   </div>
 
-                  <ul className="text-sm font-alata text-gray-400 space-y-2">
+                  <ul className="text-sm font-alata text-muted-foreground space-y-2">
                     <li className="flex items-start">
                       <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-2"></span>
                       Your profile and preferences will be deleted
@@ -390,18 +390,18 @@ export default function Settings() {
                         Delete Account
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-gray-900 border-gray-700">
+                    <AlertDialogContent className="bg-card border-border">
                       <AlertDialogHeader>
-                        <AlertDialogTitle className="text-white font-alata">
+                        <AlertDialogTitle className="text-foreground font-alata">
                           Are you absolutely sure?
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-400 font-alata">
+                        <AlertDialogDescription className="text-muted-foreground font-alata">
                           This action cannot be undone. This will permanently delete your account
                           and remove all your data from our servers.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="font-alata bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
+                        <AlertDialogCancel className="font-alata bg-muted border-border text-foreground hover:bg-muted/80">
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction

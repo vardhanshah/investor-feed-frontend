@@ -516,12 +516,7 @@ export default function Feed() {
                 variant="ghost"
                 size="icon"
                 className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                onClick={() => {
-                  toast({
-                    title: 'Settings',
-                    description: 'Settings page coming soon!',
-                  });
-                }}
+                onClick={() => setLocation('/settings')}
               >
                 <FaCogIcon className="h-5 w-5" />
               </Button>
