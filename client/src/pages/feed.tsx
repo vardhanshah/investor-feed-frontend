@@ -514,13 +514,23 @@ export default function Feed() {
               </Button>
 
               {/* User Profile Button */}
-              <div
-                className="h-8 w-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity ml-2"
-                onClick={() => setLocation(`/users/${user.user_id}`)}
-                title="My Profile"
-              >
-                {user.email[0].toUpperCase()}
-              </div>
+              {user.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt="Profile"
+                  className="h-8 w-8 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ml-2"
+                  onClick={() => setLocation(`/users/${user.user_id}`)}
+                  title="My Profile"
+                />
+              ) : (
+                <div
+                  className="h-8 w-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity ml-2"
+                  onClick={() => setLocation(`/users/${user.user_id}`)}
+                  title="My Profile"
+                >
+                  {user.email[0].toUpperCase()}
+                </div>
+              )}
 
               <Button
                 variant="ghost"

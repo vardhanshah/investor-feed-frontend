@@ -13,6 +13,7 @@ export interface User {
   user_id: number;
   email: string;
   full_name: string;
+  avatar_url?: string | null;
   created_at: string;
 }
 
@@ -418,19 +419,19 @@ export const authApi = {
   },
 
   async getCurrentUser(): Promise<User> {
-    const response = await fetchWithAuth(`${API_BASE_URL}/user/me`, {
+    // Use /user/profile to get full user data including avatar_url
+    const response = await fetchWithAuth(`${API_BASE_URL}/user/profile`, {
       headers: getAuthHeaders(),
     });
     const data = await handleResponse<any>(response);
-
-    // Backend returns { user: {...}, session: {...} } structure
-    // Extract the user object
-    if (data.user) {
-      return data.user as User;
-    }
-
-    // Fallback: if backend returns user directly (old format)
-    return data as User;
+    // Map 'id' from API to 'user_id' for frontend
+    return {
+      user_id: data.id,
+      email: data.email,
+      full_name: data.full_name,
+      avatar_url: data.avatar_url,
+      created_at: data.created_at,
+    };
   },
 
   async refreshToken(): Promise<LoginResponse | null> {
@@ -475,6 +476,23 @@ export const authApi = {
       localStorage.removeItem('authToken');
       console.error('Logout error:', error);
     }
+  },
+
+  async updateAvatar(file: File): Promise<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE_URL}/user/profile/avatar`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    return handleResponse<User>(response);
   },
 };
 
