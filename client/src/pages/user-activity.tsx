@@ -231,7 +231,12 @@ export default function UserActivityPage() {
             <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-2">
               <span>
                 on post by{' '}
-                <span className="text-foreground font-medium">{activity.post.profile.title}</span>
+                <button
+                  onClick={() => setLocation(`/profiles/${activity.post.profile.id}`)}
+                  className="text-foreground font-medium hover:text-[hsl(280,100%,70%)] transition-colors"
+                >
+                  {activity.post.profile.title}
+                </button>
               </span>
               <span>•</span>
               <span>{formatTimeAgo(activity.created_at)}</span>
