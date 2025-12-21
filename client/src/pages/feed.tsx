@@ -10,6 +10,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { feedsApi, feedConfigApi, subscriptionsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/errorHandler';
+import { getInitials } from '@/lib/utils';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
 import { FEED_MESSAGES } from '@/lib/messages';
@@ -528,7 +529,7 @@ export default function Feed() {
                   onClick={() => setLocation(`/users/${user.user_id}`)}
                   title="My Profile"
                 >
-                  {user.email[0].toUpperCase()}
+                  {getInitials(user.full_name)}
                 </div>
               )}
 

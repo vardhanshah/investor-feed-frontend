@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo, formatLocalizedDate } from '@/lib/dateUtils';
+import { getInitials } from '@/lib/utils';
 
 export default function UserActivityPage() {
   const [match, params] = useRoute('/users/:userId');
@@ -92,8 +93,10 @@ export default function UserActivityPage() {
     }
   };
 
-  // Get avatar URL to display
-  const displayAvatarUrl = avatarPreview || authUser?.avatar_url;
+  // Get avatar URL to display - for own profile use preview/authUser, for others use API data
+  const displayAvatarUrl = isOwnProfile
+    ? (avatarPreview || authUser?.avatar_url)
+    : activityData?.avatar_url;
 
   // Fetch user activity (includes user profile data)
   useEffect(() => {
@@ -159,15 +162,6 @@ export default function UserActivityPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
   };
 
   const getActivityIcon = (type: string) => {
@@ -328,7 +322,7 @@ export default function UserActivityPage() {
           <CardContent className="p-8">
             <div className="flex items-center space-x-6">
               <div className="relative">
-                {isOwnProfile && displayAvatarUrl ? (
+                {displayAvatarUrl ? (
                   <img
                     src={displayAvatarUrl}
                     alt={activityData.full_name}
@@ -336,7 +330,7 @@ export default function UserActivityPage() {
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-3xl">
-                    {getInitials(activityData.full_name)}
+                    {getInitials(activityData.full_name || `U${activityData.user_id}`)}
                   </div>
                 )}
 

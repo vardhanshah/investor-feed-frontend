@@ -386,6 +386,7 @@ export interface UserActivityResponse {
   user_id: number;
   user_email: string;
   full_name: string;
+  avatar_url?: string | null;
   created_at: string; // User account creation date
   activities: UserActivity[]; // Unified array
   total_count: number;

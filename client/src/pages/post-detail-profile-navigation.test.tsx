@@ -68,12 +68,14 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       {
         id: 1,
         user_id: 2,
+        user_name: 'John Doe',
         content: 'Great analysis!',
         reaction_count: 3,
         thread: [
           {
             id: 101,
             user_id: 3,
+            user_name: 'Jane Smith',
             content: 'I agree completely',
             reaction_count: 1,
             created_at: '2024-10-15T12:00:00',
@@ -362,8 +364,8 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
         expect(screen.getByText('Great analysis!')).toBeInTheDocument();
       });
 
-      // Find user avatars (they have 'U' text)
-      const userAvatars = screen.getAllByText('U');
+      // Find user avatars by initials (JD = John Doe)
+      const userAvatars = screen.getAllByText('JD');
       if (userAvatars[0]) {
         await user.click(userAvatars[0]);
         expect(mockSetLocation).toHaveBeenCalledWith('/users/2');
@@ -375,10 +377,10 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
       render(<PostDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('User #2')).toBeInTheDocument();
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
 
-      const username = screen.getByText('User #2');
+      const username = screen.getByText('John Doe');
       await user.click(username);
 
       expect(mockSetLocation).toHaveBeenCalledWith('/users/2');
@@ -392,7 +394,7 @@ describe('PostDetailPage - Profile Navigation Tests', () => {
         expect(screen.getByText('I agree completely')).toBeInTheDocument();
       });
 
-      const username = screen.getByText('User #3');
+      const username = screen.getByText('Jane Smith');
       await user.click(username);
 
       expect(mockSetLocation).toHaveBeenCalledWith('/users/3');
