@@ -58,11 +58,7 @@ export default function CompanyConfidence({
       };
       setLocalConfidence(newConfidence);
       onVoteSuccess?.(newConfidence);
-
-      toast({
-        title: 'Vote recorded',
-        description: response.message,
-      });
+      // No toast needed - button state change provides sufficient feedback
     } catch (err) {
       // Revert on error
       setLocalConfidence(previousConfidence);

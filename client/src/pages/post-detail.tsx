@@ -241,13 +241,7 @@ export default function PostDetailPage() {
       setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
 
       await reactionsApi.addReaction(post.id);
-
-      if (!wasLiked) {
-        toast({
-          title: 'Liked!',
-          description: 'Your reaction has been recorded.',
-        });
-      }
+      // No toast needed - button fill animation provides sufficient feedback
     } catch (err) {
       // Revert on error
       setIsLiked(wasLiked);
@@ -729,12 +723,7 @@ export default function PostDetailPage() {
 
                                   try {
                                     await commentsApi.addCommentReaction(post.id, comment.id);
-                                    if (!wasLiked) {
-                                      toast({
-                                        title: 'Liked!',
-                                        description: 'Your reaction has been recorded.',
-                                      });
-                                    }
+                                    // No toast needed - button fill animation provides sufficient feedback
                                   } catch (err) {
                                     // Revert on error
                                     setCommentLikes(prev => ({ ...prev, [comment.id]: wasLiked }));
@@ -854,12 +843,7 @@ export default function PostDetailPage() {
 
                                           try {
                                             await commentsApi.addThreadReaction(post.id, comment.id, reply.id);
-                                            if (!wasLiked) {
-                                              toast({
-                                                title: 'Liked!',
-                                                description: 'Your reaction has been recorded.',
-                                              });
-                                            }
+                                            // No toast needed - button fill animation provides sufficient feedback
                                           } catch (err) {
                                             // Revert on error
                                             setThreadLikes(prev => ({ ...prev, [threadKey]: wasLiked }));
