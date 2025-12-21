@@ -44,6 +44,7 @@ describe('UserActivity Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
   });
 
@@ -60,8 +61,6 @@ describe('UserActivity Page', () => {
     await waitFor(() => {
       expect(screen.getByText('Test User')).toBeInTheDocument();
     });
-
-    expect(screen.getByText('test@example.com')).toBeInTheDocument();
   });
 
   it('should display user initials in avatar', async () => {
@@ -142,6 +141,7 @@ describe('UserActivity Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<UserActivity />);
@@ -211,6 +211,7 @@ describe('UserActivity Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     server.use(

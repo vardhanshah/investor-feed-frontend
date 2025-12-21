@@ -39,6 +39,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Home />);
@@ -57,6 +58,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Home />);
@@ -84,6 +86,7 @@ describe('Home Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Home />);
@@ -106,6 +109,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Home />);
@@ -126,6 +130,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Home />);
@@ -144,6 +149,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender(<Home />);
@@ -161,6 +167,7 @@ describe('Home Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender(<Home />);
@@ -178,6 +185,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     // Clear any previous calls from setup
@@ -195,6 +203,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender(<Home />);
@@ -215,6 +224,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { container } = render(<Home />);
@@ -239,6 +249,7 @@ describe('Home Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { container } = render(<Home />);
@@ -259,6 +270,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { container } = render(<Home />);
@@ -279,6 +291,7 @@ describe('Home Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Home />);
@@ -301,6 +314,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender(<Home />);
@@ -313,6 +327,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender(<Home />);
@@ -330,6 +345,7 @@ describe('Home Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender(<Home />);
@@ -346,6 +362,7 @@ describe('Home Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { container } = render(<Home />);
