@@ -160,17 +160,6 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
                 {post.profile.title || `Profile #${post.profile.id}`}
               </h3>
               <p className="text-sm text-muted-foreground font-alata">{timeAgo}</p>
-
-              {/* Company Confidence - Mobile (stacked below timestamp) */}
-              {showConfidence && (
-                <div className="md:hidden mt-2" onClick={(e) => e.stopPropagation()}>
-                  <CompanyConfidence
-                    profileId={post.profile.id}
-                    confidence={post.confidence || null}
-                    size="sm"
-                  />
-                </div>
-              )}
             </div>
           </div>
 
@@ -275,8 +264,19 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
           </div>
         )}
 
+        {/* Company Confidence - Mobile (attachment at bottom of post) */}
+        {showConfidence && (
+          <div className="md:hidden mb-4 pt-4 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+            <CompanyConfidence
+              profileId={post.profile.id}
+              confidence={post.confidence || null}
+              size="sm"
+            />
+          </div>
+        )}
+
         {/* Engagement Stats */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
+        <div className={`flex flex-col gap-3 pt-4 ${showConfidence ? 'md:border-t md:border-border/50' : 'border-t border-border/50'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-5">
               <button
@@ -302,14 +302,14 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
               </button>
             </div>
 
-
-          {/* Trending Indicator (if high engagement) */}
-          {likeCount > 10 && (
-            <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
-              <span className="animate-pulse">🔥</span>
-              <span>Trending</span>
-            </div>
-          )}
+            {/* Trending Indicator (if high engagement) */}
+            {likeCount > 10 && (
+              <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
+                <span className="animate-pulse">🔥</span>
+                <span>Trending</span>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

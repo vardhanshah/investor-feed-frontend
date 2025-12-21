@@ -493,29 +493,47 @@ export default function PostDetailPage() {
         <Card className="bg-card border-border mb-6">
           <CardContent className="p-6">
             {/* Profile Header */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-start justify-between mb-5 gap-3">
               <button
                 onClick={() => setLocationPath(`/profiles/${post.profile.id}`)}
-                className="flex items-center space-x-4 hover:opacity-80 transition-opacity"
+                className="flex items-center space-x-4 hover:opacity-80 transition-opacity flex-1 min-w-0"
               >
                 {post.profile.meta_attributes?.logo_url ? (
                   <img
                     src={post.profile.meta_attributes.logo_url}
                     alt={post.profile.title || 'Profile'}
-                    className="w-12 h-12 rounded-full object-cover bg-muted"
+                    className="w-12 h-12 rounded-full object-cover bg-muted shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-lg shrink-0">
                     {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
                   </div>
                 )}
-                <div className="text-left">
-                  <h3 className="text-foreground font-alata font-medium text-lg hover:text-[hsl(280,100%,70%)] transition-colors">
+                <div className="text-left flex-1 min-w-0">
+                  <h3 className="text-foreground font-alata font-medium text-lg hover:text-[hsl(280,100%,70%)] transition-colors truncate">
                     {post.profile.title || `Profile #${post.profile.id}`}
                   </h3>
                   <p className="text-sm text-muted-foreground font-alata">{timeAgo}</p>
+
+                  {/* Company Confidence - Mobile (stacked below timestamp) */}
+                  <div className="md:hidden mt-2">
+                    <CompanyConfidence
+                      profileId={post.profile.id}
+                      confidence={post.confidence || null}
+                      size="sm"
+                    />
+                  </div>
                 </div>
               </button>
+
+              {/* Company Confidence - Desktop (right side) */}
+              <div className="hidden md:block shrink-0">
+                <CompanyConfidence
+                  profileId={post.profile.id}
+                  confidence={post.confidence || null}
+                  size="sm"
+                />
+              </div>
             </div>
 
             {/* Profile Attributes */}
@@ -612,13 +630,6 @@ export default function PostDetailPage() {
                   <span className="text-base font-alata">{post.comment_count}</span>
                 </div>
               </div>
-
-              {/* Company Confidence */}
-              <CompanyConfidence
-                profileId={post.profile.id}
-                confidence={post.confidence || null}
-                size="sm"
-              />
             </div>
           </CardContent>
         </Card>
