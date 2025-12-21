@@ -87,10 +87,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
       setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
 
       await reactionsApi.addReaction(post.id);
-
-      if (!wasLiked) {
-        toast(POST_MESSAGES.LIKED);
-      }
+      // No toast needed - button fill animation provides sufficient feedback
     } catch (err) {
       // Revert on error
       setIsLiked(wasLiked);
