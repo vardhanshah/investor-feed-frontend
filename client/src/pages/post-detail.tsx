@@ -706,7 +706,7 @@ export default function PostDetailPage() {
                             />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata text-sm font-bold">
-                              {getInitials(comment.user_name)}
+                              {getInitials(comment.user_name || `U${comment.user_id}`)}
                             </div>
                           )}
                         </button>
@@ -830,7 +830,7 @@ export default function PostDetailPage() {
                                     />
                                   ) : (
                                     <div className="w-full h-full bg-gradient-to-r from-[hsl(200,100%,70%)] to-[hsl(280,100%,70%)] flex items-center justify-center text-black font-alata text-xs font-bold">
-                                      {getInitials(reply.user_name)}
+                                      {getInitials(reply.user_name || `U${reply.user_id}`)}
                                     </div>
                                   )}
                                 </button>
