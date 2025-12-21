@@ -1,8 +1,8 @@
 import { EventSourcePolyfill } from 'event-source-polyfill';
 
 // API Configuration
-// Use relative URL for same-origin requests through Traefik (no CORS)
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+// Use /api prefix for local dev proxy, or override via VITE_API_BASE_URL
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 // Token refresh state
 let isRefreshing = false;

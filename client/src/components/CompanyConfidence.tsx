@@ -89,48 +89,39 @@ export default function CompanyConfidence({
 
   return (
     <div
-      className="flex flex-col gap-1"
+      className="flex flex-col gap-1.5"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="flex items-center gap-2">
-        {/* Label */}
-        <span className="text-sm text-muted-foreground font-alata">
-          Company Confidence?
-        </span>
+      {/* Header: Label only - centered on mobile for better alignment */}
+      <span className={`font-alata font-semibold text-foreground text-center ${isSmall ? 'text-base' : 'text-lg'}`}>
+        Company Confidence?
+      </span>
 
-        {/* Show percentage if user has voted */}
-        {displayPercentage !== null && (
-          <span className={`font-alata font-bold ${textSize} ${
-            userVote === 'yes' ? 'text-green-500' : 'text-red-500'
-          }`}>
-            {displayPercentage}%
-          </span>
-        )}
-
+      {/* Polymarket-style Vote Buttons */}
+      <div className="flex items-stretch gap-2">
         {/* YES Button */}
         <button
           onClick={(e) => handleVote(e, 'yes')}
-          onMouseEnter={() => setHoveredButton('yes')}
-          onMouseLeave={() => setHoveredButton(null)}
           disabled={isVoting}
           className={`
-            relative flex items-center justify-center rounded font-alata font-medium transition-all
-            ${buttonPadding} ${textSize}
+            relative flex-1 flex flex-col items-center justify-center rounded-lg font-alata transition-all min-w-[70px]
+            ${isSmall ? 'py-2 px-4' : 'py-2.5 px-5'}
             ${userVote === 'yes'
-              ? 'bg-green-500/20 text-green-500 border border-green-500/50'
-              : 'bg-muted/50 text-muted-foreground hover:bg-green-500/10 hover:text-green-500 border border-transparent'
+              ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
+              : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/30'
             }
             ${isVoting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
           {isVoting && userVote !== 'yes' ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              {hoveredButton === 'yes' && hasVotes && yesPercentage !== null ? (
-                <span>{yesPercentage}%</span>
-              ) : (
-                <span>Yes</span>
+              <span className={`font-bold ${isSmall ? 'text-lg' : 'text-xl'}`}>
+                {hasVotes && yesPercentage !== null ? `${yesPercentage}%` : 'Yes'}
+              </span>
+              {hasVotes && yesPercentage !== null && (
+                <span className={`${isSmall ? 'text-xs' : 'text-sm'} opacity-80`}>Yes</span>
               )}
             </>
           )}
@@ -139,37 +130,36 @@ export default function CompanyConfidence({
         {/* NO Button */}
         <button
           onClick={(e) => handleVote(e, 'no')}
-          onMouseEnter={() => setHoveredButton('no')}
-          onMouseLeave={() => setHoveredButton(null)}
           disabled={isVoting}
           className={`
-            relative flex items-center justify-center rounded font-alata font-medium transition-all
-            ${buttonPadding} ${textSize}
+            relative flex-1 flex flex-col items-center justify-center rounded-lg font-alata transition-all min-w-[70px]
+            ${isSmall ? 'py-2 px-4' : 'py-2.5 px-5'}
             ${userVote === 'no'
-              ? 'bg-red-500/20 text-red-500 border border-red-500/50'
-              : 'bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 border border-transparent'
+              ? 'bg-rose-500 text-white shadow-md shadow-rose-500/30'
+              : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/30'
             }
             ${isVoting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
           {isVoting && userVote !== 'no' ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              {hoveredButton === 'no' && hasVotes && noPercentage !== null ? (
-                <span>{noPercentage}%</span>
-              ) : (
-                <span>No</span>
+              <span className={`font-bold ${isSmall ? 'text-lg' : 'text-xl'}`}>
+                {hasVotes && noPercentage !== null ? `${noPercentage}%` : 'No'}
+              </span>
+              {hasVotes && noPercentage !== null && (
+                <span className={`${isSmall ? 'text-xs' : 'text-sm'} opacity-80`}>No</span>
               )}
             </>
           )}
         </button>
       </div>
 
-      {/* Total Votes */}
+      {/* Vote count - subtle, below buttons */}
       {hasVotes && (
-        <span className={`text-xs text-muted-foreground font-alata`}>
-          Total Votes: {totalVotes}
+        <span className={`font-alata text-muted-foreground text-center ${isSmall ? 'text-xs' : 'text-sm'}`}>
+          {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'}
         </span>
       )}
     </div>
