@@ -139,29 +139,51 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
     >
       <CardContent className="p-5">
         {/* Profile Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-start justify-between mb-4 gap-3">
           <div
-            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity flex-1 min-w-0"
             onClick={handleProfileClick}
           >
             {post.profile.meta_attributes?.logo_url ? (
               <img
                 src={post.profile.meta_attributes.logo_url}
                 alt={post.profile.title || 'Profile'}
-                className="w-10 h-10 rounded-full object-cover bg-muted"
+                className="w-10 h-10 rounded-full object-cover bg-muted shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-base">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-base shrink-0">
                 {post.profile.title ? post.profile.title[0].toUpperCase() : 'P'}
               </div>
             )}
-            <div>
-              <h3 className="text-foreground font-alata font-semibold text-base">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-foreground font-alata font-semibold text-base truncate">
                 {post.profile.title || `Profile #${post.profile.id}`}
               </h3>
               <p className="text-sm text-muted-foreground font-alata">{timeAgo}</p>
+
+              {/* Company Confidence - Mobile (stacked below timestamp) */}
+              {showConfidence && (
+                <div className="md:hidden mt-2" onClick={(e) => e.stopPropagation()}>
+                  <CompanyConfidence
+                    profileId={post.profile.id}
+                    confidence={post.confidence || null}
+                    size="sm"
+                  />
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Company Confidence - Desktop (right side) */}
+          {showConfidence && (
+            <div className="hidden md:block shrink-0" onClick={(e) => e.stopPropagation()}>
+              <CompanyConfidence
+                profileId={post.profile.id}
+                confidence={post.confidence || null}
+                size="sm"
+              />
+            </div>
+          )}
         </div>
 
         {/* Profile Attributes */}
@@ -254,62 +276,36 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         )}
 
         {/* Engagement Stats */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-5">
-              <button
-                onClick={handleLike}
-                className={`flex items-center space-x-2 transition-all cursor-pointer group/like ${
-                  isLiked
-                    ? 'text-[hsl(280,100%,70%)]'
-                    : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
-                }`}
-              >
-                <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
-                <span className="text-base font-alata font-medium">{likeCount}</span>
-              </button>
-              <div className="flex items-center space-x-2 text-muted-foreground">
-                <MessageCircle className="h-5 w-5" />
-                <span className="text-base font-alata">{post.comment_count}</span>
-              </div>
-              <button
-                onClick={handleShare}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
-              >
-                <Share2 className="h-5 w-5 group-hover/share:scale-110 transition-transform" />
-              </button>
+        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+          <div className="flex items-center space-x-5">
+            <button
+              onClick={handleLike}
+              className={`flex items-center space-x-2 transition-all cursor-pointer group/like ${
+                isLiked
+                  ? 'text-[hsl(280,100%,70%)]'
+                  : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
+              }`}
+            >
+              <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
+              <span className="text-base font-alata font-medium">{likeCount}</span>
+            </button>
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <MessageCircle className="h-5 w-5" />
+              <span className="text-base font-alata">{post.comment_count}</span>
             </div>
-
-            {/* Trending Indicator (if high engagement) - Desktop only */}
-            {likeCount > 10 && (
-              <div className="hidden md:flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
-                <span className="animate-pulse">🔥</span>
-                <span>Trending</span>
-              </div>
-            )}
+            <button
+              onClick={handleShare}
+              className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
+            >
+              <Share2 className="h-5 w-5 group-hover/share:scale-110 transition-transform" />
+            </button>
           </div>
 
-          {/* Second row: Company Confidence and Trending (mobile) */}
-          {(showConfidence || likeCount > 10) && (
-            <div className="flex items-center justify-between">
-              {/* Trending Indicator - Mobile only */}
-              {likeCount > 10 && (
-                <div className="flex md:hidden items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
-                  <span className="animate-pulse">🔥</span>
-                  <span>Trending</span>
-                </div>
-              )}
-
-              {/* Company Confidence */}
-              {showConfidence && (
-                <div className="ml-auto">
-                  <CompanyConfidence
-                    profileId={post.profile.id}
-                    confidence={post.confidence || null}
-                    size="sm"
-                  />
-                </div>
-              )}
+          {/* Trending Indicator (if high engagement) */}
+          {likeCount > 10 && (
+            <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
+              <span className="animate-pulse">🔥</span>
+              <span>Trending</span>
             </div>
           )}
         </div>
