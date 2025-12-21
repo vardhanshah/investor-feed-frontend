@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Loader2, Calendar, Mail, Activity, MessageCircle, Heart, ExternalLink } from 'lucide-react';
-import { userActivityApi, UserActivityResponse, UserActivity } from '@/lib/api';
+import { ArrowLeft, Loader2, Calendar, Activity, MessageCircle, Heart, ExternalLink, Camera } from 'lucide-react';
+import { userActivityApi, authApi, UserActivityResponse, UserActivity } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +12,7 @@ import { formatTimeAgo, formatLocalizedDate } from '@/lib/dateUtils';
 export default function UserActivityPage() {
   const [match, params] = useRoute('/users/:userId');
   const [, setLocation] = useLocation();
-  const { user: authUser } = useAuth();
+  const { user: authUser, refreshUser } = useAuth();
   const { toast } = useToast();
 
   const [activityData, setActivityData] = useState<UserActivityResponse | null>(null);
@@ -22,9 +22,78 @@ export default function UserActivityPage() {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [allActivities, setAllActivities] = useState<UserActivity[]>([]);
 
+  // Avatar upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
   const userId = params?.userId ? parseInt(params.userId) : authUser?.user_id;
   const isOwnProfile = authUser && userId === authUser.user_id;
   const LIMIT = 40;
+
+  // Handle avatar file selection
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file (JPG, PNG, GIF)',
+        variant: 'destructive',
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image smaller than 5MB',
+        variant: 'destructive',
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload the file
+    setIsUploadingAvatar(true);
+    try {
+      await authApi.updateAvatar(file);
+      await refreshUser();
+      toast({
+        title: 'Avatar updated',
+        description: 'Your profile picture has been updated successfully',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      setAvatarPreview(null);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to update your profile picture. Please try again.',
+        variant: 'destructive',
+        duration: 3000,
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Get avatar URL to display
+  const displayAvatarUrl = avatarPreview || authUser?.avatar_url;
 
   // Fetch user activity (includes user profile data)
   useEffect(() => {
@@ -258,16 +327,46 @@ export default function UserActivityPage() {
         <Card className="bg-card border-border mb-6">
           <CardContent className="p-8">
             <div className="flex items-center space-x-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-3xl">
-                {getInitials(activityData.full_name)}
+              <div className="relative">
+                {isOwnProfile && displayAvatarUrl ? (
+                  <img
+                    src={displayAvatarUrl}
+                    alt={activityData.full_name}
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata font-bold text-3xl">
+                    {getInitials(activityData.full_name)}
+                  </div>
+                )}
+
+                {/* Upload Button - only for own profile */}
+                {isOwnProfile && (
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[hsl(280,100%,70%)] hover:bg-[hsl(280,100%,75%)] text-black flex items-center justify-center transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUploadingAvatar ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4" />
+                      )}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
+                  </>
+                )}
               </div>
               <div className="flex-1">
                 <h2 className="text-3xl font-alata text-foreground mb-2">{activityData.full_name}</h2>
                 <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-muted-foreground">
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span className="font-alata">{activityData.user_email}</span>
-                  </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-2" />
                     <span className="font-alata">Joined {formatLocalizedDate(activityData.created_at)}</span>

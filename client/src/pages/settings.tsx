@@ -15,11 +15,12 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, MessageSquare, FileText, Trash2, ChevronRight, Star } from 'lucide-react';
+import { ArrowLeft, MessageSquare, FileText, Trash2, ChevronRight, User } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { VALIDATION_MESSAGES, SETTINGS_MESSAGES } from '@/lib/messages';
+import { useAuth } from '@/contexts/AuthContext';
 
-type SettingsSection = 'feedback' | 'legal' | 'delete';
+type SettingsSection = 'profile' | 'feedback' | 'legal' | 'delete';
 
 interface Question {
   id: number;
@@ -35,7 +36,8 @@ interface FeedbackAnswer {
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState<SettingsSection>('feedback');
+  const { user } = useAuth();
+  const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
 
   // Feedback state
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -159,6 +161,7 @@ export default function Settings() {
   };
 
   const sidebarItems = [
+    { id: 'profile' as const, label: 'Profile', icon: User },
     { id: 'feedback' as const, label: 'Feedback', icon: MessageSquare },
     { id: 'legal' as const, label: 'Legal', icon: FileText },
     { id: 'delete' as const, label: 'Delete Account', icon: Trash2, danger: true },
@@ -218,6 +221,55 @@ export default function Settings() {
 
           {/* Content Panel */}
           <div className="flex-1">
+            {/* Profile Section */}
+            {activeSection === 'profile' && (
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-xl font-alata text-foreground">Profile</CardTitle>
+                  <CardDescription className="text-muted-foreground font-alata">
+                    View your profile information.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* User Info */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-alata text-muted-foreground mb-1">
+                        Full Name
+                      </label>
+                      <p className="text-foreground font-alata text-lg">
+                        {user?.full_name || 'Not set'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-alata text-muted-foreground mb-1">
+                        Email
+                      </label>
+                      <p className="text-foreground font-alata text-lg">
+                        {user?.email || 'Not set'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-alata text-muted-foreground mb-1">
+                        Member Since
+                      </label>
+                      <p className="text-foreground font-alata text-lg">
+                        {user?.created_at
+                          ? new Date(user.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })
+                          : 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Feedback Section */}
             {activeSection === 'feedback' && (
               <Card className="bg-card border-border">

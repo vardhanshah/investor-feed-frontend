@@ -13,6 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,6 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchUser(token);
     setIsLoading(false);
     console.log('[AuthContext] Login completed');
+  };
+
+  const refreshUser = async () => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      await fetchUser(token);
+    }
   };
 
   const logout = async () => {
@@ -124,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       login,
       logout,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>
