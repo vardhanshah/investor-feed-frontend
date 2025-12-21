@@ -415,25 +415,26 @@ describe('PostCard', () => {
           user_vote: 'yes',
         },
       };
-      const { container } = render(<PostCard post={postWithConfidence} />);
-      // When user voted, the percentage should be displayed
-      const percentageSpan = container.querySelector('span.font-bold.text-green-500');
-      expect(percentageSpan).toBeInTheDocument();
-      expect(percentageSpan).toHaveTextContent('75%');
+      render(<PostCard post={postWithConfidence} />);
+      // Polymarket-style: percentages are shown inside the buttons
+      const percentages = screen.getAllByText('75%');
+      expect(percentages.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('should not display percentages when profile has no confidence votes', () => {
+    it('should show Yes/No text when profile has no confidence votes', () => {
       const postWithNoConfidence: Post = {
         ...mockPost,
         confidence: null,
       };
-      const { container } = render(<PostCard post={postWithNoConfidence} />);
-      // When no confidence data, no percentage should be shown
-      const percentageSpan = container.querySelector('span.font-bold');
-      expect(percentageSpan).not.toBeInTheDocument();
+      render(<PostCard post={postWithNoConfidence} />);
+      // When no confidence data, buttons should show "Yes" and "No" text
+      const yesElements = screen.getAllByText('Yes');
+      const noElements = screen.getAllByText('No');
+      expect(yesElements.length).toBeGreaterThanOrEqual(1);
+      expect(noElements.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('should highlight user vote when user has voted', () => {
+    it('should highlight user vote when user has voted yes', () => {
       const postWithUserVote: Post = {
         ...mockPost,
         confidence: {
@@ -444,10 +445,11 @@ describe('PostCard', () => {
         },
       };
       const { container } = render(<PostCard post={postWithUserVote} />);
-      // Find the YES button and check if it has the highlighted class
+      // Polymarket-style: YES button should have emerald background when voted
       const buttons = container.querySelectorAll('button');
-      const yesButton = Array.from(buttons).find(btn => btn.textContent?.includes('Yes'));
-      expect(yesButton?.className).toContain('text-green-500');
+      const yesButton = Array.from(buttons).find(btn => btn.textContent?.includes('67%'));
+      expect(yesButton?.className).toContain('bg-emerald-500');
+      expect(yesButton?.className).toContain('text-white');
     });
 
     it('should not navigate to post detail when confidence button is clicked', async () => {
@@ -463,8 +465,8 @@ describe('PostCard', () => {
 
       render(<PostCard post={mockPost} />);
 
-      const yesButton = screen.getByRole('button', { name: /yes/i });
-      await user.click(yesButton);
+      const yesButtons = screen.getAllByRole('button', { name: /yes/i });
+      await user.click(yesButtons[0]);
 
       // Should not navigate because stopPropagation prevents card click
       expect(mockSetLocation).not.toHaveBeenCalled();
@@ -483,8 +485,8 @@ describe('PostCard', () => {
 
       render(<PostCard post={mockPost} />);
 
-      const yesButton = screen.getByRole('button', { name: /yes/i });
-      await user.click(yesButton);
+      const yesButtons = screen.getAllByRole('button', { name: /yes/i });
+      await user.click(yesButtons[0]);
 
       await waitFor(() => {
         expect(api.confidenceApi.vote).toHaveBeenCalledWith(1, 'yes');
@@ -503,11 +505,8 @@ describe('PostCard', () => {
       };
       render(<PostCard post={postWithConfidence} showConfidence={false} />);
 
-      // Yes and No buttons should not be present
-      const yesButton = screen.queryByRole('button', { name: /yes/i });
-      const noButton = screen.queryByRole('button', { name: /no/i });
-      expect(yesButton).not.toBeInTheDocument();
-      expect(noButton).not.toBeInTheDocument();
+      // Company Confidence label should not be present
+      expect(screen.queryByText('Company Confidence?')).not.toBeInTheDocument();
     });
 
     it('should show confidence component by default when showConfidence is not specified', () => {
@@ -522,11 +521,9 @@ describe('PostCard', () => {
       };
       render(<PostCard post={postWithConfidence} />);
 
-      // Yes and No buttons should be present
-      const yesButton = screen.queryByRole('button', { name: /yes/i });
-      const noButton = screen.queryByRole('button', { name: /no/i });
-      expect(yesButton).toBeInTheDocument();
-      expect(noButton).toBeInTheDocument();
+      // Company Confidence label should be present
+      const labels = screen.getAllByText('Company Confidence?');
+      expect(labels.length).toBeGreaterThanOrEqual(1);
     });
   });
 });

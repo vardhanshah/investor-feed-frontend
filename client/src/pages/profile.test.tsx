@@ -435,8 +435,8 @@ describe('Profile Page', () => {
     // Should show error state - either an alert or error text
     await waitFor(() => {
       const alert = screen.queryByRole('alert');
-      const errorText = screen.queryByText(/error|failed|unable/i);
-      expect(alert || errorText).toBeTruthy();
+      const errorTexts = screen.queryAllByText(/error|failed|unable/i);
+      expect(alert || errorTexts.length > 0).toBeTruthy();
     }, { timeout: 3000 });
   });
 

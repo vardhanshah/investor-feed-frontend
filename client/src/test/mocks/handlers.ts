@@ -62,6 +62,55 @@ export const handlers = [
     );
   }),
 
+  // User profile endpoint (returns user data with id instead of user_id)
+  http.get(`${API_BASE_URL}/user/profile`, ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return HttpResponse.json(
+        { detail: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    if (token === 'mock-token-123' || token === 'test-token') {
+      // Return user data with 'id' field (API format)
+      return HttpResponse.json({
+        id: mockUsers[0].user_id,
+        email: mockUsers[0].email,
+        full_name: mockUsers[0].full_name,
+        avatar_url: null,
+        created_at: mockUsers[0].created_at,
+      });
+    }
+
+    return HttpResponse.json(
+      { detail: 'Could not validate credentials' },
+      { status: 401 }
+    );
+  }),
+
+  // Avatar upload endpoint
+  http.post(`${API_BASE_URL}/user/profile/avatar`, ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return HttpResponse.json(
+        { detail: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    return HttpResponse.json({
+      id: 1,
+      email: 'test@example.com',
+      full_name: 'Test User',
+      avatar_url: 'https://example.com/avatars/test-avatar.jpg',
+      created_at: '2025-01-01T00:00:00',
+    });
+  }),
+
   http.post(`${API_BASE_URL}/user/token`, ({ request }) => {
     // Token refresh endpoint
     const cookie = request.headers.get('Cookie');

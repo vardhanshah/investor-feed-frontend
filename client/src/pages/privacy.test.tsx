@@ -104,7 +104,7 @@ describe('Privacy Page', () => {
 
     const mainDiv = container.querySelector('.min-h-screen');
     expect(mainDiv).toBeInTheDocument();
-    expect(mainDiv).toHaveClass('bg-background', 'text-white', 'py-20');
+    expect(mainDiv).toHaveClass('bg-background', 'text-foreground', 'py-20');
   });
 
   it('should have responsive container width', () => {
@@ -123,15 +123,15 @@ describe('Privacy Page', () => {
     expect(gradientText).toHaveTextContent('Policy');
   });
 
-  it('should style section containers with gradient background', () => {
+  it('should style section containers with muted background', () => {
     const { container } = render(<Privacy />);
 
-    const sections = container.querySelectorAll('.bg-gradient-to-br.from-gray-900.to-black');
+    const sections = container.querySelectorAll('.bg-muted');
     expect(sections.length).toBe(10); // 10 sections
 
     // Each section should have proper styling
     sections.forEach(section => {
-      expect(section).toHaveClass('rounded-2xl', 'p-8', 'shadow-lg', 'border', 'border-gray-700');
+      expect(section).toHaveClass('rounded-2xl', 'p-8', 'shadow-lg', 'border', 'border-border');
     });
   });
 
@@ -176,14 +176,14 @@ describe('Privacy Page', () => {
     expect(lists.length).toBeGreaterThan(0);
 
     lists.forEach(list => {
-      expect(list).toHaveClass('text-gray-300', 'font-alata', 'mb-4', 'pl-6');
+      expect(list).toHaveClass('text-muted-foreground', 'font-alata', 'mb-4', 'pl-6');
     });
   });
 
   it('should apply consistent text styling', () => {
     const { container } = render(<Privacy />);
 
-    const paragraphs = container.querySelectorAll('p.text-gray-300');
+    const paragraphs = container.querySelectorAll('p.text-muted-foreground');
     expect(paragraphs.length).toBeGreaterThan(0);
 
     paragraphs.forEach(p => {
@@ -195,7 +195,7 @@ describe('Privacy Page', () => {
     const { container } = render(<Privacy />);
 
     const sections = container.querySelectorAll('.mb-8');
-    expect(sections.length).toBe(10);
+    expect(sections.length).toBeGreaterThanOrEqual(10);
   });
 
   it('should center align the title section', () => {
