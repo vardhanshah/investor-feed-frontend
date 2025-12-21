@@ -8,6 +8,7 @@ import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
 import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
 import CompanyConfidence from './CompanyConfidence';
+import { POST_MESSAGES } from '@/lib/messages';
 
 export type { Post, PostProfile };
 
@@ -45,7 +46,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Character limit for truncation
-  const CONTENT_CHAR_LIMIT = 300;
+  const CONTENT_CHAR_LIMIT = 280;
   const shouldTruncate = post.content.length > CONTENT_CHAR_LIMIT;
   const displayContent = shouldTruncate && !isExpanded
     ? post.content.slice(0, CONTENT_CHAR_LIMIT).trimEnd() + '...'
@@ -88,10 +89,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
       await reactionsApi.addReaction(post.id);
 
       if (!wasLiked) {
-        toast({
-          title: 'Liked!',
-          description: 'Your reaction has been recorded.',
-        });
+        toast(POST_MESSAGES.LIKED);
       }
     } catch (err) {
       // Revert on error
@@ -130,16 +128,9 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
 
     try {
       await navigator.clipboard.writeText(postUrl);
-      toast({
-        title: 'Link Copied!',
-        description: 'Post link copied to clipboard.',
-      });
+      toast(POST_MESSAGES.LINK_COPIED);
     } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Failed to copy',
-        description: 'Could not copy link to clipboard.',
-      });
+      toast(POST_MESSAGES.LINK_COPY_FAILED);
     }
   };
 
@@ -266,49 +257,64 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         )}
 
         {/* Engagement Stats */}
-        <div className="flex items-center justify-between pt-4 border-t border-border/50">
-          <div className="flex items-center space-x-5">
-            <button
-              onClick={handleLike}
-              className={`flex items-center space-x-2 transition-all cursor-pointer group/like ${
-                isLiked
-                  ? 'text-[hsl(280,100%,70%)]'
-                  : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
-              }`}
-            >
-              <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
-              <span className="text-base font-alata font-medium">{likeCount}</span>
-            </button>
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <MessageCircle className="h-5 w-5" />
-              <span className="text-base font-alata">{post.comment_count}</span>
+        <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-5">
+              <button
+                onClick={handleLike}
+                className={`flex items-center space-x-2 transition-all cursor-pointer group/like ${
+                  isLiked
+                    ? 'text-[hsl(280,100%,70%)]'
+                    : 'text-muted-foreground hover:text-[hsl(280,100%,70%)]'
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
+                <span className="text-base font-alata font-medium">{likeCount}</span>
+              </button>
+              <div className="flex items-center space-x-2 text-muted-foreground">
+                <MessageCircle className="h-5 w-5" />
+                <span className="text-base font-alata">{post.comment_count}</span>
+              </div>
+              <button
+                onClick={handleShare}
+                className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
+              >
+                <Share2 className="h-5 w-5 group-hover/share:scale-110 transition-transform" />
+              </button>
             </div>
-            <button
-              onClick={handleShare}
-              className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
-            >
-              <Share2 className="h-5 w-5 group-hover/share:scale-110 transition-transform" />
-            </button>
-          </div>
 
-          <div className="flex items-center gap-4">
-            {/* Trending Indicator (if high engagement) */}
+            {/* Trending Indicator (if high engagement) - Desktop only */}
             {likeCount > 10 && (
-              <div className="flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
+              <div className="hidden md:flex items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
                 <span className="animate-pulse">🔥</span>
                 <span>Trending</span>
               </div>
             )}
-
-            {/* Company Confidence */}
-            {showConfidence && (
-              <CompanyConfidence
-                profileId={post.profile.id}
-                confidence={post.confidence || null}
-                size="sm"
-              />
-            )}
           </div>
+
+          {/* Second row: Company Confidence and Trending (mobile) */}
+          {(showConfidence || likeCount > 10) && (
+            <div className="flex items-center justify-between">
+              {/* Trending Indicator - Mobile only */}
+              {likeCount > 10 && (
+                <div className="flex md:hidden items-center space-x-1 text-[hsl(280,100%,70%)] text-sm font-alata">
+                  <span className="animate-pulse">🔥</span>
+                  <span>Trending</span>
+                </div>
+              )}
+
+              {/* Company Confidence */}
+              {showConfidence && (
+                <div className="ml-auto">
+                  <CompanyConfidence
+                    profileId={post.profile.id}
+                    confidence={post.confidence || null}
+                    size="sm"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
