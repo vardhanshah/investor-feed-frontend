@@ -144,6 +144,7 @@ describe('API Layer', () => {
           user_id: 1,
           email: 'test@example.com',
           full_name: 'Test User',
+          avatar_url: null,
           created_at: '2025-01-01T00:00:00',
         });
       });
@@ -164,12 +165,13 @@ describe('API Layer', () => {
         let authHeader: string | null = null;
 
         server.use(
-          http.get(`${API_BASE_URL}/user/me`, ({ request }) => {
+          http.get(`${API_BASE_URL}/user/profile`, ({ request }) => {
             authHeader = request.headers.get('Authorization');
             return HttpResponse.json({
-              user_id: 1,
+              id: 1,
               email: 'test@example.com',
               full_name: 'Test User',
+              avatar_url: null,
               created_at: '2025-01-01T00:00:00',
             });
           })
@@ -179,6 +181,57 @@ describe('API Layer', () => {
         await authApi.getCurrentUser();
 
         expect(authHeader).toBe('Bearer test-token');
+      });
+    });
+
+    describe('updateAvatar', () => {
+      it('should successfully upload avatar and return updated user', async () => {
+        localStorage.setItem('authToken', 'mock-token-123');
+
+        const file = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' });
+        const result = await authApi.updateAvatar(file);
+
+        expect(result).toHaveProperty('id');
+        expect(result).toHaveProperty('avatar_url');
+        expect(result.avatar_url).toBe('https://example.com/avatars/test-avatar.jpg');
+      });
+
+      it('should throw error without authentication', async () => {
+        const file = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' });
+
+        await expect(authApi.updateAvatar(file)).rejects.toThrow('Not authenticated');
+      });
+
+      it('should handle different file types', async () => {
+        localStorage.setItem('authToken', 'mock-token-123');
+
+        const pngFile = new File(['png content'], 'avatar.png', { type: 'image/png' });
+        const result = await authApi.updateAvatar(pngFile);
+
+        expect(result.avatar_url).toBe('https://example.com/avatars/test-avatar.jpg');
+      });
+
+      it('should send Authorization header', async () => {
+        let authHeader: string | null = null;
+
+        server.use(
+          http.post(`${API_BASE_URL}/user/profile/avatar`, ({ request }) => {
+            authHeader = request.headers.get('Authorization');
+            return HttpResponse.json({
+              id: 1,
+              email: 'test@example.com',
+              full_name: 'Test User',
+              avatar_url: 'https://example.com/avatars/test.jpg',
+              created_at: '2025-01-01T00:00:00',
+            });
+          })
+        );
+
+        localStorage.setItem('authToken', 'my-auth-token');
+        const file = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' });
+        await authApi.updateAvatar(file);
+
+        expect(authHeader).toBe('Bearer my-auth-token');
       });
     });
   });
@@ -802,8 +855,8 @@ describe('API Layer', () => {
       let attemptCount = 0;
 
       server.use(
-        // First call to /user/me returns 401
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        // First call to /user/profile returns 401
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           attemptCount++;
           if (attemptCount === 1) {
             return HttpResponse.json(
@@ -813,12 +866,11 @@ describe('API Layer', () => {
           }
           // After refresh, second call succeeds
           return HttpResponse.json({
-            user: {
-              user_id: 1,
-              email: 'test@example.com',
-              full_name: 'Test User',
-              created_at: '2025-01-01T00:00:00',
-            },
+            id: 1,
+            email: 'test@example.com',
+            full_name: 'Test User',
+            avatar_url: null,
+            created_at: '2025-01-01T00:00:00',
           });
         }),
         // Token refresh endpoint
@@ -838,6 +890,7 @@ describe('API Layer', () => {
         user_id: 1,
         email: 'test@example.com',
         full_name: 'Test User',
+        avatar_url: null,
         created_at: '2025-01-01T00:00:00',
       });
       expect(attemptCount).toBe(2); // First call (401) + retry (success)
@@ -851,7 +904,7 @@ describe('API Layer', () => {
       let refreshRequestCredentials: RequestCredentials | undefined;
 
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           return HttpResponse.json(
             { detail: 'Token expired' },
             { status: 401 }
@@ -881,7 +934,7 @@ describe('API Layer', () => {
       localStorage.setItem('authToken', 'expired-token');
 
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           return HttpResponse.json(
             { detail: 'Token expired' },
             { status: 401 }
@@ -903,7 +956,7 @@ describe('API Layer', () => {
       let tokenRefreshCalled = false;
 
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           return HttpResponse.json(
             { detail: 'Not authenticated' },
             { status: 401 }
@@ -928,7 +981,7 @@ describe('API Layer', () => {
       let tokenRefreshCallCount = 0;
 
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           return HttpResponse.json(
             { detail: 'Token expired' },
             { status: 401 }
@@ -971,7 +1024,7 @@ describe('API Layer', () => {
       let secondRequestAuthHeader: string | null = null;
 
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, ({ request }) => {
+        http.get(`${API_BASE_URL}/user/profile`, ({ request }) => {
           const authHeader = request.headers.get('Authorization');
 
           if (authHeader === 'Bearer expired-token') {
@@ -985,12 +1038,11 @@ describe('API Layer', () => {
           secondRequestAuthHeader = authHeader;
 
           return HttpResponse.json({
-            user: {
-              user_id: 1,
-              email: 'test@example.com',
-              full_name: 'Test User',
-              created_at: '2025-01-01T00:00:00',
-            },
+            id: 1,
+            email: 'test@example.com',
+            full_name: 'Test User',
+            avatar_url: null,
+            created_at: '2025-01-01T00:00:00',
           });
         }),
         http.post(`${API_BASE_URL}/user/token`, () => {
@@ -1014,7 +1066,7 @@ describe('API Layer', () => {
 
     it('should handle network errors gracefully', async () => {
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           return HttpResponse.error();
         })
       );
@@ -1048,7 +1100,7 @@ describe('API Layer', () => {
 
     it('should provide fallback error message for malformed error responses', async () => {
       server.use(
-        http.get(`${API_BASE_URL}/user/me`, () => {
+        http.get(`${API_BASE_URL}/user/profile`, () => {
           return new HttpResponse('Invalid JSON', { status: 500 });
         })
       );

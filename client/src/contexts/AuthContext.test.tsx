@@ -191,7 +191,7 @@ describe('AuthContext', () => {
 
   it('should handle network errors gracefully', async () => {
     server.use(
-      http.get(`${API_BASE_URL}/user/me`, () => {
+      http.get(`${API_BASE_URL}/user/profile`, () => {
         return HttpResponse.error();
       })
     );
