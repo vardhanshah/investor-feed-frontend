@@ -98,6 +98,7 @@ export default function PostDetailPage() {
 
   const [commentContent, setCommentContent] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const commentInputRef = useRef<HTMLInputElement>(null);
 
   const [replyContent, setReplyContent] = useState<{ [commentId: number]: string }>({});
   const [isSubmittingReply, setIsSubmittingReply] = useState<{ [commentId: number]: boolean }>({});
@@ -205,6 +206,18 @@ export default function PostDetailPage() {
 
     fetchPostAndComments();
   }, [params?.postId, toast]);
+
+  // Focus comment input if navigated with ?comment=true
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('comment') === 'true' && !isLoadingPost && user) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        commentInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isLoadingPost, user]);
 
   // Load more comments
   const loadMoreComments = useCallback(async () => {
@@ -649,6 +662,7 @@ export default function PostDetailPage() {
               <CardContent className="p-4">
                 <div className="flex flex-col space-y-3">
                   <Input
+                    ref={commentInputRef}
                     value={commentContent}
                     onChange={(e) => setCommentContent(e.target.value)}
                     placeholder="Write your comment..."
