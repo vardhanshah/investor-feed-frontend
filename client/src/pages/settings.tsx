@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MessageSquare, FileText, Trash2, ChevronRight, Star } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
+import { VALIDATION_MESSAGES, SETTINGS_MESSAGES } from '@/lib/messages';
 
 type SettingsSection = 'feedback' | 'legal' | 'delete';
 
@@ -90,11 +91,7 @@ export default function Settings() {
 
   const handleSubmitFeedback = async () => {
     if (rating === 0) {
-      toast({
-        title: "Rating required",
-        description: "Please select a rating before submitting.",
-        variant: "destructive",
-      });
+      toast(VALIDATION_MESSAGES.RATING_REQUIRED);
       return;
     }
 
@@ -106,11 +103,7 @@ export default function Settings() {
       }));
 
     if (feedbacks.length === 0) {
-      toast({
-        title: "Feedback required",
-        description: "Please answer at least one question.",
-        variant: "destructive",
-      });
+      toast(VALIDATION_MESSAGES.FEEDBACK_REQUIRED);
       return;
     }
 
@@ -129,10 +122,7 @@ export default function Settings() {
       });
 
       if (response.ok) {
-        toast({
-          title: "Thank you!",
-          description: "Your feedback has been submitted successfully.",
-        });
+        toast(SETTINGS_MESSAGES.FEEDBACK_SUCCESS);
         setAnswers({});
         setRating(0);
       } else {
@@ -140,11 +130,7 @@ export default function Settings() {
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      toast({
-        title: "Submission failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      toast(SETTINGS_MESSAGES.FEEDBACK_FAILED);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,21 +147,14 @@ export default function Settings() {
 
       if (response.ok) {
         localStorage.removeItem('authToken');
-        toast({
-          title: "Account deleted",
-          description: "Your account has been permanently deleted.",
-        });
+        toast(SETTINGS_MESSAGES.ACCOUNT_DELETED);
         setLocation('/');
       } else {
         throw new Error('Failed to delete account');
       }
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast({
-        title: "Deletion failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      toast(SETTINGS_MESSAGES.ACCOUNT_DELETE_FAILED);
     }
   };
 

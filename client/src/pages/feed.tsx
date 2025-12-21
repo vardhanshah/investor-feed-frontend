@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
+import { FEED_MESSAGES } from '@/lib/messages';
 import FeedSidebar from '@/components/FeedSidebar';
 import { NotificationBell } from '@/components/NotificationBell';
 import { ProfileSearch } from '@/components/ProfileSearch';
@@ -338,10 +339,7 @@ export default function Feed() {
     try {
       await feedConfigApi.deleteFeedConfiguration(feedToDelete.id);
 
-      toast({
-        title: 'Success',
-        description: `Feed "${feedToDelete.name}" deleted successfully`,
-      });
+      toast(FEED_MESSAGES.DELETED(feedToDelete.name));
 
       // Remove the feed from the list
       const updatedFeeds = feedConfigs.filter(f => f.id !== feedToDelete.id);
@@ -436,17 +434,11 @@ export default function Feed() {
           newSet.delete(feed.id);
           return newSet;
         });
-        toast({
-          title: 'Unsubscribed',
-          description: `You will no longer receive notifications for "${feed.name}"`,
-        });
+        toast(FEED_MESSAGES.UNSUBSCRIBED(feed.name));
       } else {
         await subscriptionsApi.subscribeToFeed(feed.id);
         setSubscribedFeeds(prev => new Set(prev).add(feed.id));
-        toast({
-          title: 'Subscribed',
-          description: `You will now receive notifications for "${feed.name}"`,
-        });
+        toast(FEED_MESSAGES.SUBSCRIBED(feed.name));
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
