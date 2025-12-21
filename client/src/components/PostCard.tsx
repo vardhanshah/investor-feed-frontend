@@ -290,10 +290,13 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
                 <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : 'group-hover/like:scale-110 transition-transform'}`} />
                 <span className="text-base font-alata font-medium">{likeCount}</span>
               </button>
-              <div className="flex items-center space-x-2 text-muted-foreground">
-                <MessageCircle className="h-5 w-5" />
+              <button
+                onClick={() => setLocation(`/posts/${post.id}`)}
+                className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/comment"
+              >
+                <MessageCircle className="h-5 w-5 group-hover/comment:scale-110 transition-transform" />
                 <span className="text-base font-alata">{post.comment_count}</span>
-              </div>
+              </button>
               <button
                 onClick={handleShare}
                 className="flex items-center space-x-2 text-muted-foreground hover:text-[hsl(200,100%,70%)] transition-colors cursor-pointer group/share"
