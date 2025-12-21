@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo, formatLocalizedDate } from '@/lib/dateUtils';
+import { getInitials } from '@/lib/utils';
 
 export default function UserActivityPage() {
   const [match, params] = useRoute('/users/:userId');
@@ -159,15 +160,6 @@ export default function UserActivityPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
   };
 
   const getActivityIcon = (type: string) => {
