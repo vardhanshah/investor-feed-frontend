@@ -34,6 +34,7 @@ describe('Filters Page', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
   });
 
@@ -44,6 +45,7 @@ describe('Filters Page', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     render(<Filters />);
