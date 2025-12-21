@@ -3,6 +3,7 @@ import { filtersApi, feedConfigApi, FilterConfig, FilterGroup } from '@/lib/api'
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { useFeedFilters } from '@/hooks/useFeedFilters';
+import { FEED_MESSAGES } from '@/lib/messages';
 
 interface UseFeedManagementOptions {
   editingFeedId?: number | null;
@@ -103,10 +104,7 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
       if (editingFeedId) {
         // Update existing feed
         await feedConfigApi.updateFeedConfiguration(editingFeedId, feedData);
-        toast({
-          title: 'Success',
-          description: 'Feed configuration updated successfully',
-        });
+        toast(FEED_MESSAGES.UPDATED);
 
         if (onSuccess) onSuccess(editingFeedId, true);
 
@@ -130,10 +128,7 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
       } else {
         // Create new feed
         const newFeed = await feedConfigApi.createFeedConfiguration(feedData);
-        toast({
-          title: 'Success',
-          description: 'Feed configuration created successfully',
-        });
+        toast(FEED_MESSAGES.CREATED);
 
         if (onSuccess) onSuccess(newFeed.id, false);
 

@@ -11,6 +11,7 @@ import { authApi, API_BASE_URL } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { AUTH_MESSAGES } from '@/lib/messages';
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -56,10 +57,7 @@ export default function Login() {
       console.log('Login completed, user should be set');
 
       // Show success message
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-      });
+      toast(AUTH_MESSAGES.LOGIN_SUCCESS);
 
       // Redirect to home feed
       console.log('Redirecting to /home...');
