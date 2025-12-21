@@ -10,6 +10,7 @@ import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMeta
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo, formatTimeAgoTwoUnits } from '@/lib/dateUtils';
+import { getInitials } from '@/lib/utils';
 import CompanyConfidence from '@/components/CompanyConfidence';
 
 // Helper to format attribute value with unit
@@ -32,6 +33,7 @@ interface Thread {
   id: number;
   user_id: number;
   user_name?: string;
+  avatar_url?: string | null;
   content: string;
   reaction_count: number;
   user_liked?: boolean;
@@ -42,6 +44,7 @@ interface Comment {
   id: number;
   user_id?: number;
   user_name?: string;
+  avatar_url?: string | null;
   content?: string;
   reaction_count?: number;
   user_liked?: boolean;
@@ -693,9 +696,19 @@ export default function PostDetailPage() {
                         {/* Avatar */}
                         <button
                           onClick={() => setLocationPath(`/users/${comment.user_id}`)}
-                          className="w-8 h-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
+                          className="w-8 h-8 rounded-full flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
                         >
-                          U
+                          {comment.avatar_url ? (
+                            <img
+                              src={comment.avatar_url}
+                              alt={comment.user_name || 'User'}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-alata text-sm font-bold">
+                              {getInitials(comment.user_name)}
+                            </div>
+                          )}
                         </button>
                         {/* Comment content */}
                         <div className="flex-1">
@@ -807,9 +820,19 @@ export default function PostDetailPage() {
                               <div key={reply.id} className="flex items-start space-x-2">
                                 <button
                                   onClick={() => setLocationPath(`/users/${reply.user_id}`)}
-                                  className="w-6 h-6 rounded-full bg-gradient-to-r from-[hsl(200,100%,70%)] to-[hsl(280,100%,70%)] flex items-center justify-center text-black font-alata text-xs font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
+                                  className="w-6 h-6 rounded-full flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
                                 >
-                                  U
+                                  {reply.avatar_url ? (
+                                    <img
+                                      src={reply.avatar_url}
+                                      alt={reply.user_name || 'User'}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-r from-[hsl(200,100%,70%)] to-[hsl(280,100%,70%)] flex items-center justify-center text-black font-alata text-xs font-bold">
+                                      {getInitials(reply.user_name)}
+                                    </div>
+                                  )}
                                 </button>
                                 <div className="flex-1">
                                   <div className="mb-1">

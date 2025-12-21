@@ -93,8 +93,10 @@ export default function UserActivityPage() {
     }
   };
 
-  // Get avatar URL to display
-  const displayAvatarUrl = avatarPreview || authUser?.avatar_url;
+  // Get avatar URL to display - for own profile use preview/authUser, for others use API data
+  const displayAvatarUrl = isOwnProfile
+    ? (avatarPreview || authUser?.avatar_url)
+    : activityData?.avatar_url;
 
   // Fetch user activity (includes user profile data)
   useEffect(() => {
@@ -320,7 +322,7 @@ export default function UserActivityPage() {
           <CardContent className="p-8">
             <div className="flex items-center space-x-6">
               <div className="relative">
-                {isOwnProfile && displayAvatarUrl ? (
+                {displayAvatarUrl ? (
                   <img
                     src={displayAvatarUrl}
                     alt={activityData.full_name}
