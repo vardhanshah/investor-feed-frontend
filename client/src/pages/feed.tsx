@@ -7,7 +7,8 @@ import { FaCog as FaCogIcon, FaSignOutAlt as FaSignOutAltIcon } from 'react-icon
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { feedsApi, feedConfigApi, subscriptionsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
+import { feedsApi, feedConfigApi, subscriptionsApi, adsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata, AdsConfig } from '@/lib/api';
+import { AdUnit } from '@/components/AdUnit';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { getInitials } from '@/lib/utils';
@@ -56,6 +57,7 @@ export default function Feed() {
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [adsConfig, setAdsConfig] = useState<AdsConfig | null>(null);
   const latestPostId = useRef<number | null>(null);
   const touchStartY = useRef<number>(0);
 
@@ -69,6 +71,13 @@ export default function Feed() {
       setLocation('/login');
     }
   }, [authLoading, user, setLocation]);
+
+  // Fetch ads configuration on mount
+  useEffect(() => {
+    adsApi.getConfig()
+      .then(setAdsConfig)
+      .catch(err => console.error('Failed to load ads config:', err));
+  }, []);
 
   // Load all feed configurations
   useEffect(() => {
@@ -808,13 +817,29 @@ export default function Feed() {
           ) : (
             // Posts list
             <>
-              {posts.map(post => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  profilesAttributesMetadata={profilesAttributesMetadata}
-                  postsAttributesMetadata={postsAttributesMetadata}
-                />
+              {posts.map((post, index) => (
+                <div key={post.id}>
+                  <PostCard
+                    post={post}
+                    profilesAttributesMetadata={profilesAttributesMetadata}
+                    postsAttributesMetadata={postsAttributesMetadata}
+                  />
+
+                  {/* Show ad after every N posts based on frequency */}
+                  {adsConfig?.enabled &&
+                   adsConfig.ad_client &&
+                   adsConfig.ad_slot &&
+                   adsConfig.ad_layout_key &&
+                   (index + 1) % adsConfig.frequency === 0 && (
+                    <AdUnit
+                      key={`ad-${index}`}
+                      adClient={adsConfig.ad_client}
+                      adSlot={adsConfig.ad_slot}
+                      adFormat={adsConfig.ad_format}
+                      adLayoutKey={adsConfig.ad_layout_key}
+                    />
+                  )}
+                </div>
               ))}
 
               {/* Load More Button */}
