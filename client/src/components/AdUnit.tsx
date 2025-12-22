@@ -1,52 +1,46 @@
 import { useEffect, useRef } from 'react';
+import { Card } from '@/components/ui/card';
 
 declare global {
   interface Window {
-    adsbygoogle: any[];
+    adsbygoogle: unknown[];
   }
 }
 
 interface AdUnitProps {
-  adUnitId: string;
-  adFormat: 'in-feed' | 'banner' | 'native';
+  adClient: string;
+  adSlot: string;
+  adFormat: string;
+  adLayoutKey: string;
 }
 
-export function AdUnit({ adUnitId, adFormat }: AdUnitProps) {
+export function AdUnit({ adClient, adSlot, adFormat, adLayoutKey }: AdUnitProps) {
   const adRef = useRef<HTMLModElement>(null);
   const isAdLoaded = useRef(false);
 
   useEffect(() => {
-    // Prevent double-loading ads
+    // Only load ad once
     if (isAdLoaded.current) return;
+    isAdLoaded.current = true;
 
-    // Load Google AdSense script if not already loaded
-    if (!window.adsbygoogle) {
-      const script = document.createElement('script');
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
-    }
-
-    // Push ad once script is loaded
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
-      isAdLoaded.current = true;
     } catch (e) {
       console.error('AdSense error:', e);
     }
   }, []);
 
   return (
-    <div className="ad-container my-4">
+    <Card className="bg-card border-border overflow-hidden my-4">
       <ins
         ref={adRef}
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client={adUnitId}
-        data-ad-format={adFormat === 'in-feed' ? 'fluid' : 'auto'}
-        data-full-width-responsive="true"
+        data-ad-format={adFormat}
+        data-ad-layout-key={adLayoutKey}
+        data-ad-client={adClient}
+        data-ad-slot={adSlot}
       />
-    </div>
+    </Card>
   );
 }

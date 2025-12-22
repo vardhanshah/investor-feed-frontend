@@ -827,12 +827,16 @@ export default function Feed() {
 
                   {/* Show ad after every N posts based on frequency */}
                   {adsConfig?.enabled &&
-                   adsConfig.ad_unit_id &&
+                   adsConfig.ad_client &&
+                   adsConfig.ad_slot &&
+                   adsConfig.ad_layout_key &&
                    (index + 1) % adsConfig.frequency === 0 && (
                     <AdUnit
                       key={`ad-${index}`}
-                      adUnitId={adsConfig.ad_unit_id}
+                      adClient={adsConfig.ad_client}
+                      adSlot={adsConfig.ad_slot}
                       adFormat={adsConfig.ad_format}
+                      adLayoutKey={adsConfig.ad_layout_key}
                     />
                   )}
                 </div>

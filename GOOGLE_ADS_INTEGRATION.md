@@ -1,6 +1,6 @@
-# Google Ads Integration Specification
+# Google AdSense In-Feed Ads Integration
 
-This document describes how to integrate Google Ads into the feed. The backend provides configuration, and the frontend handles ad rendering.
+This document describes how to integrate Google AdSense in-feed ads into the feed.
 
 ## Backend API
 
@@ -8,16 +8,18 @@ This document describes how to integrate Google Ads into the feed. The backend p
 
 **No authentication required**
 
-Returns ads configuration for the frontend.
+Returns Google AdSense configuration for the frontend.
 
 ### Response Schema
 
 ```typescript
 interface AdsConfigResponse {
-  enabled: boolean;       // Whether ads should be displayed
-  frequency: number;      // Number of posts between ads (e.g., 2 = ad after every 2 posts)
-  ad_unit_id: string | null;  // Google Ads unit ID (null when disabled)
-  ad_format: "in-feed" | "banner" | "native";  // Ad format type
+  enabled: boolean;           // Whether ads should be displayed
+  frequency: number;          // Number of posts between ads (e.g., 2 = ad after every 2 posts)
+  ad_client: string | null;   // Google AdSense publisher ID (data-ad-client)
+  ad_slot: string | null;     // Ad slot ID (data-ad-slot)
+  ad_format: string;          // Ad format (data-ad-format), default: "fluid"
+  ad_layout_key: string | null; // Layout key for in-feed ads (data-ad-layout-key)
 }
 ```
 
@@ -27,8 +29,10 @@ interface AdsConfigResponse {
 {
   "enabled": true,
   "frequency": 2,
-  "ad_unit_id": "ca-pub-1234567890123456",
-  "ad_format": "in-feed"
+  "ad_client": "ca-pub-9314644920823526",
+  "ad_slot": "3164767034",
+  "ad_format": "fluid",
+  "ad_layout_key": "-6t+ed+2i-1n-4w"
 }
 ```
 
@@ -42,8 +46,10 @@ In `client/src/lib/api.ts`:
 export interface AdsConfig {
   enabled: boolean;
   frequency: number;
-  ad_unit_id: string | null;
-  ad_format: 'in-feed' | 'banner' | 'native';
+  ad_client: string | null;
+  ad_slot: string | null;
+  ad_format: string;
+  ad_layout_key: string | null;
 }
 
 export const adsApi = {
@@ -63,26 +69,30 @@ Create `client/src/components/AdUnit.tsx`:
 
 ```tsx
 import { useEffect, useRef } from 'react';
+import { Card } from '@/components/ui/card';
 
 interface AdUnitProps {
-  adUnitId: string;
-  adFormat: 'in-feed' | 'banner' | 'native';
+  adClient: string;
+  adSlot: string;
+  adFormat: string;
+  adLayoutKey: string;
 }
 
-export function AdUnit({ adUnitId, adFormat }: AdUnitProps) {
-  const adRef = useRef<HTMLDivElement>(null);
+declare global {
+  interface Window {
+    adsbygoogle: unknown[];
+  }
+}
+
+export function AdUnit({ adClient, adSlot, adFormat, adLayoutKey }: AdUnitProps) {
+  const adRef = useRef<HTMLModElement>(null);
+  const isAdLoaded = useRef(false);
 
   useEffect(() => {
-    // Load Google AdSense script if not already loaded
-    if (!window.adsbygoogle) {
-      const script = document.createElement('script');
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
-    }
+    // Only load ad once
+    if (isAdLoaded.current) return;
+    isAdLoaded.current = true;
 
-    // Push ad once script is loaded
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
@@ -91,23 +101,33 @@ export function AdUnit({ adUnitId, adFormat }: AdUnitProps) {
   }, []);
 
   return (
-    <div className="ad-container my-4">
+    <Card className="bg-card border-border overflow-hidden">
       <ins
         ref={adRef}
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client={adUnitId}
-        data-ad-format={adFormat === 'in-feed' ? 'fluid' : 'auto'}
-        data-full-width-responsive="true"
+        data-ad-format={adFormat}
+        data-ad-layout-key={adLayoutKey}
+        data-ad-client={adClient}
+        data-ad-slot={adSlot}
       />
-    </div>
+    </Card>
   );
 }
 ```
 
-### 3. Update Feed Component
+### 3. Add AdSense Script to index.html
 
-In `client/src/pages/feed.tsx`, modify the posts rendering:
+In `client/index.html`, add before `</head>`:
+
+```html
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9314644920823526"
+     crossorigin="anonymous"></script>
+```
+
+### 4. Update Feed Component
+
+In `client/src/pages/feed.tsx`:
 
 ```tsx
 import { useState, useEffect } from 'react';
@@ -126,20 +146,24 @@ useEffect(() => {
 
 // In the render section, interleave ads with posts:
 {posts.map((post, index) => (
-  <>
-    <PostCard key={post.id} post={post} ... />
+  <Fragment key={post.id}>
+    <PostCard post={post} ... />
 
     {/* Show ad after every N posts */}
     {adsConfig?.enabled &&
-     adsConfig.ad_unit_id &&
+     adsConfig.ad_client &&
+     adsConfig.ad_slot &&
+     adsConfig.ad_layout_key &&
      (index + 1) % adsConfig.frequency === 0 && (
       <AdUnit
         key={`ad-${index}`}
-        adUnitId={adsConfig.ad_unit_id}
+        adClient={adsConfig.ad_client}
+        adSlot={adsConfig.ad_slot}
         adFormat={adsConfig.ad_format}
+        adLayoutKey={adsConfig.ad_layout_key}
       />
     )}
-  </>
+  </Fragment>
 ))}
 ```
 
@@ -164,25 +188,26 @@ Given `frequency = 2`:
 |----------|------|---------|-------------|
 | `ADS_ENABLED` | boolean | false | Enable/disable ads globally |
 | `ADS_FREQUENCY` | integer | 2 | Number of posts between ads |
-| `ADS_UNIT_ID` | string | - | Google AdSense/AdMob unit ID |
-| `ADS_FORMAT` | string | in-feed | Ad format: in-feed, banner, native |
+| `ADS_CLIENT_ID` | string | - | Google AdSense publisher ID (ca-pub-xxx) |
+| `ADS_SLOT_ID` | string | - | Ad slot ID from AdSense |
+| `ADS_FORMAT` | string | fluid | Ad format type |
+| `ADS_LAYOUT_KEY` | string | - | Layout key for in-feed ads |
 
 ## Testing
 
-### Backend
 ```bash
-# Get ads config
+# Get ads config from backend
 curl http://localhost:8000/api/ads/config
 ```
 
-### Frontend
-1. Set up a test Google AdSense account
-2. Add test ad unit ID to backend environment
-3. Verify ads appear in feed at correct intervals
-
-## Notes
-
-- Ads are disabled by default until `ADS_ENABLED=true` is set
-- When ads are disabled, `ad_unit_id` will be `null`
-- The frontend should gracefully handle when ads are disabled
-- Consider adding a loading skeleton for ads to prevent layout shifts
+Expected response:
+```json
+{
+  "enabled": true,
+  "frequency": 2,
+  "ad_client": "ca-pub-9314644920823526",
+  "ad_slot": "3164767034",
+  "ad_format": "fluid",
+  "ad_layout_key": "-6t+ed+2i-1n-4w"
+}
+```

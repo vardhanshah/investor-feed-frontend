@@ -923,8 +923,10 @@ export const confidenceApi = {
 export interface AdsConfig {
   enabled: boolean;
   frequency: number;
-  ad_unit_id: string | null;
-  ad_format: 'in-feed' | 'banner' | 'native';
+  ad_client: string | null;
+  ad_slot: string | null;
+  ad_format: string;
+  ad_layout_key: string | null;
 }
 
 export const adsApi = {
