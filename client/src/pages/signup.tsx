@@ -8,7 +8,7 @@ import { FaGoogle } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { CheckCircle, XCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import { authApi } from '@/lib/api';
+import { authApi, API_BASE_URL } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -141,11 +141,11 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   const handleXSignup = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/twitter`;
+    window.location.href = `${API_BASE_URL}/auth/twitter`;
   };
 
   if (authLoading) {
