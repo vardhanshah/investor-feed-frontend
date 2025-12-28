@@ -530,6 +530,43 @@ export const handlers = [
     });
   }),
 
+  // Notifications endpoints
+  http.get(`${API_BASE_URL}/notifications/count`, ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return HttpResponse.json(
+        { detail: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+    return HttpResponse.json({ unread_count: 0 });
+  }),
+
+  http.get(`${API_BASE_URL}/notifications/mercure/auth`, ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return HttpResponse.json(
+        { detail: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+    return HttpResponse.json({
+      mercure_url: 'https://example.com/.well-known/mercure',
+      token: 'mock-mercure-token'
+    });
+  }),
+
+  // Mercure SSE streams endpoint (mock)
+  http.get('/streams', () => {
+    // Return empty response for SSE - tests don't need real streaming
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  // External URLs passthrough (for PostCard source links, etc.)
+  http.get('https://example.com/*', () => {
+    return new HttpResponse(null, { status: 200 });
+  }),
+
   // Company Confidence vote endpoint
   http.put(`${API_BASE_URL}/profiles/:profileId/confidence`, async ({ request, params }) => {
     const authHeader = request.headers.get('Authorization');

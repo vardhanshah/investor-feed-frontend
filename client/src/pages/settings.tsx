@@ -161,10 +161,10 @@ export default function Settings() {
   };
 
   const sidebarItems = [
-    { id: 'profile' as const, label: 'Profile', icon: User },
-    { id: 'feedback' as const, label: 'Feedback', icon: MessageSquare },
-    { id: 'legal' as const, label: 'Legal', icon: FileText },
-    { id: 'logout' as const, label: 'Logout', icon: LogOut },
+    { id: 'profile' as const, label: 'Profile', icon: User, danger: false },
+    { id: 'feedback' as const, label: 'Feedback', icon: MessageSquare, danger: false },
+    { id: 'legal' as const, label: 'Legal', icon: FileText, danger: false },
+    { id: 'logout' as const, label: 'Logout', icon: LogOut, danger: true },
   ];
 
   const handleLogout = () => {
