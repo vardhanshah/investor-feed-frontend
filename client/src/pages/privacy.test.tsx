@@ -123,10 +123,10 @@ describe('Privacy Page', () => {
     expect(gradientText).toHaveTextContent('Policy');
   });
 
-  it('should style section containers with muted background', () => {
+  it('should style section containers with card background', () => {
     const { container } = render(<Privacy />);
 
-    const sections = container.querySelectorAll('.bg-muted');
+    const sections = container.querySelectorAll('.bg-card');
     expect(sections.length).toBe(10); // 10 sections
 
     // Each section should have proper styling
@@ -151,7 +151,7 @@ describe('Privacy Page', () => {
     render(<Privacy />);
 
     const emailLink = screen.getByText('investor@investorfeed.in');
-    expect(emailLink).toHaveClass('text-[hsl(280,100%,70%)]', 'hover:underline');
+    expect(emailLink).toHaveClass('text-primary', 'hover:underline');
   });
 
   it('should style back button with gradient', () => {
@@ -163,9 +163,7 @@ describe('Privacy Page', () => {
       'items-center',
       'px-6',
       'py-3',
-      'bg-gradient-to-r',
-      'from-[hsl(280,100%,70%)]',
-      'to-[hsl(200,100%,70%)]'
+      'gradient-bg'
     );
   });
 

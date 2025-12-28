@@ -655,7 +655,7 @@ export default function Feed() {
                     className="border-dashed border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap"
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    New Feed
+                    Create Your Own Feed
                   </Button>
                 </div>
               </div>

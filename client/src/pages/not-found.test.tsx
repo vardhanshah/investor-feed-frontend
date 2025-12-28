@@ -46,14 +46,14 @@ describe('NotFound Page', () => {
     render(<NotFound />);
 
     const title = screen.getByText('404 Page Not Found');
-    expect(title).toHaveClass('text-2xl', 'font-bold', 'text-gray-900');
+    expect(title).toHaveClass('text-2xl', 'font-bold', 'text-foreground');
   });
 
   it('should apply correct styling to message', () => {
     render(<NotFound />);
 
     const message = screen.getByText('Did you forget to add the page to the router?');
-    expect(message).toHaveClass('text-sm', 'text-gray-600');
+    expect(message).toHaveClass('text-sm', 'text-muted-foreground');
   });
 
   it('should have proper responsive width constraints', () => {
@@ -85,10 +85,10 @@ describe('NotFound Page', () => {
     expect(icon).toHaveClass('h-8', 'w-8');
   });
 
-  it('should apply gray background to page', () => {
+  it('should apply background color to page', () => {
     const { container } = render(<NotFound />);
 
-    const wrapper = container.querySelector('.bg-gray-50');
+    const wrapper = container.querySelector('.bg-background');
     expect(wrapper).toBeInTheDocument();
   });
 
@@ -126,12 +126,12 @@ describe('NotFound Page', () => {
   it('should be accessible with proper color contrast', () => {
     render(<NotFound />);
 
-    // Title should have high contrast (gray-900 on white/light background)
+    // Title should have high contrast
     const title = screen.getByText('404 Page Not Found');
-    expect(title).toHaveClass('text-gray-900');
+    expect(title).toHaveClass('text-foreground');
 
-    // Message should have readable contrast (gray-600 on white/light background)
+    // Message should have readable contrast
     const message = screen.getByText('Did you forget to add the page to the router?');
-    expect(message).toHaveClass('text-gray-600');
+    expect(message).toHaveClass('text-muted-foreground');
   });
 });

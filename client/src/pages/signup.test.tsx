@@ -42,7 +42,7 @@ describe('Signup Page', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument();
     });
-    expect(screen.getByRole('button', { name: /x \(twitter\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^x$/i })).toBeInTheDocument();
   });
 
   it('should have link to login page', async () => {
@@ -138,7 +138,7 @@ describe('Signup Page', () => {
 
   it('should validate password strength', async () => {
     const user = userEvent.setup();
-    render(<Signup />);
+    const { container } = render(<Signup />);
 
     await waitFor(() => {
       expect(screen.getAllByLabelText(/password/i)[0]).toBeInTheDocument();
@@ -149,9 +149,14 @@ describe('Signup Page', () => {
     // Strong password
     await user.type(passwordInput, 'Test123!@#');
 
+    // When password is valid, the input gets green border and shows CheckCircle
     await waitFor(() => {
-      expect(screen.getByText(/password meets all requirements/i)).toBeInTheDocument();
+      expect(passwordInput).toHaveClass('border-green-500');
     });
+
+    // Check for green checkmark icon
+    const checkIcon = container.querySelector('.text-green-500');
+    expect(checkIcon).toBeInTheDocument();
   });
 
   it('should validate password confirmation match', async () => {
@@ -428,8 +433,9 @@ describe('Signup Page', () => {
     await user.type(screen.getAllByLabelText(/^password$/i)[0], 'weak');
     await user.type(screen.getByLabelText(/confirm password/i), 'weak');
 
+    // Button shows "Complete form to continue" when validation fails
     await waitFor(() => {
-      expect(screen.getByText(/complete all validation requirements/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /complete form to continue/i })).toBeInTheDocument();
     });
   });
 

@@ -22,9 +22,13 @@ vi.mock('wouter', async () => {
 });
 
 // Mock date-fns for consistent time formatting
-vi.mock('date-fns', () => ({
-  formatDistanceToNow: (date: Date) => '2 hours ago',
-}));
+vi.mock('date-fns', async () => {
+  const actual = await vi.importActual('date-fns');
+  return {
+    ...actual,
+    formatDistanceToNow: () => '2 hours ago',
+  };
+});
 
 describe('UserActivity Page', () => {
   beforeEach(() => {
@@ -118,15 +122,15 @@ describe('UserActivity Page', () => {
     expect(activityType).toBeInTheDocument();
   });
 
-  it('should display "My Profile" for own profile', async () => {
+  it('should display user full name in profile', async () => {
     render(<UserActivity />);
 
     await waitFor(() => {
-      expect(screen.getByText('My Profile')).toBeInTheDocument();
+      expect(screen.getByText('Test User')).toBeInTheDocument();
     });
   });
 
-  it('should display user number for other profiles', async () => {
+  it('should display other user full name when viewing another profile', async () => {
     mockRouteMatch.userId = '2';
 
     // Mock different user
@@ -144,10 +148,25 @@ describe('UserActivity Page', () => {
       refreshUser: vi.fn(),
     });
 
+    server.use(
+      http.get(`${API_BASE_URL}/user/:userId/activity`, () => {
+        return HttpResponse.json({
+          user_id: 2,
+          user_email: 'other@example.com',
+          full_name: 'Other User',
+          created_at: '2025-01-01',
+          activities: [],
+          total_count: 0,
+          limit: 40,
+          offset: 0,
+        });
+      })
+    );
+
     render(<UserActivity />);
 
     await waitFor(() => {
-      expect(screen.getByText('User #2')).toBeInTheDocument();
+      expect(screen.getByText('Other User')).toBeInTheDocument();
     });
   });
 

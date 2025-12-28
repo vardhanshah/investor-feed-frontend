@@ -97,19 +97,15 @@ describe('Feed Page', () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it('should handle logout', async () => {
-    const user = userEvent.setup();
+  it('should have settings accessible via user profile', async () => {
     render(<Feed />);
 
     await waitFor(() => {
       expect(screen.getByText('Investor Feed')).toBeInTheDocument();
     });
 
-    const logoutButton = screen.getByRole('button', { name: /logout/i });
-    await user.click(logoutButton);
-
-    expect(mockLogout).toHaveBeenCalled();
-    expect(mockSetLocation).toHaveBeenCalledWith('/');
+    // The settings/logout is now accessed via Settings page, not directly from feed header
+    expect(screen.getByTitle('My Profile')).toBeInTheDocument();
   });
 
   it('should not display load more button when all posts are shown', async () => {

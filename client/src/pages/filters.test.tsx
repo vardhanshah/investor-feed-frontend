@@ -156,7 +156,7 @@ describe('Filters Page', () => {
     });
   });
 
-  it('should redirect to login if not authenticated', async () => {
+  it('should redirect to home if not authenticated', async () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
@@ -169,7 +169,7 @@ describe('Filters Page', () => {
     render(<Filters />);
 
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/login');
+      expect(mockSetLocation).toHaveBeenCalledWith('/');
     });
   });
 

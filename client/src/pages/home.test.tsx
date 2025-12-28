@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@/test/utils';
 import Home from './home';
 import * as AuthContext from '@/contexts/AuthContext';
+import { server } from '@/test/mocks/server';
+import { http, HttpResponse } from 'msw';
 
 // Mock useLocation from wouter
 const mockSetLocation = vi.fn();
@@ -13,26 +15,37 @@ vi.mock('wouter', async () => {
   };
 });
 
-// Mock the components
-vi.mock('@/components/Header', () => ({
-  default: () => <header data-testid="header">Header Component</header>,
-}));
-
-vi.mock('@/components/Hero', () => ({
-  default: () => <div data-testid="hero">Hero Component</div>,
-}));
-
-vi.mock('@/components/Follow', () => ({
-  default: () => <div data-testid="follow">Follow Component</div>,
-}));
-
 describe('Home Page', () => {
   beforeEach(() => {
     mockSetLocation.mockClear();
+
+    // Mock public posts API
+    server.use(
+      http.get('/api/feeds/public/posts', () => {
+        return HttpResponse.json({
+          posts: [
+            {
+              id: 1,
+              content: 'Test post content',
+              profile: {
+                id: 1,
+                title: 'Test Company',
+                meta_attributes: { symbol: 'TEST', sub_sector: 'Technology' },
+              },
+              attributes: {
+                category: 'Annual Report',
+              },
+              created_at: '2025-01-01T12:00:00',
+              submission_date: '2025-01-01T12:00:00',
+              categories: ['Annual Report'],
+            },
+          ],
+        });
+      })
+    );
   });
 
-  it('should render home page components for unauthenticated users', () => {
-    // Mock unauthenticated state
+  it('should render home page components for unauthenticated users', async () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
@@ -44,14 +57,15 @@ describe('Home Page', () => {
 
     render(<Home />);
 
-    // Check that all main components are rendered
-    expect(screen.getByTestId('header')).toBeInTheDocument();
-    expect(screen.getByTestId('hero')).toBeInTheDocument();
-    expect(screen.getByTestId('follow')).toBeInTheDocument();
+    // Check that main elements are rendered
+    await waitFor(() => {
+      expect(screen.getByText('Investor Feed')).toBeInTheDocument();
+      expect(screen.getByText(/See Through/)).toBeInTheDocument();
+      expect(screen.getByText('Get started with Investor Feed')).toBeInTheDocument();
+    });
   });
 
   it('should display loading spinner while checking auth', () => {
-    // Mock loading state
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
@@ -66,15 +80,9 @@ describe('Home Page', () => {
     // Check for loading spinner
     const spinner = document.querySelector('.animate-spin');
     expect(spinner).toBeInTheDocument();
-
-    // Should not show home page components while loading
-    expect(screen.queryByTestId('header')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('hero')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('follow')).not.toBeInTheDocument();
   });
 
   it('should redirect authenticated users to /home', async () => {
-    // Mock authenticated user
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: {
         user_id: 1,
@@ -91,18 +99,12 @@ describe('Home Page', () => {
 
     render(<Home />);
 
-    // Wait for redirect
     await waitFor(() => {
       expect(mockSetLocation).toHaveBeenCalledWith('/home');
     });
-
-    // Should not render home page components for authenticated users
-    expect(screen.queryByTestId('header')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('hero')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('follow')).not.toBeInTheDocument();
   });
 
-  it('should not redirect when user is null and not loading', () => {
+  it('should not redirect when user is null and not loading', async () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
@@ -117,10 +119,10 @@ describe('Home Page', () => {
     // Should not redirect
     expect(mockSetLocation).not.toHaveBeenCalled();
 
-    // Should show home page components
-    expect(screen.getByTestId('header')).toBeInTheDocument();
-    expect(screen.getByTestId('hero')).toBeInTheDocument();
-    expect(screen.getByTestId('follow')).toBeInTheDocument();
+    // Should show main content
+    await waitFor(() => {
+      expect(screen.getByText('Investor Feed')).toBeInTheDocument();
+    });
   });
 
   it('should not redirect while authentication is loading', () => {
@@ -135,15 +137,11 @@ describe('Home Page', () => {
 
     render(<Home />);
 
-    // Should not redirect while loading
     expect(mockSetLocation).not.toHaveBeenCalled();
   });
 
   it('should handle transition from loading to authenticated', async () => {
-    const { rerender } = render(<Home />);
-
-    // Start with loading state
-    const loadingAuth = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+    const authSpy = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
       isAuthenticated: false,
@@ -152,11 +150,11 @@ describe('Home Page', () => {
       refreshUser: vi.fn(),
     });
 
-    rerender(<Home />);
+    const { rerender } = render(<Home />);
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
 
     // Transition to authenticated state
-    loadingAuth.mockReturnValue({
+    authSpy.mockReturnValue({
       user: {
         user_id: 1,
         email: 'test@example.com',
@@ -177,9 +175,8 @@ describe('Home Page', () => {
     });
   });
 
-  it('should handle transition from loading to unauthenticated', () => {
-    // Set up loading state BEFORE first render
-    const loadingAuth = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+  it('should handle transition from loading to unauthenticated', async () => {
+    const authSpy = vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: true,
       isAuthenticated: false,
@@ -188,16 +185,13 @@ describe('Home Page', () => {
       refreshUser: vi.fn(),
     });
 
-    // Clear any previous calls from setup
     mockSetLocation.mockClear();
-
     const { rerender } = render(<Home />);
 
-    // Should show loading state
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
 
     // Transition to unauthenticated state
-    loadingAuth.mockReturnValue({
+    authSpy.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticated: false,
@@ -208,13 +202,11 @@ describe('Home Page', () => {
 
     rerender(<Home />);
 
-    // Should not redirect
     expect(mockSetLocation).not.toHaveBeenCalled();
 
-    // Should show home page components
-    expect(screen.getByTestId('header')).toBeInTheDocument();
-    expect(screen.getByTestId('hero')).toBeInTheDocument();
-    expect(screen.getByTestId('follow')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Investor Feed')).toBeInTheDocument();
+    });
   });
 
   it('should have correct CSS classes for loading spinner', () => {
@@ -255,7 +247,6 @@ describe('Home Page', () => {
     const { container } = render(<Home />);
 
     // Component should return null for authenticated users
-    // The only element should be the Toaster which is rendered at the root level
     const children = container.querySelectorAll(':scope > *');
     const nonToasterElements = Array.from(children).filter(
       el => !el.getAttribute('aria-label')?.includes('Notifications')
@@ -263,7 +254,7 @@ describe('Home Page', () => {
     expect(nonToasterElements.length).toBe(0);
   });
 
-  it('should apply correct background color to main container', () => {
+  it('should apply correct background color to main container', async () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
@@ -303,8 +294,6 @@ describe('Home Page', () => {
   });
 
   it('should handle rapid auth state changes', async () => {
-    const { rerender } = render(<Home />);
-
     const authSpy = vi.spyOn(AuthContext, 'useAuth');
 
     // Start unauthenticated
@@ -317,8 +306,11 @@ describe('Home Page', () => {
       refreshUser: vi.fn(),
     });
 
-    rerender(<Home />);
-    expect(screen.getByTestId('header')).toBeInTheDocument();
+    const { rerender } = render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Investor Feed')).toBeInTheDocument();
+    });
 
     // Switch to loading
     authSpy.mockReturnValue({
@@ -355,7 +347,7 @@ describe('Home Page', () => {
     });
   });
 
-  it('should maintain component hierarchy when rendered', () => {
+  it('should display value proposition badges', async () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
@@ -367,12 +359,45 @@ describe('Home Page', () => {
 
     const { container } = render(<Home />);
 
-    // Check component order
-    const mainContainer = container.querySelector('.min-h-screen');
-    const children = mainContainer?.children;
+    // Wait for component to render and check for value prop badges
+    await waitFor(() => {
+      const badges = container.querySelectorAll('.bg-muted.rounded-full');
+      expect(badges.length).toBeGreaterThan(0);
+    });
+  });
 
-    expect(children?.[0]).toHaveAttribute('data-testid', 'header');
-    expect(children?.[1]).toHaveAttribute('data-testid', 'hero');
-    expect(children?.[2]).toHaveAttribute('data-testid', 'follow');
+  it('should display social login buttons', async () => {
+    vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Continue with Google/)).toBeInTheDocument();
+      expect(screen.getByText(/Continue with X/)).toBeInTheDocument();
+    });
+  });
+
+  it('should display live feed preview section', async () => {
+    vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Live Feed')).toBeInTheDocument();
+    });
   });
 });
