@@ -141,11 +141,13 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+    window.location.href = `${backendUrl}/api/auth/google`;
   };
 
   const handleXSignup = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/twitter`;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+    window.location.href = `${backendUrl}/api/auth/twitter`;
   };
 
   if (authLoading) {

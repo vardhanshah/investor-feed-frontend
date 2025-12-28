@@ -100,7 +100,10 @@ export default function Home() {
                   <Button
                     variant="outline"
                     className="w-full h-12 border-border bg-card text-foreground hover:bg-muted font-alata text-base rounded-lg flex items-center justify-center gap-3"
-                    onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`}
+                    onClick={() => {
+                      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+                      window.location.href = `${backendUrl}/api/auth/google`;
+                    }}
                   >
                     <FaGoogle className="w-5 h-5 text-[#4285F4]" />
                     Continue with Google
@@ -109,7 +112,10 @@ export default function Home() {
                   <Button
                     variant="outline"
                     className="w-full h-12 border-border bg-card text-foreground hover:bg-muted font-alata text-base rounded-lg flex items-center justify-center gap-3"
-                    onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/twitter`}
+                    onClick={() => {
+                      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+                      window.location.href = `${backendUrl}/api/auth/twitter`;
+                    }}
                   >
                     <FaXTwitter className="w-5 h-5" />
                     Continue with X
