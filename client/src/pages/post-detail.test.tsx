@@ -1210,7 +1210,7 @@ describe('PostDetailPage', () => {
 
       // Should reload comments - verify by checking getComments was called at least twice
       await waitFor(() => {
-        expect(api.commentsApi.getComments.mock.calls.length).toBeGreaterThanOrEqual(2);
+        expect(vi.mocked(api.commentsApi.getComments).mock.calls.length).toBeGreaterThanOrEqual(2);
       }, { timeout: 3000 });
 
       confirmSpy.mockRestore();
