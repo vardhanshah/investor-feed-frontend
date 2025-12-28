@@ -1308,7 +1308,9 @@ describe('PostDetailPage', () => {
       await user.click(deleteButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Failed to delete/i)).toBeInTheDocument();
+        // Error is shown in toast (may appear in multiple places for accessibility)
+        const errorMessages = screen.getAllByText(/Failed to delete/i);
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
 
       confirmSpy.mockRestore();

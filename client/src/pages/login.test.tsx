@@ -41,7 +41,7 @@ describe('Login Page', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument();
     });
-    expect(screen.getByRole('button', { name: /x \(twitter\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^x$/i })).toBeInTheDocument();
   });
 
   it('should have link to signup page', async () => {
