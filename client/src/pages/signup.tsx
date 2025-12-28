@@ -123,8 +123,8 @@ export default function Signup() {
         description: `Welcome, ${formData.name}! Please log in to continue.`,
       });
 
-      // Redirect to login page
-      setLocation('/login');
+      // Redirect to home page (which has login)
+      setLocation('/');
     } catch (error) {
       const errorInfo = getErrorMessage(error);
 

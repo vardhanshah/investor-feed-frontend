@@ -248,9 +248,9 @@ describe('Signup Page', () => {
     // Submit
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
-    // Should redirect to login
+    // Should redirect to home
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/login');
+      expect(mockSetLocation).toHaveBeenCalledWith('/');
     });
   });
 
@@ -388,7 +388,7 @@ describe('Signup Page', () => {
     });
 
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/login');
+      expect(mockSetLocation).toHaveBeenCalledWith('/');
     });
   });
 

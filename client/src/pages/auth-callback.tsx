@@ -45,16 +45,16 @@ export default function AuthCallback() {
         setStatus('error');
         setErrorMessage(errorMsg);
 
-        // Redirect to login with error after a brief delay
+        // Redirect to home with error after a brief delay
         setTimeout(() => {
-          setLocation(`/login?error=${encodeURIComponent(errorMsg)}`, { replace: true });
+          setLocation(`/?error=${encodeURIComponent(errorMsg)}`, { replace: true });
         }, 1500);
       } else {
         // No token or error - invalid callback
         setStatus('error');
         setErrorMessage('Invalid authentication callback.');
         setTimeout(() => {
-          setLocation('/login', { replace: true });
+          setLocation('/', { replace: true });
         }, 1500);
       }
     };
@@ -74,7 +74,7 @@ export default function AuthCallback() {
           <>
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
             <p className="text-foreground font-alata text-lg">{errorMessage}</p>
-            <p className="text-muted-foreground font-alata text-sm">Redirecting to login...</p>
+            <p className="text-muted-foreground font-alata text-sm">Redirecting...</p>
           </>
         )}
       </div>
