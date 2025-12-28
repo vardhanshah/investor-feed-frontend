@@ -93,9 +93,9 @@ export default function UserActivityPage() {
     }
   };
 
-  // Get avatar URL to display - for own profile use preview/authUser, for others use API data
+  // Get avatar URL to display - for own profile use preview/authUser/activityData, for others use API data
   const displayAvatarUrl = isOwnProfile
-    ? (avatarPreview || authUser?.avatar_url)
+    ? (avatarPreview || authUser?.avatar_url || activityData?.avatar_url)
     : activityData?.avatar_url;
 
   // Fetch user activity (includes user profile data)
@@ -268,7 +268,7 @@ export default function UserActivityPage() {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
               <Button
                 variant="ghost"
@@ -281,7 +281,7 @@ export default function UserActivityPage() {
             </div>
           </div>
         </header>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="bg-card border-border">
             <CardContent className="p-12 text-center">
               <p className="text-destructive font-alata text-lg">
@@ -298,7 +298,7 @@ export default function UserActivityPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Button
               variant="ghost"
@@ -308,16 +308,13 @@ export default function UserActivityPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
-            <h1 className="text-xl font-alata text-foreground">
-              {isOwnProfile ? 'My Profile' : `User #${userId}`}
-            </h1>
             <div className="w-24"></div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* User Profile Header */}
         <Card className="bg-card border-border mb-6">
           <CardContent className="p-8">

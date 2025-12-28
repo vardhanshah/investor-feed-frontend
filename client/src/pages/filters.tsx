@@ -39,7 +39,7 @@ export default function Filters() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      setLocation('/login');
+      setLocation('/');
     }
   }, [authLoading, user, setLocation]);
 

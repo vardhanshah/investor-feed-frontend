@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FaGoogle, FaTwitter } from 'react-icons/fa';
+import { FaGoogle } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Link, useLocation, useSearch } from 'wouter';
-import { authApi, API_BASE_URL } from '@/lib/api';
+import { authApi } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -79,19 +80,17 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to backend OAuth endpoint
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
   };
 
   const handleXLogin = () => {
-    // Redirect to backend OAuth endpoint
-    window.location.href = `${API_BASE_URL}/auth/twitter`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/twitter`;
   };
 
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -105,7 +104,7 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/">
-            <span className="text-3xl font-alata font-medium text-foreground cursor-pointer hover:text-[hsl(280,100%,70%)] transition-colors">
+            <span className="text-3xl font-alata font-medium text-foreground cursor-pointer hover:text-primary transition-colors">
               Investor Feed
             </span>
           </Link>
@@ -115,14 +114,14 @@ export default function Login() {
           <p className="mt-2 text-sm text-muted-foreground font-alata">
             Or{' '}
             <Link href="/signup">
-              <span className="text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] cursor-pointer">
+              <span className="text-primary hover:opacity-80 cursor-pointer">
                 create a new account
               </span>
             </Link>
           </p>
         </div>
 
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-alata text-foreground text-center">Welcome back</CardTitle>
             <CardDescription className="text-muted-foreground font-alata text-center">
@@ -135,18 +134,18 @@ export default function Login() {
               <Button
                 variant="outline"
                 onClick={handleGoogleLogin}
-                className="border-border text-foreground hover:bg-muted font-alata"
+                className="bg-card border-border text-foreground hover:bg-muted font-alata"
               >
-                <FaGoogle className="mr-2 h-4 w-4" />
+                <FaGoogle className="mr-2 h-4 w-4 text-[#4285F4]" />
                 Google
               </Button>
               <Button
                 variant="outline"
                 onClick={handleXLogin}
-                className="border-border text-foreground hover:bg-muted font-alata"
+                className="bg-card border-border text-foreground hover:bg-muted font-alata"
               >
-                <FaTwitter className="mr-2 h-4 w-4" />
-                X (Twitter)
+                <FaXTwitter className="mr-2 h-4 w-4" />
+                X
               </Button>
             </div>
 
@@ -155,7 +154,7 @@ export default function Login() {
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground font-alata">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground font-alata">Or continue with email</span>
               </div>
             </div>
 
@@ -177,7 +176,7 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-background border-border text-foreground font-alata focus:border-[hsl(280,100%,70%)]"
+                  className="bg-card border-border text-foreground font-alata focus:border-primary focus:ring-primary"
                   placeholder="investor@example.com"
                 />
               </div>
@@ -190,14 +189,14 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-background border-border text-foreground font-alata focus:border-[hsl(280,100%,70%)]"
+                  className="bg-card border-border text-foreground font-alata focus:border-primary focus:ring-primary"
                   placeholder="Enter your password"
                 />
               </div>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+                className="w-full gradient-bg hover:opacity-90 text-white font-alata"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
@@ -205,7 +204,7 @@ export default function Login() {
 
             <div className="text-center">
               <Link href="/forgot-password">
-                <span className="text-sm text-muted-foreground hover:text-[hsl(280,100%,70%)] cursor-pointer font-alata">
+                <span className="text-sm text-muted-foreground hover:text-primary cursor-pointer font-alata">
                   Forgot your password?
                 </span>
               </Link>
@@ -216,7 +215,7 @@ export default function Login() {
         <div className="text-center">
           <Link href="/">
             <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer font-alata">
-              ← Back to home
+              &larr; Back to home
             </span>
           </Link>
         </div>

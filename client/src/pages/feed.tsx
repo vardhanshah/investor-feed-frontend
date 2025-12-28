@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bell, BellOff, Loader2, TrendingUp, Radio, Sun, Moon, Plus, X, Edit2, ArrowUp } from 'lucide-react';
-import { FaCog as FaCogIcon, FaSignOutAlt as FaSignOutAltIcon } from 'react-icons/fa';
+import { FaCog as FaCogIcon } from 'react-icons/fa';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -28,7 +28,7 @@ import {
 
 export default function Feed() {
   const [, setLocation] = useLocation();
-  const { user, isLoading: authLoading, logout } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
 
@@ -66,7 +66,7 @@ export default function Feed() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      setLocation('/login');
+      setLocation('/');
     }
   }, [authLoading, user, setLocation]);
 
@@ -373,11 +373,6 @@ export default function Feed() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    setLocation('/');
-  };
-
   const handleEditClick = (feed: FeedConfiguration, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent feed selection when clicking edit
     setEditingFeedId(feed.id);
@@ -469,18 +464,19 @@ export default function Feed() {
     <div className="min-h-screen bg-background transition-colors overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border transition-colors">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto flex justify-between items-center h-16">
             {/* Logo/Brand */}
             <div
-              className="flex items-center space-x-2 cursor-pointer group"
+              className="flex items-center space-x-3 cursor-pointer group"
               onClick={() => setLocation('/')}
             >
-              <div className="flex items-center">
-                <span className="text-2xl font-alata font-bold text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[hsl(280,100%,70%)] group-hover:to-[hsl(200,100%,70%)] transition-all">
-                  Investor Feed
-                </span>
+              <div className="p-1.5 rounded-lg gradient-bg">
+                <TrendingUp className="h-5 w-5 text-white" />
               </div>
+              <span className="text-2xl sm:text-3xl font-alata font-bold text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[hsl(280,100%,70%)] group-hover:to-[hsl(200,100%,70%)] transition-all">
+                Investor Feed
+              </span>
               {user.isPremium && (
                 <Badge className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black text-xs">
                   PRO
@@ -489,18 +485,18 @@ export default function Feed() {
             </div>
 
             {/* User Actions */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 onClick={toggleTheme}
                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               >
                 {theme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
+                  <Sun className="h-8 w-8" />
                 ) : (
-                  <Moon className="h-5 w-5" />
+                  <Moon className="h-8 w-8" />
                 )}
               </Button>
               <NotificationBell />
@@ -508,10 +504,10 @@ export default function Feed() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 onClick={() => setLocation('/settings')}
               >
-                <FaCogIcon className="h-5 w-5" />
+                <FaCogIcon className="h-8 w-8" />
               </Button>
 
               {/* User Profile Button */}
@@ -519,29 +515,19 @@ export default function Feed() {
                 <img
                   src={user.avatar_url}
                   alt="Profile"
-                  className="h-8 w-8 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ml-2"
+                  className="h-10 w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ml-1"
                   onClick={() => setLocation(`/users/${user.user_id}`)}
                   title="My Profile"
                 />
               ) : (
                 <div
-                  className="h-8 w-8 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity ml-2"
+                  className="h-10 w-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity ml-1"
                   onClick={() => setLocation(`/users/${user.user_id}`)}
                   title="My Profile"
                 >
                   {getInitials(user.full_name)}
                 </div>
               )}
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted font-alata transition-colors"
-              >
-                <FaSignOutAltIcon className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
             </div>
           </div>
         </div>

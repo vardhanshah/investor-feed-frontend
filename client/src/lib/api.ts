@@ -123,6 +123,8 @@ export interface Profile {
 }
 
 export interface PostAttributes {
+  category?: string;
+  sub_category?: string;
   growth_related?: boolean;
   future_guidance?: boolean;
   order_info?: boolean;
@@ -187,6 +189,36 @@ export interface FeedPostsResponse {
   posts: Post[];
   profiles_attributes_metadata?: ProfilesAttributesMetadata;
   posts_attributes_metadata?: PostAttributesMetadata;
+}
+
+// Simplified post interface for public/unauthenticated endpoints
+export interface PublicPost {
+  id: number;
+  content: string;
+  source: string;
+  submission_date: string;
+  profile: {
+    id: number;
+    title: string;
+    meta_attributes: {
+      symbol: string;
+      logo_url?: string;
+    };
+    attributes: {
+      sector: string;
+      subsector: string;
+    };
+  };
+  attributes: {
+    category: string;
+    sub_category: string;
+    growth_related?: boolean;
+    order_info?: boolean;
+  };
+}
+
+export interface PublicPostsResponse {
+  posts: PublicPost[];
 }
 
 export interface PostDetailResponse extends Post {
@@ -426,13 +458,16 @@ export const authApi = {
     });
     const data = await handleResponse<any>(response);
     // Map 'id' from API to 'user_id' for frontend
-    return {
+    // Check for avatar_url or picture (Google OAuth returns 'picture')
+    const user = {
       user_id: data.id,
       email: data.email,
       full_name: data.full_name,
-      avatar_url: data.avatar_url,
+      avatar_url: data.avatar_url || data.picture || null,
       created_at: data.created_at,
     };
+    console.log('[API] getCurrentUser:', user);
+    return user;
   },
 
   async refreshToken(): Promise<LoginResponse | null> {

@@ -162,10 +162,10 @@ export function ProfileSearch() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           title="Search companies (Cmd+K)"
         >
-          <Search className="h-5 w-5" />
+          <Search className="h-8 w-8" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

@@ -1,10 +1,8 @@
-import { useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function Privacy() {
-  const [, setLocation] = useLocation();
-
   return (
     <div className="min-h-screen bg-background text-foreground py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,7 +24,7 @@ export default function Privacy() {
         </div>
 
         <div className="prose prose-invert max-w-none">
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">1. Information We Collect</h2>
             <p className="text-muted-foreground font-alata mb-4">
               Investor Feed collects only essential information to provide our services:
@@ -53,7 +51,7 @@ export default function Privacy() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">2. How We Use Your Information</h2>
             <p className="text-muted-foreground font-alata mb-4">We use collected information to:</p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
@@ -66,10 +64,10 @@ export default function Privacy() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">3. Information Sharing</h2>
             <p className="text-muted-foreground font-alata mb-4">
-              We do <strong>NOT</strong> sell, trade, or rent your personal information to third parties.
+              We do <strong className="text-foreground">NOT</strong> sell, trade, or rent your personal information to third parties.
               We may share information only in these limited circumstances:
             </p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
@@ -80,13 +78,13 @@ export default function Privacy() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">4. Third-Party Services</h2>
             <p className="text-muted-foreground font-alata mb-4">Our platform integrates with:</p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
-              <li><strong>Google:</strong> For account authentication (OAuth login)</li>
-              <li><strong>Twitter/X:</strong> For account authentication (OAuth login)</li>
-              <li><strong>Razorpay:</strong> For payment processing (subject to Razorpay's privacy policy)</li>
+              <li><strong className="text-foreground">Google:</strong> For account authentication (OAuth login)</li>
+              <li><strong className="text-foreground">Twitter/X:</strong> For account authentication (OAuth login)</li>
+              <li><strong className="text-foreground">Razorpay:</strong> For payment processing (subject to Razorpay's privacy policy)</li>
             </ul>
             <p className="text-muted-foreground font-alata mb-4">
               These services have their own privacy policies which govern their data practices.
@@ -94,15 +92,15 @@ export default function Privacy() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">5. Cookies & Sessions</h2>
             <p className="text-muted-foreground font-alata mb-4">
               We use essential cookies and session storage for:
             </p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
-              <li><strong>Authentication:</strong> To keep you securely logged in</li>
-              <li><strong>Preferences:</strong> To remember your settings (e.g., dark/light mode)</li>
-              <li><strong>Security:</strong> To protect against unauthorized access</li>
+              <li><strong className="text-foreground">Authentication:</strong> To keep you securely logged in</li>
+              <li><strong className="text-foreground">Preferences:</strong> To remember your settings (e.g., dark/light mode)</li>
+              <li><strong className="text-foreground">Security:</strong> To protect against unauthorized access</li>
             </ul>
             <p className="text-muted-foreground font-alata mb-4">
               You can control cookie settings through your browser, but disabling essential
@@ -110,14 +108,14 @@ export default function Privacy() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">6. Data Retention</h2>
             <p className="text-muted-foreground font-alata mb-4">
               We retain your data as follows:
             </p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
-              <li><strong>Account data:</strong> Retained until you delete your account</li>
-              <li><strong>Session data:</strong> Automatically expires after period of inactivity</li>
+              <li><strong className="text-foreground">Account data:</strong> Retained until you delete your account</li>
+              <li><strong className="text-foreground">Session data:</strong> Automatically expires after period of inactivity</li>
             </ul>
             <p className="text-muted-foreground font-alata mb-4">
               You may request deletion of your account and associated data at any time by
@@ -125,7 +123,7 @@ export default function Privacy() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">7. Data Security</h2>
             <p className="text-muted-foreground font-alata mb-4">
               We implement appropriate technical and organizational measures to protect your
@@ -138,7 +136,7 @@ export default function Privacy() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">8. Your Rights</h2>
             <p className="text-muted-foreground font-alata mb-4">You have the right to:</p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
@@ -150,7 +148,7 @@ export default function Privacy() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">9. Changes to This Policy</h2>
             <p className="text-muted-foreground font-alata mb-4">
               We may update this Privacy Policy from time to time. We will notify you of
@@ -159,13 +157,13 @@ export default function Privacy() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">10. Contact Us</h2>
             <p className="text-muted-foreground font-alata mb-4">
               If you have questions about this Privacy Policy or wish to exercise your rights,
               please contact us:
               <br />
-              <a href="mailto:investor@investorfeed.in" className="text-[hsl(280,100%,70%)] hover:underline">
+              <a href="mailto:investor@investorfeed.in" className="text-primary hover:underline">
                 investor@investorfeed.in
               </a>
             </p>
@@ -173,12 +171,11 @@ export default function Privacy() {
         </div>
 
         <div className="text-center mt-12">
-          <a
-            href="/"
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata rounded-lg transition-all duration-200"
-          >
-            Back to Home
-          </a>
+          <Link href="/">
+            <span className="inline-flex items-center px-6 py-3 gradient-bg hover:opacity-90 text-white font-alata rounded-lg transition-all duration-200 cursor-pointer">
+              Back to Home
+            </span>
+          </Link>
         </div>
       </div>
     </div>

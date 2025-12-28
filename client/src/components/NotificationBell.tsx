@@ -200,9 +200,9 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="h-12 w-12 relative text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-8 w-8" />
           {unreadCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full p-0 flex items-center justify-center bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black text-xs font-bold border-0">
               {unreadCount > 99 ? '99+' : unreadCount}
