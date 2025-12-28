@@ -1,0 +1,12 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bar 1 (shortest) -->
+  <rect x="6" y="24" width="6" height="10" rx="1" fill="#2D1B4E"/>
+  <!-- Bar 2 (medium) -->
+  <rect x="14" y="18" width="6" height="16" rx="1" fill="#2D1B4E"/>
+  <!-- Bar 3 (tallest) -->
+  <rect x="22" y="12" width="6" height="22" rx="1" fill="#2D1B4E"/>
+  <!-- Arrow line -->
+  <path d="M8 22 L24 8" stroke="#2D1B4E" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Arrow head -->
+  <path d="M20 6 L26 8 L24 14" stroke="#2D1B4E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

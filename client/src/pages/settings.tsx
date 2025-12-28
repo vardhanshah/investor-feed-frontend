@@ -15,12 +15,12 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, MessageSquare, FileText, Trash2, ChevronRight, User } from 'lucide-react';
+import { ArrowLeft, MessageSquare, FileText, Trash2, ChevronRight, User, LogOut } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { VALIDATION_MESSAGES, SETTINGS_MESSAGES } from '@/lib/messages';
 import { useAuth } from '@/contexts/AuthContext';
 
-type SettingsSection = 'profile' | 'feedback' | 'legal' | 'delete';
+type SettingsSection = 'profile' | 'feedback' | 'legal' | 'logout';
 
 interface Question {
   id: number;
@@ -36,7 +36,7 @@ interface FeedbackAnswer {
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
 
   // Feedback state
@@ -50,7 +50,7 @@ export default function Settings() {
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
-      setLocation('/login');
+      setLocation('/');
     }
   }, [setLocation]);
 
@@ -164,8 +164,13 @@ export default function Settings() {
     { id: 'profile' as const, label: 'Profile', icon: User },
     { id: 'feedback' as const, label: 'Feedback', icon: MessageSquare },
     { id: 'legal' as const, label: 'Legal', icon: FileText },
-    { id: 'delete' as const, label: 'Delete Account', icon: Trash2, danger: true },
+    { id: 'logout' as const, label: 'Logout', icon: LogOut },
   ];
+
+  const handleLogout = () => {
+    logout();
+    setLocation('/');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -265,6 +270,52 @@ export default function Settings() {
                           : 'Unknown'}
                       </p>
                     </div>
+                  </div>
+
+                  <Separator className="my-6" />
+
+                  {/* Delete Account */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-alata text-red-400 mb-2">Delete Account</h3>
+                      <p className="text-sm text-muted-foreground font-alata mb-4">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                    </div>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          className="font-alata bg-red-600 hover:bg-red-700"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Account
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-card border-border">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-foreground font-alata">
+                            Are you absolutely sure?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="text-muted-foreground font-alata">
+                            This action cannot be undone. This will permanently delete your account
+                            and remove all your data from our servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="font-alata bg-muted border-border text-foreground hover:bg-muted/80">
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteAccount}
+                            className="font-alata bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Yes, delete my account
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
@@ -379,74 +430,30 @@ export default function Settings() {
               </Card>
             )}
 
-            {/* Delete Account Section */}
-            {activeSection === 'delete' && (
-              <Card className="bg-card border-red-900/50">
+            {/* Logout Section */}
+            {activeSection === 'logout' && (
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-xl font-alata text-red-400">Delete Account</CardTitle>
+                  <CardTitle className="text-xl font-alata text-foreground">Logout</CardTitle>
                   <CardDescription className="text-muted-foreground font-alata">
-                    Permanently delete your account and all associated data.
+                    Sign out of your account on this device.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-red-900/20 rounded-lg border border-red-900/50">
-                    <p className="text-sm font-alata text-foreground">
-                      <strong className="text-red-400">Warning:</strong> This action cannot be undone.
-                      Once you delete your account, all your data will be permanently removed from our servers.
-                    </p>
-                  </div>
-
-                  <ul className="text-sm font-alata text-muted-foreground space-y-2">
-                    <li className="flex items-start">
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-2"></span>
-                      Your profile and preferences will be deleted
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-2"></span>
-                      Your saved insights and history will be removed
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-2"></span>
-                      Any active subscriptions will be cancelled
-                    </li>
-                  </ul>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        className="w-full font-alata bg-red-600 hover:bg-red-700"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-card border-border">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-foreground font-alata">
-                          Are you absolutely sure?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-muted-foreground font-alata">
-                          This action cannot be undone. This will permanently delete your account
-                          and remove all your data from our servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="font-alata bg-muted border-border text-foreground hover:bg-muted/80">
-                          Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDeleteAccount}
-                          className="font-alata bg-red-600 hover:bg-red-700 text-white"
-                        >
-                          Yes, delete my account
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <p className="text-sm font-alata text-muted-foreground">
+                    You will need to sign in again to access your feed and settings.
+                  </p>
+                  <Button
+                    onClick={handleLogout}
+                    className="w-full bg-muted hover:bg-muted/80 text-foreground font-alata"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
                 </CardContent>
               </Card>
             )}
+
           </div>
         </div>
       </div>

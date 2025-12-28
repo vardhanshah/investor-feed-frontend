@@ -1,10 +1,8 @@
-import { useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function Terms() {
-  const [, setLocation] = useLocation();
-
   return (
     <div className="min-h-screen bg-background text-foreground py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,7 +24,7 @@ export default function Terms() {
         </div>
 
         <div className="prose prose-invert max-w-none">
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground font-alata mb-4">
               By accessing and using Investor Feed's services, including our website, mobile applications,
@@ -35,10 +33,10 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">2. Service Description</h2>
             <p className="text-muted-foreground font-alata mb-4">
-              Investor Feed is an <strong>information aggregation platform</strong> that:
+              Investor Feed is an <strong className="text-foreground">information aggregation platform</strong> that:
             </p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
               <li>Aggregates and displays publicly available corporate announcements and filings from stock exchanges</li>
@@ -46,17 +44,17 @@ export default function Terms() {
               <li>Offers a curated feed of updates from publicly listed companies</li>
             </ul>
             <p className="text-muted-foreground font-alata mb-4">
-              We are a <strong>technology platform providing tools</strong> to access and organize public information.
+              We are a <strong className="text-foreground">technology platform providing tools</strong> to access and organize public information.
               We do not create, verify, or endorse the underlying data.
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8 border-l-4 border-l-yellow-500">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8 border-l-4 border-l-yellow-500">
             <h2 className="text-2xl font-alata text-foreground mb-4">3. Important Disclaimers</h2>
 
             <h3 className="text-xl font-alata text-yellow-400 mb-3">NOT INVESTMENT ADVICE</h3>
             <p className="text-muted-foreground font-alata mb-4">
-              <strong>Investor Feed does NOT provide investment advice, stock tips, recommendations,
+              <strong className="text-foreground">Investor Feed does NOT provide investment advice, stock tips, recommendations,
               or suggestions of any kind.</strong> We are NOT SEBI registered investment advisors,
               research analysts, or portfolio managers. Nothing on this platform should be construed
               as a recommendation to buy, sell, or hold any security.
@@ -82,13 +80,13 @@ export default function Terms() {
 
             <h3 className="text-xl font-alata text-yellow-400 mb-3">NO LIABILITY FOR INVESTMENT DECISIONS</h3>
             <p className="text-muted-foreground font-alata mb-4">
-              <strong>Investor Feed shall NOT be liable for any investment decisions you make.</strong> Any
+              <strong className="text-foreground">Investor Feed shall NOT be liable for any investment decisions you make.</strong> Any
               action you take based on information on this platform is strictly at your own risk.
               You are solely responsible for your own investment research and decisions.
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">4. User Eligibility</h2>
             <p className="text-muted-foreground font-alata mb-4">To use our services, you must:</p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
@@ -98,7 +96,7 @@ export default function Terms() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">5. Account Terms</h2>
             <p className="text-muted-foreground font-alata mb-4">If you create an account, you agree to:</p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
@@ -113,7 +111,7 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">6. Prohibited Activities</h2>
             <p className="text-muted-foreground font-alata mb-4">You agree NOT to:</p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
@@ -127,7 +125,7 @@ export default function Terms() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">7. Intellectual Property</h2>
             <p className="text-muted-foreground font-alata mb-4">
               The Investor Feed platform, including its design, features, and tools, is our proprietary
@@ -140,7 +138,7 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">8. Limitation of Liability</h2>
             <p className="text-muted-foreground font-alata mb-4">
               TO THE MAXIMUM EXTENT PERMITTED BY LAW:
@@ -172,7 +170,7 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">9. Indemnification</h2>
             <p className="text-muted-foreground font-alata mb-4">
               You agree to indemnify and hold harmless Investor Feed, its owners, employees, and
@@ -187,7 +185,7 @@ export default function Terms() {
             </ul>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">10. Termination</h2>
             <p className="text-muted-foreground font-alata mb-4">
               We reserve the right to suspend or terminate your access to our services at any time,
@@ -205,7 +203,7 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">11. Modifications</h2>
             <p className="text-muted-foreground font-alata mb-4">
               We may modify these Terms at any time. Changes will be effective when posted on this page
@@ -214,7 +212,7 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">12. Governing Law & Dispute Resolution</h2>
             <p className="text-muted-foreground font-alata mb-4">
               These Terms shall be governed by and construed in accordance with the laws of India.
@@ -229,7 +227,7 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">13. Severability</h2>
             <p className="text-muted-foreground font-alata mb-4">
               If any provision of these Terms is found to be unenforceable or invalid, that provision
@@ -238,12 +236,12 @@ export default function Terms() {
             </p>
           </div>
 
-          <div className="bg-muted rounded-2xl p-8 shadow-lg border border-border mb-8">
+          <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">14. Contact Information</h2>
             <p className="text-muted-foreground font-alata mb-4">
               For questions about these Terms of Service, please contact us at:
               <br />
-              <a href="mailto:investor@investorfeed.in" className="text-[hsl(280,100%,70%)] hover:underline">
+              <a href="mailto:investor@investorfeed.in" className="text-primary hover:underline">
                 investor@investorfeed.in
               </a>
             </p>
@@ -251,12 +249,11 @@ export default function Terms() {
         </div>
 
         <div className="text-center mt-12">
-          <a
-            href="/"
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata rounded-lg transition-all duration-200"
-          >
-            Back to Home
-          </a>
+          <Link href="/">
+            <span className="inline-flex items-center px-6 py-3 gradient-bg hover:opacity-90 text-white font-alata rounded-lg transition-all duration-200 cursor-pointer">
+              Back to Home
+            </span>
+          </Link>
         </div>
       </div>
     </div>

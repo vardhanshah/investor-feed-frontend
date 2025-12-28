@@ -7,6 +7,7 @@ import { reactionsApi, Post, PostProfile, ProfilesAttributesMetadata, PostAttrib
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useLocation } from 'wouter';
 import { formatTimeAgoTwoUnits } from '@/lib/dateUtils';
+import { getCategoryColor } from '@/lib/utils';
 import CompanyConfidence from './CompanyConfidence';
 import { POST_MESSAGES } from '@/lib/messages';
 
@@ -243,17 +244,25 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         )}
 
         {/* Attribute Badges */}
-        {post.attributes && (post.attributes_metadata || postsAttributesMetadata) && (
+        {post.attributes && (post.attributes.category || post.attributes_metadata || postsAttributesMetadata) && (
           <div className="flex flex-wrap gap-2 mb-4">
+            {/* Category badge first */}
+            {post.attributes.category && (
+              <Badge className={`${getCategoryColor(post.attributes.category)} border text-sm font-alata px-2.5 py-0.5`}>
+                {post.attributes.category}
+              </Badge>
+            )}
+            {/* Other boolean attribute badges */}
             {Object.entries(post.attributes).map(([key, value]) => {
+              // Skip category and sub_category as they're handled separately
+              if (key === 'category' || key === 'sub_category') return null;
               // Use post-level metadata first, fall back to response-level metadata
               const metadata = post.attributes_metadata?.[key] || postsAttributesMetadata?.[key];
               if (value === true && metadata) {
                 return (
                   <Badge
                     key={key}
-                    variant="outline"
-                    className="border-[hsl(280,100%,70%)]/30 bg-[hsl(280,100%,70%)]/5 text-[hsl(280,100%,70%)] text-sm font-alata px-2.5 py-0.5"
+                    className={`${getCategoryColor(metadata.label)} border text-sm font-alata px-2.5 py-0.5`}
                   >
                     {metadata.label}
                   </Badge>

@@ -30,7 +30,11 @@ export default function Filters() {
     handleNumberFilterToChange,
   } = useFeedManagement({
     isActive: !!user, // Only fetch when user is authenticated
-    onSuccess: () => {
+    onSuccess: (feedId) => {
+      // Store the created feed ID so it gets selected on /home
+      if (feedId) {
+        localStorage.setItem('selectedFeedId', feedId.toString());
+      }
       // Navigate to home after creating feed
       setLocation('/home');
     },
@@ -39,7 +43,7 @@ export default function Filters() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      setLocation('/login');
+      setLocation('/');
     }
   }, [authLoading, user, setLocation]);
 
@@ -61,8 +65,8 @@ export default function Filters() {
     <div className="min-h-screen bg-background transition-colors">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border transition-colors">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
@@ -84,7 +88,8 @@ export default function Filters() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto">
         {isLoadingFilters ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
@@ -139,6 +144,7 @@ export default function Filters() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
