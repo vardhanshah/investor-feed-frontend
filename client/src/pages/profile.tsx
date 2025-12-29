@@ -102,11 +102,13 @@ export default function ProfilePage() {
       setOffset(prev => prev + response.posts.length);
     } catch (err) {
       const errorInfo = getErrorMessage(err);
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
     } finally {
       setIsLoadingPosts(false);
     }

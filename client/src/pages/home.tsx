@@ -157,8 +157,6 @@ export default function Home() {
                 >
                   9.5K+ Investors
                 </a>
-                <span className="w-1 h-1 bg-muted-foreground/30 rounded-full" />
-                <span>5 Lakh+ Documents</span>
               </div>
             </div>
           </div>

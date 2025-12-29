@@ -73,9 +73,6 @@ export default function HeroNew() {
             <div className="flex items-center">
               <span className="font-alata text-sm">9.5K+ Investors Trust Us</span>
             </div>
-            <div className="flex items-center">
-              <span className="font-alata text-sm">5 Lakh+ Documents Processed</span>
-            </div>
           </div>
         </div>
       </div>
