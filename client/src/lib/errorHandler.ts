@@ -13,11 +13,11 @@ export function getErrorMessage(error: unknown): ErrorInfo {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
 
-    // Authentication errors
+    // Authentication errors - handled silently (user will be redirected)
     if (message.includes('not authenticated') || message.includes('401')) {
       return {
-        title: 'Authentication Required',
-        message: 'Please log in to continue',
+        title: '',
+        message: '',
         action: 'redirect_login',
       };
     }
