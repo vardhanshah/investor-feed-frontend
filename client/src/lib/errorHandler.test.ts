@@ -3,12 +3,12 @@ import { getErrorMessage, shouldLogout, isNetworkError } from './errorHandler';
 
 describe('Error Handler', () => {
   describe('getErrorMessage', () => {
-    it('should handle authentication errors', () => {
+    it('should handle authentication errors silently', () => {
       const error = new Error('Not authenticated');
       const result = getErrorMessage(error);
 
-      expect(result.title).toBe('Authentication Required');
-      expect(result.message).toBe('Please log in to continue');
+      expect(result.title).toBe('');
+      expect(result.message).toBe('');
       expect(result.action).toBe('redirect_login');
     });
 
