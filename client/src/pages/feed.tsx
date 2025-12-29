@@ -99,12 +99,14 @@ export default function Feed() {
           }
         } catch (err) {
           const errorInfo = getErrorMessage(err);
-          setError(errorInfo.message);
-          toast({
-            variant: 'destructive',
-            title: errorInfo.title,
-            description: errorInfo.message,
-          });
+          if (errorInfo.title) {
+            setError(errorInfo.message);
+            toast({
+              variant: 'destructive',
+              title: errorInfo.title,
+              description: errorInfo.message,
+            });
+          }
         } finally {
           setIsLoadingFeeds(false);
         }
@@ -160,13 +162,14 @@ export default function Feed() {
       setOffset(currentOffset + response.posts.length);
     } catch (err) {
       const errorInfo = getErrorMessage(err);
-      setError(errorInfo.message);
-
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        setError(errorInfo.message);
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
     } finally {
       setIsLoadingPosts(false);
     }
@@ -363,11 +366,13 @@ export default function Feed() {
       setFeedToDelete(null);
     } catch (err) {
       const errorInfo = getErrorMessage(err);
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -399,11 +404,13 @@ export default function Feed() {
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
     }
   };
 
@@ -438,11 +445,13 @@ export default function Feed() {
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
     }
   };
 

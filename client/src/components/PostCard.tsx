@@ -95,11 +95,13 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
       setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
 
       const errorInfo = getErrorMessage(err);
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
     } finally {
       setIsLiking(false);
     }

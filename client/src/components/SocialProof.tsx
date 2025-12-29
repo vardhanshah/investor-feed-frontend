@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Eye, FileText } from "lucide-react";
+import { Users, Eye } from "lucide-react";
 
 // Custom hook for animated counters
 function useAnimatedCounter(target: number, duration: number = 2000) {
@@ -63,29 +63,17 @@ const stats = [
     label: 'Impressions',
     color: 'text-cyan-400',
   },
-  {
-    icon: FileText,
-    value: 500000,
-    format: 'lakhs',
-    suffix: '+',
-    label: 'Documents Processed',
-    color: 'text-green-400',
-  },
 ];
 
 export default function SocialProof() {
   const counters = {
     investors: useAnimatedCounter(9500),
     impressions: useAnimatedCounter(13300000),
-    documents: useAnimatedCounter(500000),
   };
 
   const formatValue = (value: number, format?: string) => {
     if (format === 'millions') {
       return `${(value / 1000000).toFixed(1)}M`;
-    }
-    if (format === 'lakhs') {
-      return `${(value / 100000).toFixed(0)} Lakh`;
     }
     if (value >= 1000) {
       return `${(value / 1000).toFixed(1)}K`;
@@ -94,7 +82,7 @@ export default function SocialProof() {
   };
 
   const getCounterValue = (index: number) => {
-    const keys = ['investors', 'impressions', 'documents'] as const;
+    const keys = ['investors', 'impressions'] as const;
     return counters[keys[index]];
   };
 
@@ -113,7 +101,7 @@ export default function SocialProof() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
           {stats.map((stat, index) => (
             <div
               key={stat.label}

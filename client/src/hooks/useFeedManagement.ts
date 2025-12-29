@@ -47,11 +47,13 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
             feedFilters.loadFeedData(feedData, response.filters);
           } catch (err) {
             const errorInfo = getErrorMessage(err);
-            toast({
-              variant: 'destructive',
-              title: errorInfo.title,
-              description: errorInfo.message,
-            });
+            if (errorInfo.title) {
+              toast({
+                variant: 'destructive',
+                title: errorInfo.title,
+                description: errorInfo.message,
+              });
+            }
             if (onError) onError(err);
           } finally {
             setIsLoadingFeed(false);
@@ -59,11 +61,13 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
         }
       } catch (err) {
         const errorInfo = getErrorMessage(err);
-        toast({
-          variant: 'destructive',
-          title: errorInfo.title,
-          description: errorInfo.message,
-        });
+        if (errorInfo.title) {
+          toast({
+            variant: 'destructive',
+            title: errorInfo.title,
+            description: errorInfo.message,
+          });
+        }
         if (onError) onError(err);
       } finally {
         setIsLoadingFilters(false);
@@ -115,11 +119,13 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
           feedFilters.loadFeedData(updatedFeed, filterConfigs);
         } catch (err) {
           const errorInfo = getErrorMessage(err);
-          toast({
-            variant: 'destructive',
-            title: errorInfo.title,
-            description: errorInfo.message,
-          });
+          if (errorInfo.title) {
+            toast({
+              variant: 'destructive',
+              title: errorInfo.title,
+              description: errorInfo.message,
+            });
+          }
         } finally {
           setIsLoadingFeed(false);
         }
@@ -136,11 +142,13 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
-      toast({
-        variant: 'destructive',
-        title: errorInfo.title,
-        description: errorInfo.message,
-      });
+      if (errorInfo.title) {
+        toast({
+          variant: 'destructive',
+          title: errorInfo.title,
+          description: errorInfo.message,
+        });
+      }
       if (onError) onError(err);
       return { success: false };
     } finally {
