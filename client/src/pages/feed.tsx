@@ -59,18 +59,18 @@ export default function Feed() {
   const latestPostId = useRef<number | null>(null);
   const touchStartY = useRef<number>(0);
 
+  // Login prompt state for unauthenticated users
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [loginPromptFeature, setLoginPromptFeature] = useState('');
+
   const LIMIT = 20;
   const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
   const PULL_THRESHOLD = 80; // Pixels to pull before triggering refresh
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      setLocation('/');
-    }
-  }, [authLoading, user, setLocation]);
+  // Public mode - when user is not authenticated
+  const isPublicMode = !user;
 
-  // Load all feed configurations
+  // Load all feed configurations (only for authenticated users)
   useEffect(() => {
     const loadFeeds = async () => {
       if (user) {
@@ -110,6 +110,9 @@ export default function Feed() {
         } finally {
           setIsLoadingFeeds(false);
         }
+      } else {
+        // For public mode, no feed configs needed
+        setIsLoadingFeeds(false);
       }
     };
 
@@ -134,11 +137,15 @@ export default function Feed() {
     loadSubscriptions();
   }, [user]);
 
-  // Fetch posts from a feed
-  const fetchPosts = async (feedId: number, currentOffset: number = 0, sort_by?: string, sort_order?: 'asc' | 'desc') => {
+  // Fetch posts from a feed (or public feed for unauthenticated users)
+  const fetchPosts = async (feedId: number | null, currentOffset: number = 0, sort_by?: string, sort_order?: 'asc' | 'desc') => {
     try {
       setError(null);
-      const response = await feedsApi.getFeedPosts(feedId, LIMIT, currentOffset, sort_by, sort_order);
+
+      // Use public feed API for unauthenticated users, otherwise use user's feed
+      const response = isPublicMode
+        ? await feedsApi.getPublicFeedPosts(LIMIT, currentOffset, sort_by, sort_order)
+        : await feedsApi.getFeedPosts(feedId!, LIMIT, currentOffset, sort_by, sort_order);
 
       if (currentOffset === 0) {
         // Initial load
@@ -175,10 +182,12 @@ export default function Feed() {
     }
   };
 
-  // Load posts when feed is selected or sort changes
+  // Load posts when feed is selected or sort changes (or on initial load for public mode)
   useEffect(() => {
     const loadPosts = async () => {
-      if (selectedFeedId) {
+      // For public mode, load immediately without needing a selected feed
+      // For authenticated mode, wait for a feed to be selected
+      if (isPublicMode || selectedFeedId) {
         setIsLoadingPosts(true);
         setOffset(0);
         await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
@@ -186,7 +195,7 @@ export default function Feed() {
     };
 
     loadPosts();
-  }, [selectedFeedId, sortBy, sortOrder]);
+  }, [selectedFeedId, sortBy, sortOrder, isPublicMode]);
 
   // Scroll detection for "new posts" button
   useEffect(() => {
@@ -263,12 +272,15 @@ export default function Feed() {
 
   // Periodic check for new posts by polling the API
   useEffect(() => {
-    if (!selectedFeedId || !user) return;
+    // For authenticated users, need selectedFeedId; for public mode, always run
+    if (!isPublicMode && !selectedFeedId) return;
 
     const checkForNewPosts = async () => {
       try {
         // Fetch just 1 post to check if there's something newer
-        const response = await feedsApi.getFeedPosts(selectedFeedId, 1, 0, sortBy, sortOrder);
+        const response = isPublicMode
+          ? await feedsApi.getPublicFeedPosts(1, 0, sortBy, sortOrder)
+          : await feedsApi.getFeedPosts(selectedFeedId!, 1, 0, sortBy, sortOrder);
 
         if (response.posts.length > 0 && latestPostId.current !== null) {
           const newestPostId = response.posts[0].id;
@@ -276,7 +288,9 @@ export default function Feed() {
           // If the newest post ID is different and greater than what we have, there are new posts
           if (newestPostId !== latestPostId.current && newestPostId > latestPostId.current) {
             // Count how many new posts (fetch a few more to count)
-            const countResponse = await feedsApi.getFeedPosts(selectedFeedId, 10, 0, sortBy, sortOrder);
+            const countResponse = isPublicMode
+              ? await feedsApi.getPublicFeedPosts(10, 0, sortBy, sortOrder)
+              : await feedsApi.getFeedPosts(selectedFeedId!, 10, 0, sortBy, sortOrder);
             let count = 0;
             for (const post of countResponse.posts) {
               if (post.id > latestPostId.current!) {
@@ -298,11 +312,12 @@ export default function Feed() {
     const checkInterval = setInterval(checkForNewPosts, NEW_POSTS_CHECK_INTERVAL);
 
     return () => clearInterval(checkInterval);
-  }, [selectedFeedId, user, sortBy, sortOrder]);
+  }, [selectedFeedId, isPublicMode, sortBy, sortOrder]);
 
   // Handle refresh for new posts
   const handleRefreshPosts = useCallback(async () => {
-    if (!selectedFeedId) return;
+    // For public mode, don't need selectedFeedId
+    if (!isPublicMode && !selectedFeedId) return;
 
     setShowNewPostsButton(false);
     setNewPostsCount(0);
@@ -312,10 +327,11 @@ export default function Feed() {
 
     // Scroll to top smoothly
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [selectedFeedId, sortBy, sortOrder]);
+  }, [selectedFeedId, sortBy, sortOrder, isPublicMode]);
 
   const handleLoadMore = () => {
-    if (!isLoadingPosts && hasMore && selectedFeedId) {
+    // For public mode, don't need selectedFeedId
+    if (!isLoadingPosts && hasMore && (isPublicMode || selectedFeedId)) {
       setIsLoadingPosts(true);
       fetchPosts(selectedFeedId, offset, sortBy, sortOrder);
     }
@@ -421,6 +437,7 @@ export default function Feed() {
 
   const handleNewFeedClick = () => {
     // Navigate to full-page filters for creating new feed
+    // Login is only required when trying to save the feed on /filters
     setLocation('/filters');
   };
 
@@ -464,11 +481,6 @@ export default function Feed() {
     );
   }
 
-  // Don't render if no user (will redirect)
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background transition-colors overflow-x-hidden">
       {/* Header */}
@@ -486,7 +498,7 @@ export default function Feed() {
               <span className="text-2xl sm:text-3xl font-alata font-bold text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[hsl(280,100%,70%)] group-hover:to-[hsl(200,100%,70%)] transition-all">
                 Investor Feed
               </span>
-              {user.isPremium && (
+              {user?.isPremium && (
                 <Badge className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black text-xs">
                   PRO
                 </Badge>
@@ -495,6 +507,7 @@ export default function Feed() {
 
             {/* User Actions */}
             <div className="flex items-center space-x-1">
+              {/* Theme toggle - always show */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -508,34 +521,58 @@ export default function Feed() {
                   <Moon className="h-8 w-8" />
                 )}
               </Button>
-              <NotificationBell />
-              <ProfileSearch />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                onClick={() => setLocation('/settings')}
-              >
-                <FaCogIcon className="h-8 w-8" />
-              </Button>
 
-              {/* User Profile Button */}
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt="Profile"
-                  className="h-10 w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ml-1"
-                  onClick={() => setLocation(`/users/${user.user_id}`)}
-                  title="My Profile"
-                />
+              {user ? (
+                // Authenticated user actions
+                <>
+                  <NotificationBell />
+                  <ProfileSearch />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-12 w-12 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    onClick={() => setLocation('/settings')}
+                  >
+                    <FaCogIcon className="h-8 w-8" />
+                  </Button>
+
+                  {/* User Profile Button */}
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt="Profile"
+                      className="h-10 w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity ml-1"
+                      onClick={() => setLocation(`/users/${user.user_id}`)}
+                      title="My Profile"
+                    />
+                  ) : (
+                    <div
+                      className="h-10 w-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity ml-1"
+                      onClick={() => setLocation(`/users/${user.user_id}`)}
+                      title="My Profile"
+                    >
+                      {getInitials(user.full_name)}
+                    </div>
+                  )}
+                </>
               ) : (
-                <div
-                  className="h-10 w-10 rounded-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] flex items-center justify-center text-black font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity ml-1"
-                  onClick={() => setLocation(`/users/${user.user_id}`)}
-                  title="My Profile"
-                >
-                  {getInitials(user.full_name)}
-                </div>
+                // Unauthenticated user actions
+                <>
+                  <ProfileSearch />
+                  <Button
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-foreground font-alata"
+                    onClick={() => setLocation('/login')}
+                  >
+                    Log In
+                  </Button>
+                  <Button
+                    className="gradient-bg text-black font-alata"
+                    onClick={() => setLocation('/signup')}
+                  >
+                    Sign Up
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -578,7 +615,39 @@ export default function Feed() {
               <div className="mb-4 flex items-center justify-center py-4">
                 <Loader2 className="h-5 w-5 animate-spin text-[hsl(280,100%,70%)]" />
               </div>
+            ) : isPublicMode ? (
+              // Public mode: Show single "Live Feed" tab + Create button
+              <div className="mb-4 overflow-x-auto">
+                <div className="flex items-center space-x-2 pb-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] text-black font-alata border-0 whitespace-nowrap"
+                  >
+                    <span className="relative mr-1.5">
+                      <Radio className="h-3.5 w-3.5" />
+                      <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-current"></span>
+                      </span>
+                    </span>
+                    Live Feed
+                  </Button>
+
+                  {/* Create New Feed Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewFeedClick}
+                    className="border-dashed border-border text-muted-foreground hover:text-foreground hover:bg-muted font-alata whitespace-nowrap"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create Your Own Feed
+                  </Button>
+                </div>
+              </div>
             ) : feedConfigs.length > 0 ? (
+              // Authenticated mode: Show user's feed tabs
               <div className="mb-4 overflow-x-auto">
                 <div className="flex items-center space-x-2 pb-2">
                   {/* Feed Tabs */}
@@ -893,6 +962,40 @@ export default function Feed() {
               ) : (
                 'Delete'
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Login Required Dialog */}
+      <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground font-alata">Login Required</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-alata">
+              Sign in to {loginPromptFeature} and unlock all features of Investor Feed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowLoginPrompt(false)}
+              className="border-border text-foreground hover:bg-muted font-alata"
+            >
+              Maybe Later
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation('/login')}
+              className="border-border text-foreground hover:bg-muted font-alata"
+            >
+              Log In
+            </Button>
+            <Button
+              onClick={() => setLocation('/signup')}
+              className="gradient-bg text-black font-alata"
+            >
+              Sign Up
             </Button>
           </DialogFooter>
         </DialogContent>
