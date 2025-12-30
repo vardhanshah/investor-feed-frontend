@@ -972,3 +972,23 @@ export const confidenceApi = {
     return handleResponse<ConfidenceVoteResponse>(response);
   },
 };
+
+// Ads Configuration API
+export interface AdsConfig {
+  enabled: boolean;
+  frequency: number;
+  ad_client: string | null;
+  ad_slot: string | null;
+  ad_format: string;
+  ad_layout_key: string | null;
+}
+
+export const adsApi = {
+  async getConfig(): Promise<AdsConfig> {
+    const response = await fetch(`${API_BASE_URL}/ads/config`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch ads config');
+    }
+    return response.json();
+  },
+};
