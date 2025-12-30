@@ -3,18 +3,20 @@ import { useRoute, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, TrendingUp, Building2, TrendingUpIcon, PieChart, Layers } from 'lucide-react';
+import { ArrowLeft, Loader2, TrendingUp, Building2, TrendingUpIcon, PieChart, Layers, Lock } from 'lucide-react';
 import { feedsApi, profilesApi, ProfilesAttributesMetadata, PostAttributesMetadata, ProfileConfidence } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import PostCard, { Post } from '@/components/PostCard';
 import CompanyConfidence from '@/components/CompanyConfidence';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Profile } from '@/lib/api';
 
 export default function ProfilePage() {
   const [match, params] = useRoute('/profiles/:profileId');
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -27,6 +29,7 @@ export default function ProfilePage() {
   const [offset, setOffset] = useState(0);
 
   const LIMIT = 20;
+  const isPublicMode = !user;
 
   // Fetch profile details
   useEffect(() => {
@@ -53,10 +56,14 @@ export default function ProfilePage() {
     fetchProfile();
   }, [params?.profileId, toast]);
 
-  // Fetch posts for this profile
+  // Fetch posts for this profile (only for authenticated users)
   useEffect(() => {
     const fetchPosts = async () => {
-      if (!params?.profileId) return;
+      // Don't fetch posts for unauthenticated users
+      if (!params?.profileId || isPublicMode) {
+        setIsLoadingPosts(false);
+        return;
+      }
 
       setIsLoadingPosts(true);
       try {
@@ -85,7 +92,7 @@ export default function ProfilePage() {
     };
 
     fetchPosts();
-  }, [params?.profileId, toast]);
+  }, [params?.profileId, toast, isPublicMode]);
 
   const handleLoadMore = async () => {
     if (!params?.profileId || isLoadingPosts || !hasMore) return;
@@ -130,7 +137,7 @@ export default function ProfilePage() {
             <div className="flex items-center h-16">
               <Button
                 variant="ghost"
-                onClick={() => setLocation('/home')}
+                onClick={() => setLocation('/')}
                 className="text-foreground hover:bg-muted font-alata"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -158,7 +165,7 @@ export default function ProfilePage() {
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/home')}
+              onClick={() => setLocation('/')}
               className="text-foreground hover:bg-muted font-alata"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -277,7 +284,33 @@ export default function ProfilePage() {
             Posts from {profile?.title || 'this profile'}
           </h2>
 
-          {isLoadingPosts && posts.length === 0 ? (
+          {/* Login prompt for unauthenticated users */}
+          {isPublicMode ? (
+            <Card className="bg-card border-border">
+              <CardContent className="p-12 text-center">
+                <Lock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-alata text-foreground mb-2">Login to View Posts</h3>
+                <p className="text-muted-foreground font-alata mb-6">
+                  Sign in to view posts from {profile?.title || 'this company'}
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setLocation('/login')}
+                    className="border-border text-foreground hover:bg-muted font-alata"
+                  >
+                    Log In
+                  </Button>
+                  <Button
+                    onClick={() => setLocation('/signup')}
+                    className="gradient-bg text-black font-alata"
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : isLoadingPosts && posts.length === 0 ? (
             // Loading skeleton
             <>
               {[1, 2, 3].map(i => (

@@ -728,6 +728,25 @@ export const feedsApi = {
     return handleResponse<FeedPostsResponse>(response);
   },
 
+  async getPublicFeedPosts(
+    limit = 20,
+    offset = 0,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<FeedPostsResponse> {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    if (sortBy) params.append('sort_by', sortBy);
+    if (sortOrder) params.append('sort_order', sortOrder);
+
+    // No auth headers - public endpoint
+    const response = await fetch(
+      `${API_BASE_URL}/feeds/public/posts?${params.toString()}`
+    );
+    return handleResponse<FeedPostsResponse>(response);
+  },
+
   async getProfileFeed(profileId: number, limit = 40, offset = 0): Promise<FeedPostsResponse> {
     const response = await fetchWithAuth(
       `${API_BASE_URL}/profiles/${profileId}/posts?limit=${limit}&offset=${offset}`,

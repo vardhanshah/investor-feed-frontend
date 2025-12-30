@@ -22,10 +22,11 @@ import AuthCallback from "@/pages/auth-callback";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Feed} />
+      <Route path="/home">{() => <Redirect to="/" />}</Route>
+      <Route path="/welcome" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
-      <Route path="/home" component={Feed} />
       <Route path="/posts/:postId" component={PostDetail} />
       <Route path="/profiles" component={ProfilesList} />
       <Route path="/profiles/:profileId" component={Profile} />

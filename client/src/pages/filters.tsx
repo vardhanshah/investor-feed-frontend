@@ -1,14 +1,25 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Save, Filter as FilterIcon } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFeedManagement } from '@/hooks/useFeedManagement';
 import { FeedFilterForm } from '@/components/FeedFilterForm';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function Filters() {
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const isPublicMode = !user;
 
   // Use shared feed management hook
   const {
@@ -29,23 +40,25 @@ export default function Filters() {
     handleNumberFilterFromChange,
     handleNumberFilterToChange,
   } = useFeedManagement({
-    isActive: !!user, // Only fetch when user is authenticated
+    isActive: true, // Always fetch filter configs so users can browse
     onSuccess: (feedId) => {
       // Store the created feed ID so it gets selected on /home
       if (feedId) {
         localStorage.setItem('selectedFeedId', feedId.toString());
       }
       // Navigate to home after creating feed
-      setLocation('/home');
+      setLocation('/');
     },
   });
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      setLocation('/');
+  // Handle save with auth check
+  const handleSave = () => {
+    if (isPublicMode) {
+      setShowLoginPrompt(true);
+      return;
     }
-  }, [authLoading, user, setLocation]);
+    saveFeed();
+  };
 
   // Show loading while checking auth
   if (authLoading) {
@@ -54,11 +67,6 @@ export default function Filters() {
         <Loader2 className="h-8 w-8 animate-spin text-[hsl(280,100%,70%)]" />
       </div>
     );
-  }
-
-  // Don't render if no user (will redirect)
-  if (!user) {
-    return null;
   }
 
   return (
@@ -71,7 +79,7 @@ export default function Filters() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setLocation('/home')}
+                onClick={() => setLocation('/')}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -119,13 +127,13 @@ export default function Filters() {
             <div className="flex justify-end space-x-3">
               <Button
                 variant="outline"
-                onClick={() => setLocation('/home')}
+                onClick={() => setLocation('/')}
                 className="border-border text-foreground hover:bg-muted font-alata"
               >
                 Cancel
               </Button>
               <Button
-                onClick={saveFeed}
+                onClick={handleSave}
                 disabled={isSaving}
                 className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
               >
@@ -146,6 +154,40 @@ export default function Filters() {
         )}
         </div>
       </div>
+
+      {/* Login Required Dialog */}
+      <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground font-alata">Login Required</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-alata">
+              Sign in to create custom feeds and unlock all features of Investor Feed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowLoginPrompt(false)}
+              className="border-border text-foreground hover:bg-muted font-alata"
+            >
+              Maybe Later
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation('/login')}
+              className="border-border text-foreground hover:bg-muted font-alata"
+            >
+              Log In
+            </Button>
+            <Button
+              onClick={() => setLocation('/signup')}
+              className="gradient-bg text-black font-alata"
+            >
+              Sign Up
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
