@@ -1,10 +1,14 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Enable gzip compression for all responses (reduces size by ~70%)
+app.use(compression());
 
 // Proxy /api requests to backend in development
 if (process.env.NODE_ENV === "development") {
