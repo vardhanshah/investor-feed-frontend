@@ -12,6 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check localStorage for saved theme preference
+    // Default to 'light' to match the index.html initialization script
     const savedTheme = localStorage.getItem('theme') as Theme;
     const initialTheme = savedTheme || 'light';
 

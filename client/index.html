@@ -37,16 +37,22 @@
     <!-- Theme initialization script - runs BEFORE any rendering -->
     <script>
       (function() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        const bgColor = savedTheme === 'dark' ? '#000000' : '#ffffff';
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const bgColor = savedTheme === 'dark' ? '#000000' : '#fafafa';
 
         // Add theme class to html
         document.documentElement.classList.add(savedTheme);
 
-        // Set html background immediately
+        // Set background immediately on both html and body to prevent flash
         document.documentElement.style.backgroundColor = bgColor;
+        document.body && (document.body.style.backgroundColor = bgColor);
       })();
     </script>
+    <style>
+      /* Inline critical styles to prevent flash - matches CSS variables */
+      html, body { background-color: #fafafa; }
+      html.dark, html.dark body { background-color: #000000; }
+    </style>
 
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9314644920823526"
