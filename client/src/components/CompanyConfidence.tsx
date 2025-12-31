@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { confidenceApi, ProfileConfidence } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 
@@ -18,6 +19,7 @@ export default function CompanyConfidence({
   size = 'sm',
 }: CompanyConfidenceProps) {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const [isVoting, setIsVoting] = useState(false);
   const [localConfidence, setLocalConfidence] = useState<ProfileConfidence | null>(confidence);
   const [hoveredButton, setHoveredButton] = useState<'yes' | 'no' | null>(null);
@@ -30,6 +32,15 @@ export default function CompanyConfidence({
   const handleVote = async (e: React.MouseEvent, vote: 'yes' | 'no') => {
     e.stopPropagation(); // Prevent card navigation
     if (isVoting) return;
+
+    // Require login to vote
+    if (!isAuthenticated) {
+      toast({
+        title: 'Login required',
+        description: 'Please login to register your vote',
+      });
+      return;
+    }
 
     // Don't allow voting the same option again
     if (localConfidence?.user_vote === vote) return;

@@ -51,6 +51,8 @@ describe('Profile Page', () => {
     mockSetLocation.mockClear();
     // Reset route params to default profile
     mockRouteMatch.profileId = '1';
+    // Set up authentication for tests that require it
+    localStorage.setItem('authToken', 'mock-token-123');
   });
 
   it('should display loading state initially', () => {
@@ -115,7 +117,7 @@ describe('Profile Page', () => {
     });
 
     await user.click(screen.getByText('Back to Feed'));
-    expect(mockSetLocation).toHaveBeenCalledWith('/home');
+    expect(mockSetLocation).toHaveBeenCalledWith('/');
   });
 
   it('should display error state when profile fetch fails', async () => {

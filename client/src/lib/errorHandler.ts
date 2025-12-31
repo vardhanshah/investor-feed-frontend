@@ -14,7 +14,12 @@ export function getErrorMessage(error: unknown): ErrorInfo {
     const message = error.message.toLowerCase();
 
     // Authentication errors - handled silently (user will be redirected)
-    if (message.includes('not authenticated') || message.includes('401')) {
+    if (
+      message.includes('not authenticated') ||
+      message.includes('401') ||
+      message.includes('authentication required') ||
+      message.includes('unauthorized')
+    ) {
       return {
         title: '',
         message: '',

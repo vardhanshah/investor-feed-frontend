@@ -12,6 +12,33 @@ describe('Error Handler', () => {
       expect(result.action).toBe('redirect_login');
     });
 
+    it('should handle "authentication required" errors silently', () => {
+      const error = new Error('Authentication Required');
+      const result = getErrorMessage(error);
+
+      expect(result.title).toBe('');
+      expect(result.message).toBe('');
+      expect(result.action).toBe('redirect_login');
+    });
+
+    it('should handle "unauthorized" errors silently', () => {
+      const error = new Error('Unauthorized');
+      const result = getErrorMessage(error);
+
+      expect(result.title).toBe('');
+      expect(result.message).toBe('');
+      expect(result.action).toBe('redirect_login');
+    });
+
+    it('should handle 401 status errors silently', () => {
+      const error = new Error('401: Unauthorized');
+      const result = getErrorMessage(error);
+
+      expect(result.title).toBe('');
+      expect(result.message).toBe('');
+      expect(result.action).toBe('redirect_login');
+    });
+
     it('should handle invalid credentials', () => {
       const error = new Error('Invalid credentials');
       const result = getErrorMessage(error);
