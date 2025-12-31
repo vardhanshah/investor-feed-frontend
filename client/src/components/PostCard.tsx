@@ -151,6 +151,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
               <img
                 src={post.profile.meta_attributes.logo_url}
                 alt={post.profile.title || 'Profile'}
+                loading="lazy"
                 className="w-10 h-10 rounded-full object-cover bg-muted shrink-0"
               />
             ) : (
@@ -221,6 +222,7 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
                 key={index}
                 src={image}
                 alt={`Post image ${index + 1}`}
+                loading="lazy"
                 className="rounded-lg w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={(e) => {
                   e.stopPropagation();

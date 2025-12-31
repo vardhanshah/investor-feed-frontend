@@ -156,7 +156,7 @@ describe('Filters Page', () => {
     });
   });
 
-  it('should redirect to home if not authenticated', async () => {
+  it('should allow unauthenticated users to browse filters page', async () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
       user: null,
       isLoading: false,
@@ -168,9 +168,13 @@ describe('Filters Page', () => {
 
     render(<Filters />);
 
+    // Unauthenticated users can browse the page (no redirect)
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/');
+      expect(screen.getByText('Create Custom Feed')).toBeInTheDocument();
     });
+
+    // Should NOT have redirected
+    expect(mockSetLocation).not.toHaveBeenCalled();
   });
 
   it('should display loading state initially', () => {
@@ -245,7 +249,7 @@ describe('Filters Page', () => {
 
     if (backButton) {
       await user.click(backButton);
-      expect(mockSetLocation).toHaveBeenCalledWith('/home');
+      expect(mockSetLocation).toHaveBeenCalledWith('/');
     }
   });
 
@@ -517,7 +521,7 @@ describe('Filters Page', () => {
     });
 
     await user.click(screen.getByRole('button', { name: /cancel/i }));
-    expect(mockSetLocation).toHaveBeenCalledWith('/home');
+    expect(mockSetLocation).toHaveBeenCalledWith('/');
   });
 
   it('should show error if feed name is empty on submit', async () => {
@@ -713,7 +717,7 @@ describe('Filters Page', () => {
     await user.click(screen.getByRole('button', { name: /create feed/i }));
 
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/home');
+      expect(mockSetLocation).toHaveBeenCalledWith('/');
     });
   });
 
@@ -931,7 +935,7 @@ describe('Filters Page', () => {
 
     // Verify navigation happened after successful save
     await waitFor(() => {
-      expect(mockSetLocation).toHaveBeenCalledWith('/home');
+      expect(mockSetLocation).toHaveBeenCalledWith('/');
     });
   });
 });

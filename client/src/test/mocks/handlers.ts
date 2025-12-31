@@ -567,6 +567,18 @@ export const handlers = [
     return new HttpResponse(null, { status: 200 });
   }),
 
+  // Ads config endpoint
+  http.get(`${API_BASE_URL}/ads/config`, () => {
+    return HttpResponse.json({
+      enabled: false,
+      ad_client: null,
+      ad_slot: null,
+      ad_format: null,
+      ad_layout_key: null,
+      frequency: 5,
+    });
+  }),
+
   // Company Confidence vote endpoint
   http.put(`${API_BASE_URL}/profiles/:profileId/confidence`, async ({ request, params }) => {
     const authHeader = request.headers.get('Authorization');

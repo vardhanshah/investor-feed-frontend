@@ -12,6 +12,16 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
+// Mock the AuthContext to return authenticated user
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    isAuthenticated: true,
+    user: { user_id: 1, email: 'test@example.com' },
+    isLoading: false,
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const mockConfidenceWithVotes: ProfileConfidence = {
   yes_percentage: 67,
   no_percentage: 33,
