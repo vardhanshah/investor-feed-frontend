@@ -19,6 +19,7 @@ import { ArrowLeft, MessageSquare, FileText, Trash2, ChevronRight, User, LogOut 
 import { useLocation, Link } from 'wouter';
 import { VALIDATION_MESSAGES, SETTINGS_MESSAGES } from '@/lib/messages';
 import { useAuth } from '@/contexts/AuthContext';
+import { goBack } from '@/lib/utils';
 
 type SettingsSection = 'profile' | 'feedback' | 'legal' | 'logout';
 
@@ -180,7 +181,7 @@ export default function Settings() {
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/home')}
+              onClick={() => goBack()}
               className="text-foreground hover:bg-muted font-alata mr-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />

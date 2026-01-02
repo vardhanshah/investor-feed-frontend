@@ -10,7 +10,7 @@ import { postsApi, reactionsApi, commentsApi, PostAttributes, PostAttributesMeta
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo, formatTimeAgoTwoUnits } from '@/lib/dateUtils';
-import { getInitials } from '@/lib/utils';
+import { getInitials, goBack } from '@/lib/utils';
 import CompanyConfidence from '@/components/CompanyConfidence';
 
 // Helper to format attribute value with unit
@@ -450,7 +450,7 @@ export default function PostDetailPage() {
             <div className="flex items-center h-16">
               <Button
                 variant="ghost"
-                onClick={() => setLocationPath('/home')}
+                onClick={() => goBack()}
                 className="text-foreground hover:bg-muted font-alata"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -480,7 +480,7 @@ export default function PostDetailPage() {
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocationPath('/home')}
+              onClick={() => goBack()}
               className="text-foreground hover:bg-muted font-alata"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />

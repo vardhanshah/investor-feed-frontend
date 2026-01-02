@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeAgo, formatLocalizedDate } from '@/lib/dateUtils';
-import { getInitials } from '@/lib/utils';
+import { getInitials, goBack } from '@/lib/utils';
 
 export default function UserActivityPage() {
   const [match, params] = useRoute('/users/:userId');
@@ -272,7 +272,7 @@ export default function UserActivityPage() {
             <div className="flex items-center h-16">
               <Button
                 variant="ghost"
-                onClick={() => setLocation('/home')}
+                onClick={() => goBack()}
                 className="text-foreground hover:bg-muted font-alata"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -302,7 +302,7 @@ export default function UserActivityPage() {
           <div className="flex items-center justify-between h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/home')}
+              onClick={() => goBack()}
               className="text-foreground hover:bg-muted font-alata"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
