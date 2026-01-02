@@ -52,25 +52,15 @@ export function getCategoryColor(category: string): string {
  * Use this for back buttons to ensure proper navigation when users land directly on a page.
  */
 export function goBack(fallbackPath: string = '/home'): void {
-  // Check if there's history to go back to
-  // window.history.length > 1 means there's at least one previous entry
-  // But we also need to check if the referrer is from our own domain
-  // to avoid going back to an external site
-  if (window.history.length > 1 && document.referrer) {
-    try {
-      const referrerUrl = new URL(document.referrer);
-      const currentUrl = new URL(window.location.href);
-      // Only use history.back() if referrer is from the same origin
-      if (referrerUrl.origin === currentUrl.origin) {
-        window.history.back();
-        return;
-      }
-    } catch {
-      // If URL parsing fails, fall through to fallback
-    }
+  // Check if there's meaningful history to go back to
+  // history.length > 2 indicates navigation happened within the app
+  // (fresh tab = 1, landing on page = 2, navigating = 3+)
+  if (window.history.length > 2) {
+    window.history.back();
+  } else {
+    // User landed directly on this page - use client-side navigation
+    window.location.assign(fallbackPath);
   }
-  // Fallback: navigate to the specified path
-  window.location.href = fallbackPath;
 }
 
 export function getRelativeTime(dateString: string): string {
