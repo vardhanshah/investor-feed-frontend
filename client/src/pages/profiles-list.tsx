@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, Building2 } from 'lucide-react';
 import { profilesApi, Profile } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errorHandler';
 import { useToast } from '@/hooks/use-toast';
+import { goBack } from '@/lib/utils';
 
 export default function ProfilesListPage() {
   const [, setLocation] = useLocation();
@@ -97,7 +98,7 @@ export default function ProfilesListPage() {
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/home')}
+              onClick={() => goBack()}
               className="text-foreground hover:bg-muted font-alata"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />

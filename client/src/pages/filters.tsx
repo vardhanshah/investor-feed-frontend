@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Save, Filter as FilterIcon } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { goBack } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFeedManagement } from '@/hooks/useFeedManagement';
 import { FeedFilterForm } from '@/components/FeedFilterForm';
@@ -79,7 +80,7 @@ export default function Filters() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setLocation('/')}
+                onClick={() => goBack()}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-5 w-5" />

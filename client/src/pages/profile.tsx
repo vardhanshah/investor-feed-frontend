@@ -10,6 +10,7 @@ import PostCard, { Post } from '@/components/PostCard';
 import CompanyConfidence from '@/components/CompanyConfidence';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { goBack } from '@/lib/utils';
 import type { Profile } from '@/lib/api';
 
 export default function ProfilePage() {
@@ -137,7 +138,7 @@ export default function ProfilePage() {
             <div className="flex items-center h-16">
               <Button
                 variant="ghost"
-                onClick={() => setLocation('/')}
+                onClick={() => goBack()}
                 className="text-foreground hover:bg-muted font-alata"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -165,7 +166,7 @@ export default function ProfilePage() {
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/')}
+              onClick={() => goBack()}
               className="text-foreground hover:bg-muted font-alata"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />

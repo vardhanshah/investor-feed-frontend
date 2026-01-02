@@ -69,8 +69,9 @@ export default function Feed() {
   const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
   const PULL_THRESHOLD = 80; // Pixels to pull before triggering refresh
 
-  // Public mode - when user is not authenticated
-  const isPublicMode = !user;
+  // Public mode - when user is not authenticated AND auth has finished loading
+  // This prevents flashing public feed while auth is still determining user state
+  const isPublicMode = !authLoading && !user;
 
   // Fetch ads configuration after initial render - deferred to improve LCP
   useEffect(() => {
@@ -87,6 +88,11 @@ export default function Feed() {
   // Load all feed configurations (only for authenticated users)
   useEffect(() => {
     const loadFeeds = async () => {
+      // Wait for auth to finish loading before determining feed state
+      if (authLoading) {
+        return; // Don't do anything while auth is still loading
+      }
+
       if (user) {
         try {
           const configs = await feedConfigApi.listFeedConfigurations();
@@ -125,13 +131,13 @@ export default function Feed() {
           setIsLoadingFeeds(false);
         }
       } else {
-        // For public mode, no feed configs needed
+        // For public mode (auth finished, no user), no feed configs needed
         setIsLoadingFeeds(false);
       }
     };
 
     loadFeeds();
-  }, [user, toast]);
+  }, [user, authLoading, toast]);
 
   // Load user subscriptions
   useEffect(() => {

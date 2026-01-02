@@ -47,6 +47,22 @@ export function getCategoryColor(category: string): string {
   return categoryColorPalette[index];
 }
 
+/**
+ * Navigate back in browser history, with a fallback route if no history exists.
+ * Use this for back buttons to ensure proper navigation when users land directly on a page.
+ */
+export function goBack(fallbackPath: string = '/home'): void {
+  // Check if there's meaningful history to go back to
+  // history.length > 2 indicates navigation happened within the app
+  // (fresh tab = 1, landing on page = 2, navigating = 3+)
+  if (window.history.length > 2) {
+    window.history.back();
+  } else {
+    // User landed directly on this page - use client-side navigation
+    window.location.assign(fallbackPath);
+  }
+}
+
 export function getRelativeTime(dateString: string): string {
   // Backend sends UTC time without 'Z' suffix, so append it if missing
   const utcDateString = dateString.endsWith('Z') ? dateString : `${dateString}Z`;

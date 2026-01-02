@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Loader2, User, Activity, MessageCircle, Heart, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { goBack } from '@/lib/utils';
 
 interface UserProfile {
   user_id: number;
@@ -62,7 +63,7 @@ export default function UserPublicProfilePage() {
           <div className="flex items-center justify-between h-16">
             <Button
               variant="ghost"
-              onClick={() => setLocation('/home')}
+              onClick={() => goBack()}
               className="text-foreground hover:bg-muted font-alata"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
