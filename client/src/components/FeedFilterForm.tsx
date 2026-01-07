@@ -4,10 +4,73 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { FilterConfig, FilterGroup } from '@/lib/api';
 import { NumberFilterState } from '@/hooks/useFeedFilters';
 import { ProfileSelector, ProfileSelections } from '@/components/ProfileSelector';
+
+// Preset ranges for common filter fields
+interface FilterPreset {
+  label: string;
+  min: number | null;  // null means use range min
+  max: number | null;  // null means use range max
+}
+
+// Presets based on actual data distribution
+const FILTER_PRESETS: Record<string, FilterPreset[]> = {
+  // MCAP: 43% Micro, 19% Small, 20% Mid, 13% Large, 4.5% Mega
+  mcap: [
+    { label: 'Micro', min: null, max: 100 },      // <100 Cr (43%)
+    { label: 'Small', min: 100, max: 500 },       // 100-500 Cr (19%)
+    { label: 'Mid', min: 500, max: 5000 },        // 500-5K Cr (20%)
+    { label: 'Large', min: 5000, max: 50000 },    // 5K-50K Cr (13%)
+    { label: 'Mega', min: 50000, max: null },     // >50K Cr (4.5%)
+  ],
+  // PE: 9% Negative, 12% 0-10, 35% 10-30, 30% 30-100, 14% >100
+  pe_ratio: [
+    { label: 'Negative', min: null, max: 0 },     // Loss-making (9%)
+    { label: 'Value', min: 0, max: 15 },          // Low PE (18%)
+    { label: 'Fair', min: 15, max: 30 },          // Fair value (35%)
+    { label: 'Growth', min: 30, max: 100 },       // Growth (30%)
+    { label: 'Expensive', min: 100, max: null },  // Very high PE (14%)
+  ],
+  // PB: 10% Negative, 20% 0-1, 30% 1-3, 28% 3-10, 12% >10
+  pb: [
+    { label: 'Negative', min: null, max: 0 },     // Negative book (10%)
+    { label: 'Deep Value', min: 0, max: 1 },      // Below book (20%)
+    { label: 'Value', min: 1, max: 3 },           // Fair (30%)
+    { label: 'Premium', min: 3, max: 10 },        // Premium (28%)
+    { label: 'Expensive', min: 10, max: null },   // Very expensive (12%)
+  ],
+  // ROE: 24% Negative, 37% 0-10, 22% 10-20, 12% 20-50, 5% >50
+  roe: [
+    { label: 'Negative', min: null, max: 0 },     // Loss-making (24%)
+    { label: 'Low', min: 0, max: 10 },            // Low ROE (37%)
+    { label: 'Average', min: 10, max: 20 },       // Average (22%)
+    { label: 'Good', min: 20, max: 30 },          // Good (8%)
+    { label: 'Excellent', min: 30, max: null },   // Excellent (9%)
+  ],
+  roce: [
+    { label: 'Negative', min: null, max: 0 },
+    { label: 'Low', min: 0, max: 10 },
+    { label: 'Average', min: 10, max: 20 },
+    { label: 'Good', min: 20, max: 30 },
+    { label: 'Excellent', min: 30, max: null },
+  ],
+  debt_to_equity: [
+    { label: 'No Debt', min: null, max: 0.1 },
+    { label: 'Low', min: null, max: 0.5 },
+    { label: 'Moderate', min: 0.5, max: 1 },
+    { label: 'High', min: 1, max: null },
+  ],
+  promoter_holding: [
+    { label: 'Low', min: null, max: 30 },
+    { label: 'Medium', min: 30, max: 50 },
+    { label: 'High', min: 50, max: 75 },
+    { label: 'Very High', min: 75, max: null },
+  ],
+};
 
 interface FeedFilterFormProps {
   filterConfigs: FilterConfig[];
@@ -55,6 +118,154 @@ const parseFormattedNumber = (value: string): string => {
   return value.replace(/[,\s]/g, '');
 };
 
+// Distribution data: cumulative percentiles for each filter
+// Each entry is [value, cumulative_percentile]
+interface DistributionPoint {
+  value: number;
+  percentile: number;
+}
+
+const FILTER_DISTRIBUTIONS: Record<string, DistributionPoint[]> = {
+  // MCAP distribution (5,086 profiles)
+  mcap: [
+    { value: 0, percentile: 0 },
+    { value: 100, percentile: 43.1 },     // <100 Micro
+    { value: 500, percentile: 62.5 },     // 100-500 Small
+    { value: 1000, percentile: 69.0 },    // 500-1K
+    { value: 5000, percentile: 82.5 },    // 1K-5K Mid
+    { value: 10000, percentile: 87.3 },   // 5K-10K
+    { value: 50000, percentile: 95.5 },   // 10K-50K Large
+    { value: 100000, percentile: 97.6 },  // 50K-1L
+    { value: 10000000, percentile: 100 }, // >1L Mega (use large max)
+  ],
+  // PE Ratio distribution (3,416 profiles)
+  pe_ratio: [
+    { value: -1000, percentile: 0 },      // Large negative
+    { value: 0, percentile: 9.1 },        // Negative
+    { value: 10, percentile: 21.3 },      // 0-10
+    { value: 20, percentile: 40.7 },      // 10-20
+    { value: 30, percentile: 55.9 },      // 20-30
+    { value: 50, percentile: 71.6 },      // 30-50
+    { value: 100, percentile: 85.8 },     // 50-100
+    { value: 200, percentile: 92.7 },     // 100-200
+    { value: 10000, percentile: 100 },    // >200
+  ],
+  // PB distribution (3,224 profiles)
+  pb: [
+    { value: -100, percentile: 0 },       // Large negative
+    { value: 0, percentile: 10.1 },       // Negative
+    { value: 1, percentile: 30.5 },       // 0-1
+    { value: 2, percentile: 48.2 },       // 1-2
+    { value: 3, percentile: 60.1 },       // 2-3
+    { value: 5, percentile: 74.4 },       // 3-5
+    { value: 10, percentile: 88.4 },      // 5-10
+    { value: 20, percentile: 95.7 },      // 10-20
+    { value: 1000, percentile: 100 },     // >20
+  ],
+  // ROE distribution (3,277 profiles)
+  roe: [
+    { value: -100, percentile: 0 },       // Large negative
+    { value: -50, percentile: 3.8 },      // <-50
+    { value: -20, percentile: 7.2 },      // -50 to -20
+    { value: 0, percentile: 23.8 },       // -20 to 0
+    { value: 10, percentile: 61.2 },      // 0-10
+    { value: 20, percentile: 83.5 },      // 10-20
+    { value: 30, percentile: 91.3 },      // 20-30
+    { value: 50, percentile: 95.5 },      // 30-50
+    { value: 200, percentile: 100 },      // >50
+  ],
+};
+
+// Convert value to slider position (0-100) based on distribution
+const valueToSliderPosition = (value: number, distribution: DistributionPoint[]): number => {
+  // Find the two points the value falls between
+  for (let i = 0; i < distribution.length - 1; i++) {
+    const curr = distribution[i];
+    const next = distribution[i + 1];
+    if (value >= curr.value && value <= next.value) {
+      // Linear interpolation between the two percentiles
+      const valueRatio = (value - curr.value) / (next.value - curr.value);
+      return curr.percentile + valueRatio * (next.percentile - curr.percentile);
+    }
+  }
+  // Value outside range
+  if (value < distribution[0].value) return 0;
+  return 100;
+};
+
+// Convert slider position (0-100) to value based on distribution
+const sliderPositionToValue = (position: number, distribution: DistributionPoint[]): number => {
+  // Find the two points the position falls between
+  for (let i = 0; i < distribution.length - 1; i++) {
+    const curr = distribution[i];
+    const next = distribution[i + 1];
+    if (position >= curr.percentile && position <= next.percentile) {
+      // Linear interpolation between the two values
+      const percentileRatio = (position - curr.percentile) / (next.percentile - curr.percentile);
+      const value = curr.value + percentileRatio * (next.value - curr.value);
+      // Round to nice numbers
+      return roundToNiceNumber(value);
+    }
+  }
+  // Position outside range
+  if (position <= 0) return distribution[0].value;
+  return distribution[distribution.length - 1].value;
+};
+
+// Round to nice numbers based on magnitude
+const roundToNiceNumber = (value: number): number => {
+  const absValue = Math.abs(value);
+  let rounded: number;
+  if (absValue < 1) rounded = Math.round(value * 100) / 100;
+  else if (absValue < 10) rounded = Math.round(value * 10) / 10;
+  else if (absValue < 100) rounded = Math.round(value);
+  else if (absValue < 1000) rounded = Math.round(value / 5) * 5;
+  else if (absValue < 10000) rounded = Math.round(value / 100) * 100;
+  else rounded = Math.round(value / 1000) * 1000;
+  return rounded;
+};
+
+// Thresholds for ">" display (values above this show as "> threshold")
+const HIGH_VALUE_THRESHOLDS: Record<string, number> = {
+  mcap: 100000,      // > 1L Cr
+  pe_ratio: 200,     // > 200
+  pb: 20,            // > 20
+  roe: 50,           // > 50%
+};
+
+// Format filter value for display with < 0 and > threshold handling
+const formatFilterValue = (
+  value: number,
+  field: string,
+  rangeMin: number,
+  rangeMax: number,
+  unit?: string | null
+): string => {
+  const threshold = HIGH_VALUE_THRESHOLDS[field];
+  const unitStr = unit ? ` ${unit}` : '';
+
+  // Check if at range minimum (show as minimum bound)
+  if (value <= rangeMin) {
+    if (rangeMin < 0) {
+      return `< 0${unitStr}`;
+    }
+    return `${formatNumber(String(rangeMin))}${unitStr}`;
+  }
+
+  // Check if at or above high threshold (show as "> threshold")
+  if (threshold && value >= threshold) {
+    return `> ${formatNumber(String(threshold))}${unitStr}`;
+  }
+
+  // Check if negative
+  if (value < 0) {
+    return `< 0${unitStr}`;
+  }
+
+  // Normal display
+  return `${formatNumber(String(value))}${unitStr}`;
+};
+
 // Feed Filter Form with collapsible filter sections
 export function FeedFilterForm({
   filterConfigs,
@@ -73,13 +284,14 @@ export function FeedFilterForm({
   showFeedDetails = true,
   showCombinedQuery = true,
 }: FeedFilterFormProps) {
-  // State for collapsible sections - default to collapsed to save space
+  // State for collapsible sections - default to expanded for better visibility
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      // Default is true (expanded), so toggle from current state or default
+      [sectionId]: !(prev[sectionId] ?? true)
     }));
   };
 
@@ -294,41 +506,148 @@ export function FeedFilterForm({
   const renderFilterInput = (config: FilterConfig) => {
     if (config.type === 'number') {
       const state = numberFilterStates[config.field];
-      if (!state) return null;
+      if (!state || !config.range) return null;
+
+      const rangeMin = config.range.min;
+      const rangeMax = config.range.max;
+      const presets = FILTER_PRESETS[config.field];
+
+      // Parse current values or use range defaults
+      const currentMin = state.from ? parseFloat(state.from) : rangeMin;
+      const currentMax = state.to ? parseFloat(state.to) : rangeMax;
+
+      // Handle preset button click
+      const handlePresetClick = (preset: FilterPreset) => {
+        const newMin = preset.min ?? rangeMin;
+        const newMax = preset.max ?? rangeMax;
+        onNumberFilterFromChange(config.field, newMin === rangeMin ? '' : String(newMin));
+        onNumberFilterToChange(config.field, newMax === rangeMax ? '' : String(newMax));
+      };
+
+      // Check if a preset is currently active
+      const isPresetActive = (preset: FilterPreset) => {
+        const presetMin = preset.min ?? rangeMin;
+        const presetMax = preset.max ?? rangeMax;
+        return currentMin === presetMin && currentMax === presetMax;
+      };
+
+      // Clear filter
+      const handleClear = () => {
+        onNumberFilterFromChange(config.field, '');
+        onNumberFilterToChange(config.field, '');
+      };
+
+      // Check if filter is active (values differ from range defaults)
+      const isActive = state.from || state.to;
 
       return (
         <div key={config.field} className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-          {/* Filter Label - Prominent and clear */}
-          <Label htmlFor={config.field} className="text-sm font-semibold text-foreground mb-3 block">
-            {config.label}
-          </Label>
+          {/* Filter Label with Clear button */}
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor={config.field} className="text-sm font-semibold text-foreground">
+              {config.label}
+            </Label>
+            {isActive && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
 
-          {/* Range Inputs - Simplified, side by side */}
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              id={`${config.field}-from`}
-              type="text"
-              inputMode="numeric"
-              placeholder={`Min${config.unit ? ' (' + config.unit + ')' : ''}`}
-              value={state.from ? formatNumberForInput(state.from) : ''}
-              onChange={(e) => {
-                const rawValue = parseFormattedNumber(e.target.value);
-                onNumberFilterFromChange(config.field, rawValue);
-              }}
-              className="h-9 text-sm"
-            />
-            <Input
-              id={`${config.field}-to`}
-              type="text"
-              inputMode="numeric"
-              placeholder={`Max${config.unit ? ' (' + config.unit + ')' : ''}`}
-              value={state.to ? formatNumberForInput(state.to) : ''}
-              onChange={(e) => {
-                const rawValue = parseFormattedNumber(e.target.value);
-                onNumberFilterToChange(config.field, rawValue);
-              }}
-              className="h-9 text-sm"
-            />
+          {/* Preset Buttons */}
+          {presets && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {presets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => handlePresetClick(preset)}
+                  className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                    isPresetActive(preset)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-foreground/50'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Current Range Display */}
+          <div className="flex justify-between text-xs text-muted-foreground mb-2">
+            <span className={isActive && state.from ? 'text-primary font-medium' : ''}>
+              {formatFilterValue(currentMin, config.field, rangeMin, rangeMax, config.unit)}
+            </span>
+            <span className={isActive && state.to ? 'text-primary font-medium' : ''}>
+              {formatFilterValue(currentMax, config.field, rangeMin, rangeMax, config.unit)}
+            </span>
+          </div>
+
+          {/* Range Slider - Distribution-based scale if available, otherwise linear */}
+          {(() => {
+            const distribution = FILTER_DISTRIBUTIONS[config.field];
+
+            if (distribution) {
+              // Distribution-based scale - slider position reflects % of companies
+              const sliderMin = valueToSliderPosition(currentMin, distribution);
+              const sliderMax = valueToSliderPosition(currentMax, distribution);
+
+              return (
+                <Slider
+                  showTwoThumbs
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={[sliderMin, sliderMax]}
+                  onValueChange={(positions) => {
+                    const [posMin, posMax] = positions;
+                    const newMin = sliderPositionToValue(posMin, distribution);
+                    const newMax = sliderPositionToValue(posMax, distribution);
+                    const distMin = distribution[0].value;
+                    const distMax = distribution[distribution.length - 1].value;
+                    const isAtMin = posMin <= 0.5;
+                    const isAtMax = posMax >= 99.5;
+                    onNumberFilterFromChange(config.field, isAtMin ? '' : String(newMin));
+                    onNumberFilterToChange(config.field, isAtMax ? '' : String(newMax));
+                  }}
+                  className="w-full"
+                />
+              );
+            } else {
+              // Linear scale fallback for fields without distribution data
+              const step = (rangeMax - rangeMin) / 100;
+
+              return (
+                <Slider
+                  showTwoThumbs
+                  min={rangeMin}
+                  max={rangeMax}
+                  step={step}
+                  value={[currentMin, currentMax]}
+                  onValueChange={(values) => {
+                    const [newMin, newMax] = values;
+                    const roundedMin = roundToNiceNumber(newMin);
+                    const roundedMax = roundToNiceNumber(newMax);
+                    const isAtMin = Math.abs(roundedMin - rangeMin) < step;
+                    const isAtMax = Math.abs(roundedMax - rangeMax) < step;
+                    onNumberFilterFromChange(config.field, isAtMin ? '' : String(roundedMin));
+                    onNumberFilterToChange(config.field, isAtMax ? '' : String(roundedMax));
+                  }}
+                  className="w-full"
+                />
+              );
+            }
+          })()}
+
+          {/* Range bounds label */}
+          <div className="flex justify-between text-[10px] text-muted-foreground/60 mt-1">
+            <span>{formatFilterValue(rangeMin, config.field, rangeMin, rangeMax, config.unit)}</span>
+            <span>{formatFilterValue(rangeMax, config.field, rangeMin, rangeMax, config.unit)}</span>
           </div>
         </div>
       );
@@ -447,7 +766,7 @@ export function FeedFilterForm({
             );
           }
 
-          const isExpanded = expandedSections[group.group_id] || false;
+          const isExpanded = expandedSections[group.group_id] ?? true;
 
           return (
             <Card key={group.group_id} className="bg-card border-border">
@@ -510,7 +829,7 @@ export function FeedFilterForm({
       ) : (
         // Render flat filters (no grouping)
         (() => {
-          const isExpanded = expandedSections['additional-filters'] || false;
+          const isExpanded = expandedSections['additional-filters'] ?? true;
           return (
             <Card className="bg-card border-border">
               <CardHeader
