@@ -89,14 +89,22 @@ export function ProfileSelector({ selections, onSelectionsChange }: ProfileSelec
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Determine current mode based on selections
-  const getCurrentMode = (): ScopeMode => {
+  const getCurrentMode = useCallback((): ScopeMode => {
     if (selections.companies.length > 0) return 'companies';
     if (selections.sectors.length > 0 || selections.subsectors.length > 0) return 'sectors';
     return 'all';
-  };
+  }, [selections]);
 
   const [scopeMode, setScopeMode] = useState<ScopeMode>(getCurrentMode());
   const { toast } = useToast();
+
+  // Sync scopeMode when selections change externally (e.g., when loading feed data)
+  useEffect(() => {
+    const newMode = getCurrentMode();
+    if (newMode !== scopeMode) {
+      setScopeMode(newMode);
+    }
+  }, [getCurrentMode, scopeMode]);
 
   // Handle mode change with auto-clearing
   const handleModeChange = useCallback((newMode: ScopeMode) => {
