@@ -284,4 +284,145 @@ describe('ProfileSelector', () => {
       expect(screen.getByPlaceholderText('Type to search sectors/subsectors...')).toBeInTheDocument();
     });
   });
+
+  it('should clear sectors when switching from sectors to all mode', async () => {
+    const user = userEvent.setup();
+    const selectionsWithSectors: ProfileSelections = {
+      companies: [],
+      sectors: [{ value: 'Finance' }],
+      subsectors: [{ value: 'Banking' }],
+    };
+
+    render(
+      <ProfileSelector
+        selections={selectionsWithSectors}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // Click "All Companies"
+    const allCompaniesButton = screen.getByText('All Companies').closest('button');
+    await user.click(allCompaniesButton!);
+
+    // Should clear all selections
+    expect(mockOnSelectionsChange).toHaveBeenCalledWith({
+      companies: [],
+      sectors: [],
+      subsectors: [],
+    });
+  });
+
+  it('should clear companies when switching from companies to sectors mode', async () => {
+    const user = userEvent.setup();
+    const selectionsWithCompanies: ProfileSelections = {
+      companies: [{ id: 1, title: 'Company A' }],
+      sectors: [],
+      subsectors: [],
+    };
+
+    render(
+      <ProfileSelector
+        selections={selectionsWithCompanies}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // Click "Filter by Sectors/Subsectors"
+    const sectorsButton = screen.getByText('Filter by Sectors/Subsectors').closest('button');
+    await user.click(sectorsButton!);
+
+    // Should clear companies
+    expect(mockOnSelectionsChange).toHaveBeenCalledWith({
+      companies: [],
+      sectors: [],
+      subsectors: [],
+    });
+  });
+
+  it('should clear sectors when switching from sectors to companies mode', async () => {
+    const user = userEvent.setup();
+    const selectionsWithSectors: ProfileSelections = {
+      companies: [],
+      sectors: [{ value: 'Finance' }],
+      subsectors: [],
+    };
+
+    render(
+      <ProfileSelector
+        selections={selectionsWithSectors}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // Click "Select Specific Companies"
+    const companiesButton = screen.getByText('Select Specific Companies').closest('button');
+    await user.click(companiesButton!);
+
+    // Should clear sectors/subsectors
+    expect(mockOnSelectionsChange).toHaveBeenCalledWith({
+      companies: [],
+      sectors: [],
+      subsectors: [],
+    });
+  });
+
+  it('should show sectors mode when only subsectors are selected', () => {
+    const selectionsWithSubsectors: ProfileSelections = {
+      companies: [],
+      sectors: [],
+      subsectors: [{ value: 'Banking' }],
+    };
+
+    render(
+      <ProfileSelector
+        selections={selectionsWithSubsectors}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // "Filter by Sectors/Subsectors" should be selected
+    const sectorsButton = screen.getByText('Filter by Sectors/Subsectors').closest('button');
+    expect(sectorsButton).toHaveClass('border-[hsl(280,100%,70%)]');
+  });
+
+  it('should do nothing when clicking already selected mode', async () => {
+    const user = userEvent.setup();
+    const selectionsWithCompanies: ProfileSelections = {
+      companies: [{ id: 1, title: 'Company A' }],
+      sectors: [],
+      subsectors: [],
+    };
+
+    render(
+      <ProfileSelector
+        selections={selectionsWithCompanies}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // Click "Select Specific Companies" which is already selected
+    const companiesButton = screen.getByText('Select Specific Companies').closest('button');
+    await user.click(companiesButton!);
+
+    // Should not call onSelectionsChange
+    expect(mockOnSelectionsChange).not.toHaveBeenCalled();
+  });
+
+  it('should display selected sectors and subsectors', () => {
+    const selectionsWithSectors: ProfileSelections = {
+      companies: [],
+      sectors: [{ value: 'Finance' }],
+      subsectors: [{ value: 'Banking' }],
+    };
+
+    render(
+      <ProfileSelector
+        selections={selectionsWithSectors}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    expect(screen.getByText('Finance')).toBeInTheDocument();
+    expect(screen.getByText('Banking')).toBeInTheDocument();
+  });
 });
