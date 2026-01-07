@@ -238,4 +238,50 @@ describe('ProfileSelector', () => {
 
     expect(screen.getByText('2 selected')).toBeInTheDocument();
   });
+
+  it('should allow switching to companies mode from all mode', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ProfileSelector
+        selections={defaultSelections}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // Initially "All Companies" should be selected
+    const allCompaniesButton = screen.getByText('All Companies').closest('button');
+    expect(allCompaniesButton).toHaveClass('border-[hsl(280,100%,70%)]');
+
+    // Click "Select Specific Companies"
+    const companiesButton = screen.getByText('Select Specific Companies').closest('button');
+    await user.click(companiesButton!);
+
+    // Now "Select Specific Companies" should be selected and show search input
+    await waitFor(() => {
+      expect(companiesButton).toHaveClass('border-[hsl(280,100%,70%)]');
+      expect(screen.getByPlaceholderText('Type to search companies...')).toBeInTheDocument();
+    });
+  });
+
+  it('should allow switching to sectors mode from all mode', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ProfileSelector
+        selections={defaultSelections}
+        onSelectionsChange={mockOnSelectionsChange}
+      />
+    );
+
+    // Click "Filter by Sectors/Subsectors"
+    const sectorsButton = screen.getByText('Filter by Sectors/Subsectors').closest('button');
+    await user.click(sectorsButton!);
+
+    // Now "Filter by Sectors/Subsectors" should be selected and show search input
+    await waitFor(() => {
+      expect(sectorsButton).toHaveClass('border-[hsl(280,100%,70%)]');
+      expect(screen.getByPlaceholderText('Type to search sectors/subsectors...')).toBeInTheDocument();
+    });
+  });
 });
