@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FilterConfig } from '@/lib/api';
+import { FilterConfig, profilesApi } from '@/lib/api';
 import { ProfileSelections } from '@/components/ProfileSelector';
 import { useToast } from '@/hooks/use-toast';
 
@@ -50,7 +50,7 @@ export function useFeedFilters() {
   }, []);
 
   // Load existing feed data (for editing)
-  const loadFeedData = useCallback((feedData: any, filterConfigs: FilterConfig[]) => {
+  const loadFeedData = useCallback(async (feedData: any, filterConfigs: FilterConfig[]) => {
     setFeedName(feedData.name);
     setFeedDescription(feedData.description || '');
 
@@ -69,9 +69,29 @@ export function useFeedFilters() {
     });
 
     // Load profile selections if present
-    if (feedData.filter_criteria.profile_ids) {
-      // Note: We don't have the full company data here, so we can't populate companies
-      // This would need to be handled by fetching the company details
+    // If profile_ids exist, they take priority over sector/subsector filters
+    const hasProfileIds = feedData.filter_criteria.profile_ids && feedData.filter_criteria.profile_ids.length > 0;
+
+    if (hasProfileIds) {
+      // Fetch profile details for each profile_id
+      try {
+        const profilePromises = feedData.filter_criteria.profile_ids.map((id: number) =>
+          profilesApi.getProfile(id).catch(() => null)
+        );
+        const profiles = await Promise.all(profilePromises);
+        const companies = profiles
+          .filter((p): p is NonNullable<typeof p> => p !== null)
+          .map(p => ({ id: p.id, title: p.title }));
+
+        // Set only companies, clear sectors/subsectors
+        setProfileSelections({
+          companies,
+          sectors: [],
+          subsectors: [],
+        });
+      } catch (error) {
+        console.error('Error fetching profile details:', error);
+      }
     }
 
     feedData.filter_criteria.filters.forEach((filter: FilterValue) => {
@@ -92,8 +112,8 @@ export function useFeedFilters() {
             to: filter.value.toString(),
           };
         }
-      } else if (config?.type === 'string') {
-        // Handle sector/subsector filters
+      } else if (config?.type === 'string' && !hasProfileIds) {
+        // Handle sector/subsector filters only if profile_ids are not present
         if (filter.field === 'sector' && filter.operator === 'in') {
           setProfileSelections(prev => ({
             ...prev,
