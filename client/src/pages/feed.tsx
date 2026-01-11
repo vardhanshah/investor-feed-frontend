@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -504,8 +505,14 @@ export default function Feed() {
   // Auth loading is handled inline in the header (user button area)
 
   return (
-    <div className="min-h-screen bg-background transition-colors overflow-x-hidden">
-      {/* Header */}
+    <>
+      <SEO
+        title={feedConfigs.find(f => f.id === selectedFeedId)?.name}
+        description="Live company filings delivered within 1-2 minutes. Track order announcements, financial results, board meetings, and more."
+        canonical="/"
+      />
+      <div className="min-h-screen bg-background transition-colors overflow-x-hidden">
+        {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border transition-colors">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto flex justify-between items-center h-16">
@@ -1044,6 +1051,7 @@ export default function Feed() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
+import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -159,9 +160,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <>
+      <SEO
+        title={profile?.title || "Company Profile"}
+        description={profile ? `View company filings and announcements for ${profile.title}` : "View company filings and announcements"}
+        canonical={`/profiles/${params?.profileId}`}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: profile?.title || 'Profile', url: `/profiles/${params?.profileId}` },
+        ]}
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <Button
@@ -389,6 +400,7 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 export default function Cookies() {
   const [, setLocation] = useLocation();
@@ -14,7 +15,17 @@ export default function Cookies() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-20 pb-24">
+    <>
+      <SEO
+        title="Cookie Policy"
+        description="Learn how Investor Feed uses cookies, local storage, and similar technologies to improve your experience."
+        canonical="/cookies"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Cookie Policy', url: '/cookies' },
+        ]}
+      />
+      <div className="min-h-screen bg-background text-foreground py-20 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Button
@@ -282,6 +293,7 @@ export default function Cookies() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,10 +1,21 @@
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen bg-background text-foreground py-20">
+    <>
+      <SEO
+        title="Privacy Policy"
+        description="Learn how Investor Feed collects, uses, and protects your personal information."
+        canonical="/privacy"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Privacy Policy', url: '/privacy' },
+        ]}
+      />
+      <div className="min-h-screen bg-background text-foreground py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Button
@@ -200,6 +211,7 @@ export default function Privacy() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

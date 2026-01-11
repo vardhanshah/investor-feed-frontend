@@ -452,7 +452,7 @@ export function ProfileSelector({ selections, onSelectionsChange }: ProfileSelec
                                       {result.logo_url ? (
                                         <img
                                           src={result.logo_url}
-                                          alt=""
+                                          alt={`${result.title} logo`}
                                           className="h-8 w-8 rounded-md object-contain bg-background border border-border p-0.5"
                                           onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
