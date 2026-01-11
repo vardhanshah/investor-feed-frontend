@@ -9,6 +9,7 @@ import { getCategoryColor } from "@/lib/utils";
 import { formatTimeAgoTwoUnits } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { PublicPost, API_BASE_URL } from "@/lib/api";
+import SEO from "@/components/SEO";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -54,8 +55,14 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Main Content */}
+    <>
+      <SEO
+        title="Welcome"
+        description="Cut through market noise with Investor Feed. Real-time company filings delivered within 1-2 minutes."
+        canonical="/welcome"
+      />
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
@@ -246,6 +253,7 @@ export default function Home() {
           </p>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }

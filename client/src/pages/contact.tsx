@@ -2,6 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { FaXTwitter } from 'react-icons/fa6';
+import SEO from '@/components/SEO';
 
 export default function Contact() {
   const [, setLocation] = useLocation();
@@ -15,7 +16,13 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-20 pb-24">
+    <>
+      <SEO
+        title="Contact Us"
+        description="Get in touch with Investor Feed. Contact us for questions, feedback, or support."
+        canonical="/contact"
+      />
+      <div className="min-h-screen bg-background text-foreground py-20 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Button
@@ -117,6 +124,7 @@ export default function Contact() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

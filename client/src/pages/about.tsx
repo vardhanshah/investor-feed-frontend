@@ -2,6 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, TrendingUp, Bell, Filter, History, MessageSquare, Zap, Target, Users } from 'lucide-react';
 import { FaXTwitter } from 'react-icons/fa6';
+import SEO from '@/components/SEO';
 
 export default function About() {
   const [, setLocation] = useLocation();
@@ -15,7 +16,13 @@ export default function About() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-20 pb-24">
+    <>
+      <SEO
+        title="About"
+        description="Investor Feed delivers real-time company filings within 1-2 minutes. Institutional-grade market intelligence, accessible to everyone."
+        canonical="/about"
+      />
+      <div className="min-h-screen bg-background text-foreground py-20 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Button
@@ -279,6 +286,7 @@ export default function About() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
