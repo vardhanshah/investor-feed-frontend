@@ -32,7 +32,7 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
     handleNumberFilterToChange,
   } = useFeedManagement({
     editingFeedId,
-    isActive: isOpen,
+    isActive: !!editingFeedId, // Keep active as long as we have a feed to edit
     onSuccess: (feedId, isEdit) => {
       onFeedCreated(feedId);
       if (!isEdit) {
@@ -43,10 +43,13 @@ export default function FeedSidebar({ isOpen, onClose, onFeedCreated, editingFee
     },
   });
 
-  if (!isOpen) return null;
-
+  // Hide with CSS instead of returning null to preserve state
   return (
-    <div className="h-full md:h-[calc(100vh-5rem)] bg-background border-0 md:border md:border-border md:rounded-lg flex flex-col md:sticky md:top-4">
+    <div
+      className={`h-full md:h-[calc(100vh-5rem)] bg-background border-0 md:border md:border-border md:rounded-lg flex flex-col md:sticky md:top-4 ${
+        !isOpen ? 'hidden' : ''
+      }`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h2 className="text-xl font-alata font-bold text-foreground">

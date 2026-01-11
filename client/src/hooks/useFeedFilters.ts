@@ -303,6 +303,132 @@ export function useFeedFilters() {
     return true;
   }, [feedName, toast]);
 
+  // Check if any filter is active (for preview mode)
+  const hasActiveFilters = useCallback((filterConfigs: FilterConfig[]) => {
+    // Check profile selections
+    if (profileSelections.companies.length > 0 ||
+        profileSelections.sectors.length > 0 ||
+        profileSelections.subsectors.length > 0) {
+      return true;
+    }
+
+    // Check number filters
+    for (const [, state] of Object.entries(numberFilterStates)) {
+      if ((state.from && state.from.trim() !== '') ||
+          (state.to && state.to.trim() !== '')) {
+        return true;
+      }
+    }
+
+    // Check boolean filters
+    for (const [field, value] of Object.entries(filterValues)) {
+      const config = filterConfigs.find(c => c.field === field);
+      if (config?.type === 'boolean' && value === true) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [filterValues, numberFilterStates, profileSelections]);
+
+  // Build search criteria for filter preview (no feed name validation, no minimum filter requirement)
+  const buildSearchCriteria = useCallback((filterConfigs: FilterConfig[]) => {
+    const filters: FilterValue[] = [];
+
+    // Add sector/subsector filters from profile selections
+    if (profileSelections.sectors.length > 0) {
+      filters.push({
+        field: 'sector',
+        operator: 'in',
+        value: profileSelections.sectors.map(s => s.value),
+      });
+    }
+
+    if (profileSelections.subsectors.length > 0) {
+      filters.push({
+        field: 'subsector',
+        operator: 'in',
+        value: profileSelections.subsectors.map(s => s.value),
+      });
+    }
+
+    // Add number filters (from/to logic)
+    for (const [field, state] of Object.entries(numberFilterStates)) {
+      const config = filterConfigs.find(c => c.field === field);
+      const hasFrom = state.from && state.from.trim() !== '';
+      const hasTo = state.to && state.to.trim() !== '';
+
+      if (hasFrom) {
+        const fromValue = parseFloat(state.from);
+        // Validate range if provided
+        if (config?.range && (fromValue < config.range.min || fromValue > config.range.max)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "From" value must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
+          });
+          return null;
+        }
+        filters.push({
+          field,
+          operator: 'gte',
+          value: fromValue,
+        });
+      }
+
+      if (hasTo) {
+        const toValue = parseFloat(state.to);
+        // Validate range if provided
+        if (config?.range && (toValue < config.range.min || toValue > config.range.max)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "To" value must be between ${config.range.min} and ${config.range.max}${config.unit ? ' ' + config.unit : ''}`,
+          });
+          return null;
+        }
+        // Validate that "To" is greater than or equal to "From"
+        if (hasFrom && toValue < parseFloat(state.from)) {
+          toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: `${config?.label} "To" value must be greater than or equal to "From" value`,
+          });
+          return null;
+        }
+        filters.push({
+          field,
+          operator: 'lte',
+          value: toValue,
+        });
+      }
+    }
+
+    // Add boolean filters
+    for (const [field, value] of Object.entries(filterValues)) {
+      const config = filterConfigs.find(c => c.field === field);
+      if (config?.type === 'boolean' && value === true) {
+        filters.push({
+          field,
+          operator: 'eq',
+          value: true,
+        });
+      }
+    }
+
+    // Build filter criteria
+    const filterCriteria: any = {
+      filters,
+    };
+
+    // Add profile IDs if companies selected
+    if (profileSelections.companies.length > 0) {
+      filterCriteria.profile_ids = profileSelections.companies.map(c => c.id);
+    }
+
+    return filterCriteria;
+  }, [filterValues, numberFilterStates, profileSelections, toast]);
+
   return {
     // State
     feedName,
@@ -325,5 +451,7 @@ export function useFeedFilters() {
     handleNumberFilterToChange,
     buildFilterCriteria,
     validateFeedName,
+    hasActiveFilters,
+    buildSearchCriteria,
   };
 }

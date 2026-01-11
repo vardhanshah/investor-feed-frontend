@@ -79,12 +79,8 @@ export function useFeedManagement(options: UseFeedManagementOptions = {}) {
     }
   }, [isActive, editingFeedId, toast, onError]);
 
-  // Reset filters when component becomes inactive (e.g., sidebar closes)
-  useEffect(() => {
-    if (!isActive && filterConfigs.length > 0) {
-      feedFilters.resetFilters(filterConfigs);
-    }
-  }, [isActive, filterConfigs]);
+  // Note: We don't reset filters when isActive becomes false
+  // This allows the sidebar state to be preserved when temporarily hidden
 
   // Save or update feed
   const saveFeed = async () => {

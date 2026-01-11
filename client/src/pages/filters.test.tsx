@@ -83,6 +83,8 @@ vi.mock('@/hooks/useFeedManagement', () => ({
       resetFilters: vi.fn(),
       buildFilterCriteria: vi.fn(),
       validateFeedName: vi.fn().mockReturnValue(true),
+      hasActiveFilters: vi.fn().mockReturnValue(false),
+      buildSearchCriteria: vi.fn().mockReturnValue(null),
     };
   }),
 }));
@@ -152,6 +154,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
   });
@@ -208,6 +212,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -433,6 +439,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -558,6 +566,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(false), // Return false to indicate validation failure
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -608,6 +618,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn().mockReturnValue(null), // Return null to indicate no filters
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -658,6 +670,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn().mockReturnValue(null), // Validation failure
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -748,6 +762,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -794,6 +810,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -868,6 +886,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -918,6 +938,8 @@ describe('Filters Page', () => {
         resetFilters: vi.fn(),
         buildFilterCriteria: vi.fn(),
         validateFeedName: vi.fn().mockReturnValue(true),
+        hasActiveFilters: vi.fn().mockReturnValue(false),
+        buildSearchCriteria: vi.fn().mockReturnValue(null),
       };
     });
 

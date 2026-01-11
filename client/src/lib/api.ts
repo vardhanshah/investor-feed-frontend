@@ -189,6 +189,7 @@ export interface FeedPostsResponse {
   posts: Post[];
   profiles_attributes_metadata?: ProfilesAttributesMetadata;
   posts_attributes_metadata?: PostAttributesMetadata;
+  total_post_count?: number;
 }
 
 // Simplified post interface for public/unauthenticated endpoints
@@ -624,6 +625,39 @@ export const postsApi = {
       headers: getAuthHeaders(),
     });
     return handleResponse<Post>(response);
+  },
+
+  async searchPosts(
+    filterCriteria: {
+      filters: Array<{ field: string; operator: string; value: any }>;
+      profile_ids?: number[];
+    },
+    limit = 40,
+    offset = 0,
+    sortBy = 'submission_date',
+    sortOrder: 'asc' | 'desc' = 'desc'
+  ): Promise<FeedPostsResponse> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    // Add auth headers if available (optional authentication)
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/posts/search`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        filter_criteria: filterCriteria,
+        limit,
+        offset,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      }),
+    });
+    return handleResponse<FeedPostsResponse>(response);
   },
 };
 

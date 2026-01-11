@@ -19,6 +19,8 @@ import { FEED_MESSAGES } from '@/lib/messages';
 import FeedSidebar from '@/components/FeedSidebar';
 import { NotificationBell } from '@/components/NotificationBell';
 import { ProfileSearch } from '@/components/ProfileSearch';
+import { useFilterPreview } from '@/hooks/useFilterPreview';
+import { ProfileSidebar, FilterCriteriaSidebar, SaveAsFeedModal } from '@/components/FilterPreview';
 import {
   Dialog,
   DialogContent,
@@ -66,6 +68,10 @@ export default function Feed() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginPromptFeature, setLoginPromptFeature] = useState('');
 
+  // Filter preview state
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const filterPreview = useFilterPreview();
+
   const LIMIT = 20;
   const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
   const PULL_THRESHOLD = 80; // Pixels to pull before triggering refresh
@@ -73,6 +79,10 @@ export default function Feed() {
   // Public mode - when user is not authenticated AND auth has finished loading
   // This prevents flashing public feed while auth is still determining user state
   const isPublicMode = !authLoading && !user;
+
+  // Check if we're on the default/live feed (where filters should be shown)
+  const selectedFeed = feedConfigs.find(f => f.id === selectedFeedId);
+  const isDefaultFeed = isPublicMode || (selectedFeed?.is_default === true);
 
   // Fetch ads configuration after initial render - deferred to improve LCP
   useEffect(() => {
@@ -365,6 +375,15 @@ export default function Feed() {
     setSortOrder(undefined);
     // Save to localStorage for persistence across refreshes
     localStorage.setItem('selectedFeedId', feedId.toString());
+
+    // Manage sidebar state based on editing context
+    if (editingFeedId === feedId) {
+      // Returning to the feed being edited - reopen sidebar
+      setIsSidebarOpen(true);
+    } else {
+      // Switching to a different feed - close sidebar
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleDeleteClick = (feed: FeedConfiguration, e: React.MouseEvent) => {
@@ -501,6 +520,32 @@ export default function Feed() {
     }
   };
 
+  // Handle save as feed from filter preview
+  const handleSaveAsFeed = () => {
+    if (!user) {
+      setLoginPromptFeature('save filters as a feed');
+      setShowLoginPrompt(true);
+      return;
+    }
+    setShowSaveModal(true);
+  };
+
+  // Handle successful feed save from preview
+  const handleSaveSuccess = async (feedId: number) => {
+    setShowSaveModal(false);
+    filterPreview.clearFilters();
+
+    // Reload feed configurations
+    try {
+      const configs = await feedConfigApi.listFeedConfigurations();
+      setFeedConfigs(configs);
+      setSelectedFeedId(feedId);
+      localStorage.setItem('selectedFeedId', feedId.toString());
+    } catch (err) {
+      console.error('Failed to reload feeds:', err);
+    }
+  };
+
   // Don't block on auth - show posts as soon as they're ready
   // Auth loading is handled inline in the header (user button area)
 
@@ -519,7 +564,22 @@ export default function Feed() {
             {/* Logo/Brand */}
             <div
               className="flex items-center space-x-3 cursor-pointer group"
-              onClick={() => setLocation('/')}
+              onClick={() => {
+                // Go to default/live feed
+                const defaultFeed = feedConfigs.find(f => f.is_default);
+                if (defaultFeed) {
+                  setSelectedFeedId(defaultFeed.id);
+                  localStorage.setItem('selectedFeedId', defaultFeed.id.toString());
+                }
+                // Clear any active filters
+                filterPreview.clearFilters();
+                // Close sidebar and clear editing state
+                setIsSidebarOpen(false);
+                setEditingFeedId(null);
+                // Reset sort
+                setSortBy(undefined);
+                setSortOrder(undefined);
+              }}
             >
               <div className="p-1.5 rounded-lg gradient-bg">
                 <TrendingUp className="h-5 w-5 text-white" />
@@ -640,12 +700,59 @@ export default function Feed() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className={`flex gap-6 ${isSidebarOpen ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
-          {/* Left Side - Feed Content */}
-          <div className={`transition-all duration-500 ease-in-out ${isSidebarOpen ? 'flex-1 min-w-0' : 'w-full'}`}>
-            {/* Feed Selector */}
+      {/* Main Content - Three Panel Layout */}
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        {/* Left Sidebar - Profile Selector (only on default feed) */}
+        {isDefaultFeed && (
+          <ProfileSidebar
+            profileSelections={filterPreview.profileSelections}
+            onSelectionsChange={filterPreview.setProfileSelections}
+          />
+        )}
+
+        {/* Center Content */}
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
+          <div className={`flex gap-6 ${isSidebarOpen ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
+            {/* Feed Content Area */}
+            <div className={`transition-all duration-500 ease-in-out ${isSidebarOpen ? 'flex-1 min-w-0' : 'w-full'}`}>
+              {/* Filter Active Header - Show when filters are applied on default feed */}
+              {isDefaultFeed && filterPreview.hasActiveFilters && (
+                <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {filterPreview.isSearching ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Searching...
+                        </span>
+                      ) : (
+                        `${filterPreview.totalCount ?? filterPreview.filteredPosts.length} posts match your filters`
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSaveAsFeed}
+                      className="text-xs"
+                    >
+                      Save as Feed
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={filterPreview.clearFilters}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Feed Selector */}
             {isLoadingFeeds ? (
               <div className="mb-4 flex items-center justify-center py-4">
                 <Loader2 className="h-5 w-5 animate-spin text-[hsl(280,100%,70%)]" />
@@ -847,139 +954,202 @@ export default function Feed() {
 
             {/* Posts List */}
             <div className="space-y-4">
-          {isLoadingPosts && posts.length === 0 ? (
-            // Loading skeleton
-            <>
-              {[1, 2, 3].map(i => (
-                <Card key={i} className="bg-card border-border">
-                  <CardContent className="p-6">
-                    <div className="animate-pulse">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-muted"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
-                          <div className="h-3 bg-muted rounded w-1/6"></div>
+              {(() => {
+                // Determine which posts to display
+                const showFilteredPosts = isDefaultFeed && filterPreview.hasActiveFilters;
+                const displayPosts = showFilteredPosts ? filterPreview.filteredPosts : posts;
+                const displayLoading = showFilteredPosts ? filterPreview.isSearching : isLoadingPosts;
+                const displayHasMore = showFilteredPosts ? filterPreview.hasMore : hasMore;
+                const displayError = showFilteredPosts ? filterPreview.searchError : error;
+                const displayMetadata = showFilteredPosts
+                  ? { profiles: filterPreview.profilesAttributesMetadata, posts: filterPreview.postsAttributesMetadata }
+                  : { profiles: profilesAttributesMetadata, posts: postsAttributesMetadata };
+
+                if (displayLoading && displayPosts.length === 0) {
+                  // Loading skeleton
+                  return (
+                    <>
+                      {[1, 2, 3].map(i => (
+                        <Card key={i} className="bg-card border-border">
+                          <CardContent className="p-6">
+                            <div className="animate-pulse">
+                              <div className="flex items-center space-x-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-muted"></div>
+                                <div className="flex-1">
+                                  <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
+                                  <div className="h-3 bg-muted rounded w-1/6"></div>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="h-4 bg-muted rounded w-full"></div>
+                                <div className="h-4 bg-muted rounded w-5/6"></div>
+                                <div className="h-4 bg-muted rounded w-4/6"></div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </>
+                  );
+                }
+
+                if (displayError && displayPosts.length === 0) {
+                  // Error state
+                  return (
+                    <Card className="bg-card border-border">
+                      <CardContent className="p-12 text-center">
+                        <div className="text-destructive mb-4">
+                          <TrendingUp className="h-12 w-12 mx-auto mb-4" />
+                          <h3 className="text-xl font-alata mb-2 text-foreground">
+                            {showFilteredPosts ? 'Search Failed' : 'Failed to Load Posts'}
+                          </h3>
+                          <p className="text-muted-foreground font-alata mb-4">{displayError}</p>
+                          <Button
+                            onClick={async () => {
+                              if (showFilteredPosts) {
+                                // Re-trigger filter search by clearing and re-applying
+                                filterPreview.clearFilters();
+                              } else if (selectedFeedId) {
+                                setIsLoadingPosts(true);
+                                await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
+                              }
+                            }}
+                            className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+                          >
+                            Try Again
+                          </Button>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-muted rounded w-full"></div>
-                        <div className="h-4 bg-muted rounded w-5/6"></div>
-                        <div className="h-4 bg-muted rounded w-4/6"></div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </>
-          ) : error && posts.length === 0 ? (
-            // Error state
-            <Card className="bg-card border-border">
-              <CardContent className="p-12 text-center">
-                <div className="text-destructive mb-4">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-4" />
-                  <h3 className="text-xl font-alata mb-2 text-foreground">Failed to Load Posts</h3>
-                  <p className="text-muted-foreground font-alata mb-4">{error}</p>
-                  <Button
-                    onClick={async () => {
-                      if (selectedFeedId) {
-                        setIsLoadingPosts(true);
-                        await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
-                      }
-                    }}
-                    className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
-                  >
-                    Try Again
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : posts.length === 0 ? (
-            // Empty state
-            <Card className="bg-card border-border">
-              <CardContent className="p-12 text-center">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-alata text-foreground mb-2">No Posts Yet</h3>
-                <p className="text-muted-foreground font-alata">
-                  Check back later for market updates and insights
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            // Posts list
-            <>
-              {posts.map((post, index) => (
-                <div key={post.id}>
-                  <PostCard
-                    post={post}
-                    profilesAttributesMetadata={profilesAttributesMetadata}
-                    postsAttributesMetadata={postsAttributesMetadata}
-                  />
+                      </CardContent>
+                    </Card>
+                  );
+                }
 
-                  {/* Show ad after every N posts based on frequency */}
-                  {adsConfig?.enabled &&
-                   adsConfig.ad_client &&
-                   adsConfig.ad_slot &&
-                   adsConfig.ad_layout_key &&
-                   (index + 1) % adsConfig.frequency === 0 && (
-                    <AdUnit
-                      key={`ad-${index}`}
-                      adClient={adsConfig.ad_client}
-                      adSlot={adsConfig.ad_slot}
-                      adFormat={adsConfig.ad_format}
-                      adLayoutKey={adsConfig.ad_layout_key}
-                    />
-                  )}
-                </div>
-              ))}
+                if (displayPosts.length === 0) {
+                  // Empty state
+                  return (
+                    <Card className="bg-card border-border">
+                      <CardContent className="p-12 text-center">
+                        <TrendingUp className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-xl font-alata text-foreground mb-2">
+                          {showFilteredPosts ? 'No Posts Found' : 'No Posts Yet'}
+                        </h3>
+                        <p className="text-muted-foreground font-alata">
+                          {showFilteredPosts
+                            ? 'Try adjusting your filters to see more results'
+                            : 'Check back later for market updates and insights'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                }
 
-              {/* Load More Button */}
-              {hasMore && (
-                <div className="flex justify-center pt-4">
-                  <Button
-                    onClick={handleLoadMore}
-                    disabled={isLoadingPosts}
-                    className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
-                  >
-                    {isLoadingPosts ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Posts'
+                // Posts list
+                return (
+                  <>
+                    {displayPosts.map((post, index) => (
+                      <div key={post.id}>
+                        <PostCard
+                          post={post}
+                          profilesAttributesMetadata={displayMetadata.profiles}
+                          postsAttributesMetadata={displayMetadata.posts}
+                        />
+
+                        {/* Show ad after every N posts based on frequency (only for non-filtered feed) */}
+                        {!showFilteredPosts &&
+                         adsConfig?.enabled &&
+                         adsConfig.ad_client &&
+                         adsConfig.ad_slot &&
+                         adsConfig.ad_layout_key &&
+                         (index + 1) % adsConfig.frequency === 0 && (
+                          <AdUnit
+                            key={`ad-${index}`}
+                            adClient={adsConfig.ad_client}
+                            adSlot={adsConfig.ad_slot}
+                            adFormat={adsConfig.ad_format}
+                            adLayoutKey={adsConfig.ad_layout_key}
+                          />
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Load More Button */}
+                    {displayHasMore && (
+                      <div className="flex justify-center pt-4">
+                        <Button
+                          onClick={showFilteredPosts ? filterPreview.loadMore : handleLoadMore}
+                          disabled={displayLoading}
+                          className="bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+                        >
+                          {displayLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            'Load More Posts'
+                          )}
+                        </Button>
+                      </div>
                     )}
-                  </Button>
-                </div>
-              )}
 
-              {/* End of feed message */}
-              {!hasMore && posts.length > 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground font-alata">You've reached the end of your feed</p>
-                </div>
-              )}
-            </>
-          )}
+                    {/* End of feed message */}
+                    {!displayHasMore && displayPosts.length > 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground font-alata">
+                          {showFilteredPosts
+                            ? "You've seen all matching posts"
+                            : "You've reached the end of your feed"}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
+            </div>
+
+            {/* Vertical Divider - hidden on mobile */}
+            {isSidebarOpen && (
+              <div className="hidden md:block w-px bg-border flex-shrink-0 animate-in fade-in duration-500"></div>
+            )}
+
+            {/* Right Side - Edit Feed Sidebar (fullscreen on mobile, side panel on desktop) */}
+            {/* Keep mounted when editingFeedId is set to preserve form state */}
+            {editingFeedId && (
+              <div
+                className={`fixed inset-0 z-50 md:relative md:inset-auto md:z-auto md:w-[480px] flex-shrink-0 transition-all duration-300 ${
+                  isSidebarOpen
+                    ? 'opacity-100 translate-x-0'
+                    : 'opacity-0 pointer-events-none md:hidden'
+                }`}
+              >
+                <FeedSidebar
+                  isOpen={isSidebarOpen}
+                  onClose={handleSidebarClose}
+                  onFeedCreated={handleFeedCreated}
+                  editingFeedId={editingFeedId}
+                />
+              </div>
+            )}
           </div>
-
-          {/* Vertical Divider - hidden on mobile */}
-          {isSidebarOpen && (
-            <div className="hidden md:block w-px bg-border flex-shrink-0 animate-in fade-in duration-500"></div>
-          )}
-
-          {/* Right Side - Sidebar (fullscreen on mobile, side panel on desktop) */}
-          {isSidebarOpen && (
-            <div className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto md:w-[480px] flex-shrink-0 animate-in slide-in-from-right duration-500">
-              <FeedSidebar
-                isOpen={isSidebarOpen}
-                onClose={handleSidebarClose}
-                onFeedCreated={handleFeedCreated}
-                editingFeedId={editingFeedId}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Right Sidebar - Filter Criteria (only on default feed) */}
+        {isDefaultFeed && (
+          <FilterCriteriaSidebar
+            filterConfigs={filterPreview.filterConfigs}
+            filterGroups={filterPreview.filterGroups}
+            filterValues={filterPreview.filterValues}
+            numberFilterStates={filterPreview.numberFilterStates}
+            profileSelections={filterPreview.profileSelections}
+            onFilterChange={filterPreview.handleFilterChange}
+            onNumberFilterFromChange={filterPreview.handleNumberFilterFromChange}
+            onNumberFilterToChange={filterPreview.handleNumberFilterToChange}
+            onClear={filterPreview.clearFilters}
+            isSearching={filterPreview.isSearching}
+            hasActiveFilters={filterPreview.hasActiveFilters}
+          />
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -1051,6 +1221,14 @@ export default function Feed() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Save as Feed Modal */}
+      <SaveAsFeedModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        filterCriteria={filterPreview.getSearchCriteria()}
+        onSaveSuccess={handleSaveSuccess}
+      />
       </div>
     </>
   );
