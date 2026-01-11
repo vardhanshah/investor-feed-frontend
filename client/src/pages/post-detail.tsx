@@ -478,12 +478,30 @@ export default function PostDetailPage() {
     ? `${post.content.substring(0, 60)}...`
     : post.content;
 
+  // Article schema data
+  const articleData = {
+    headline: post.content.substring(0, 110),
+    description: post.content.substring(0, 160),
+    datePublished: post.submission_date || post.created_at,
+    author: post.profile?.title || 'Investor Feed',
+    image: post.images?.[0] || undefined,
+  };
+
+  // Breadcrumb data
+  const breadcrumbs = [
+    { name: 'Home', url: '/' },
+    ...(post.profile ? [{ name: post.profile.title, url: `/profiles/${post.profile.id}` }] : []),
+    { name: 'Post', url: `/posts/${post.id}` },
+  ];
+
   return (
     <>
       <SEO
         title={seoTitle}
         description={post.content.substring(0, 160)}
         canonical={`/posts/${post.id}`}
+        article={articleData}
+        breadcrumbs={breadcrumbs}
       />
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -583,6 +601,7 @@ export default function PostDetailPage() {
                     key={index}
                     src={image}
                     alt={`Post image ${index + 1}`}
+                    loading="lazy"
                     className="rounded-lg w-full h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => setSelectedImageIndex(index)}
                   />

@@ -10,6 +10,10 @@ export default function Terms() {
         title="Terms of Service"
         description="Terms and conditions for using Investor Feed's services. Important disclaimers about investment information."
         canonical="/terms"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Terms of Service', url: '/terms' },
+        ]}
       />
       <div className="min-h-screen bg-background text-foreground py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

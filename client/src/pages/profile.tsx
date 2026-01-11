@@ -165,6 +165,10 @@ export default function ProfilePage() {
         title={profile?.title || "Company Profile"}
         description={profile ? `View company filings and announcements for ${profile.title}` : "View company filings and announcements"}
         canonical={`/profiles/${params?.profileId}`}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: profile?.title || 'Profile', url: `/profiles/${params?.profileId}` },
+        ]}
       />
       <div className="min-h-screen bg-background">
         {/* Header */}

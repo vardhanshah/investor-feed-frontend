@@ -21,6 +21,10 @@ export default function Contact() {
         title="Contact Us"
         description="Get in touch with Investor Feed. Contact us for questions, feedback, or support."
         canonical="/contact"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Contact', url: '/contact' },
+        ]}
       />
       <div className="min-h-screen bg-background text-foreground py-20 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

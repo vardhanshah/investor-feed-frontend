@@ -21,6 +21,10 @@ export default function About() {
         title="About"
         description="Investor Feed delivers real-time company filings within 1-2 minutes. Institutional-grade market intelligence, accessible to everyone."
         canonical="/about"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'About', url: '/about' },
+        ]}
       />
       <div className="min-h-screen bg-background text-foreground py-20 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

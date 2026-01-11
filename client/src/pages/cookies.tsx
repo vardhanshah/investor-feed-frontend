@@ -20,6 +20,10 @@ export default function Cookies() {
         title="Cookie Policy"
         description="Learn how Investor Feed uses cookies, local storage, and similar technologies to improve your experience."
         canonical="/cookies"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Cookie Policy', url: '/cookies' },
+        ]}
       />
       <div className="min-h-screen bg-background text-foreground py-20 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
