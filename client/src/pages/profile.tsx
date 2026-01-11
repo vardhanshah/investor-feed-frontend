@@ -169,6 +169,12 @@ export default function ProfilePage() {
           { name: 'Home', url: '/' },
           { name: profile?.title || 'Profile', url: `/profiles/${params?.profileId}` },
         ]}
+        organization={profile ? {
+          name: profile.title,
+          description: profile.description || undefined,
+          logo: profile.meta_attributes?.logo_url || undefined,
+          ticker: profile.meta_attributes?.symbol || undefined,
+        } : undefined}
       />
       <div className="min-h-screen bg-background">
         {/* Header */}

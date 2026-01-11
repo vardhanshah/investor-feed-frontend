@@ -15,6 +15,14 @@ interface ArticleData {
   image?: string;
 }
 
+interface OrganizationData {
+  name: string;
+  description?: string;
+  logo?: string;
+  url?: string;
+  ticker?: string;
+}
+
 interface SEOProps {
   title?: string;
   description?: string;
@@ -23,6 +31,7 @@ interface SEOProps {
   image?: string;
   article?: ArticleData;
   breadcrumbs?: BreadcrumbItem[];
+  organization?: OrganizationData;
 }
 
 const defaults = {
@@ -40,6 +49,7 @@ export default function SEO({
   image = defaults.image,
   article,
   breadcrumbs,
+  organization,
 }: SEOProps) {
   const fullTitle = title ? `${title} | Investor Feed` : defaults.title;
   const canonicalUrl = canonical ? `${defaults.url}${canonical}` : defaults.url;
@@ -83,6 +93,17 @@ export default function SEO({
     })),
   } : null;
 
+  // Generate Organization schema (for company profile pages)
+  const organizationSchema = organization ? {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: organization.name,
+    ...(organization.description && { description: organization.description }),
+    ...(organization.logo && { logo: organization.logo }),
+    ...(organization.url && { url: organization.url }),
+    ...(organization.ticker && { tickerSymbol: organization.ticker }),
+  } : null;
+
   return (
     <Helmet>
       <title>{fullTitle}</title>
@@ -121,6 +142,13 @@ export default function SEO({
       {breadcrumbSchema && (
         <script type="application/ld+json">
           {JSON.stringify(breadcrumbSchema)}
+        </script>
+      )}
+
+      {/* Organization Schema */}
+      {organizationSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(organizationSchema)}
         </script>
       )}
     </Helmet>
