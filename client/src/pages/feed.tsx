@@ -434,9 +434,12 @@ export default function Feed() {
         setSortOrder(undefined);
         localStorage.setItem('selectedFeedId', feedId.toString());
 
-        // Reload posts for the feed (useEffect will handle this due to state changes)
+        // Reload posts for the feed
+        // Need to explicitly fetch because selectedFeedId might not change (when editing same feed)
         setIsLoadingPosts(true);
         setOffset(0);
+        setPosts([]); // Clear existing posts
+        await fetchPosts(feedId, 0, undefined, undefined);
       }
     } catch (err) {
       const errorInfo = getErrorMessage(err);
@@ -456,8 +459,13 @@ export default function Feed() {
   };
 
   const handleNewFeedClick = () => {
+    // Check if user is logged in
+    if (!user) {
+      setLoginPromptFeature('create custom feeds');
+      setShowLoginPrompt(true);
+      return;
+    }
     // Navigate to full-page filters for creating new feed
-    // Login is only required when trying to save the feed on /filters
     setLocation('/filters');
   };
 

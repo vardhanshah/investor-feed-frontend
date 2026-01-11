@@ -1,4 +1,5 @@
 import { FaTwitter } from "react-icons/fa";
+import { Link } from "wouter";
 
 export default function Footer() {
   return (
@@ -49,6 +50,21 @@ export default function Footer() {
             >
               <FaTwitter className="text-xl" />
             </a>
+          </div>
+
+          {/* Legal Links */}
+          <div className="flex justify-center flex-wrap gap-4 mb-6 text-sm">
+            <Link href="/terms" className="text-muted-foreground hover:text-primary font-alata transition-colors duration-200">
+              Terms of Service
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link href="/privacy" className="text-muted-foreground hover:text-primary font-alata transition-colors duration-200">
+              Privacy Policy
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link href="/contact" className="text-muted-foreground hover:text-primary font-alata transition-colors duration-200">
+              Contact
+            </Link>
           </div>
 
           <div className="border-t border-border pt-6">

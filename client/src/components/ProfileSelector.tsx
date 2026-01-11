@@ -88,59 +88,51 @@ export function ProfileSelector({ selections, onSelectionsChange }: ProfileSelec
   });
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Determine current mode based on selections
-  const getCurrentMode = (): ScopeMode => {
-    if (selections.companies.length > 0) return 'companies';
-    if (selections.sectors.length > 0 || selections.subsectors.length > 0) return 'sectors';
-    return 'all';
-  };
+  // Derive mode from selections - no separate state needed
+  const derivedMode: ScopeMode = selections.companies.length > 0
+    ? 'companies'
+    : (selections.sectors.length > 0 || selections.subsectors.length > 0)
+      ? 'sectors'
+      : 'all';
 
-  const [scopeMode, setScopeMode] = useState<ScopeMode>(getCurrentMode());
+  // User's explicit mode choice (only used when no selections exist)
+  const [userSelectedMode, setUserSelectedMode] = useState<ScopeMode | null>(null);
   const { toast } = useToast();
 
-  // Handle mode change with auto-clearing
+  // Effective mode: use derived mode if selections exist, otherwise user's choice or 'all'
+  const scopeMode: ScopeMode = derivedMode !== 'all' ? derivedMode : (userSelectedMode || 'all');
+
+  // Reset user selection when selections are loaded externally
+  useEffect(() => {
+    if (derivedMode !== 'all') {
+      setUserSelectedMode(null);
+    }
+  }, [derivedMode]);
+
+  // Handle mode change
   const handleModeChange = useCallback((newMode: ScopeMode) => {
     if (newMode === scopeMode) return;
 
-    setScopeMode(newMode);
-
     if (newMode === 'all') {
-      // Clear everything
+      // Clear everything and reset user selection
       onSelectionsChange({ companies: [], sectors: [], subsectors: [] });
-      toast({
-        title: 'Switched to All Companies',
-        description: 'Previous selections cleared',
-      });
+      setUserSelectedMode(null);
     } else if (newMode === 'sectors') {
-      // Clear companies, keep sectors/subsectors
+      // Clear companies if switching from companies mode
       if (selections.companies.length > 0) {
-        onSelectionsChange({
-          companies: [],
-          sectors: selections.sectors,
-          subsectors: selections.subsectors,
-        });
-        toast({
-          title: 'Switched to Sector Filtering',
-          description: 'Company selections cleared',
-        });
+        onSelectionsChange({ companies: [], sectors: [], subsectors: [] });
       }
+      setUserSelectedMode('sectors');
       setActiveTab('sector');
     } else if (newMode === 'companies') {
-      // Clear sectors/subsectors, keep companies
+      // Clear sectors/subsectors if switching from sectors mode
       if (selections.sectors.length > 0 || selections.subsectors.length > 0) {
-        onSelectionsChange({
-          companies: selections.companies,
-          sectors: [],
-          subsectors: [],
-        });
-        toast({
-          title: 'Switched to Company Selection',
-          description: 'Sector/subsector selections cleared',
-        });
+        onSelectionsChange({ companies: [], sectors: [], subsectors: [] });
       }
+      setUserSelectedMode('companies');
       setActiveTab('company');
     }
-  }, [scopeMode, selections, onSelectionsChange, toast]);
+  }, [scopeMode, selections, onSelectionsChange]);
 
   const debouncedQuery = useDebounce(query, 300);
 

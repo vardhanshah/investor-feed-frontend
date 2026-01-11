@@ -290,7 +290,8 @@ export function FeedFilterForm({
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      // Default is true (expanded), so toggle from current state or default
+      [sectionId]: !(prev[sectionId] ?? true)
     }));
   };
 
