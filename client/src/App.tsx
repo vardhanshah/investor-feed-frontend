@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Loader2 } from "lucide-react";
+import GlobalFooter from "@/components/GlobalFooter";
 
 // Eager load the main feed page for fastest LCP
 import Feed from "@/pages/feed";
@@ -23,6 +24,9 @@ const Filters = lazy(() => import("@/pages/filters"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Terms = lazy(() => import("@/pages/terms"));
 const Privacy = lazy(() => import("@/pages/privacy"));
+const Cookies = lazy(() => import("@/pages/cookies"));
+const Contact = lazy(() => import("@/pages/contact"));
+const About = lazy(() => import("@/pages/about"));
 const AuthCallback = lazy(() => import("@/pages/auth-callback"));
 
 // Loading fallback for lazy-loaded pages
@@ -54,6 +58,9 @@ function Router() {
         <Route path="/settings" component={Settings} />
         <Route path="/terms" component={Terms} />
         <Route path="/privacy" component={Privacy} />
+        <Route path="/cookies" component={Cookies} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/about" component={About} />
         <Route path="/auth/callback" component={AuthCallback} />
         <Route>{() => <Redirect to="/" />}</Route>
       </Switch>
@@ -69,6 +76,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
+            <GlobalFooter />
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>

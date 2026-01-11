@@ -250,7 +250,7 @@ export default function Terms() {
 
         <div className="text-center mt-12">
           <Link href="/">
-            <span className="inline-flex items-center px-6 py-3 gradient-bg hover:opacity-90 text-white font-alata rounded-lg transition-all duration-200 cursor-pointer">
+            <span className="inline-flex items-center px-6 py-3 gradient-bg hover:opacity-90 text-black font-alata rounded-lg transition-all duration-200 cursor-pointer">
               Back to Home
             </span>
           </Link>

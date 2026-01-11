@@ -237,12 +237,9 @@ export default function Home() {
             <Link href="/privacy">
               <span className="hover:text-primary cursor-pointer">Privacy</span>
             </Link>
-            <a
-              href="mailto:investor@investorfeed.in"
-              className="hover:text-primary"
-            >
-              Contact
-            </a>
+            <Link href="/contact">
+              <span className="hover:text-primary cursor-pointer">Contact</span>
+            </Link>
           </div>
           <p className="text-sm text-muted-foreground font-alata">
             &copy; 2025 Investor Feed
