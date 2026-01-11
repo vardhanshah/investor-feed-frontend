@@ -903,10 +903,35 @@ export interface FilterConfigResponse {
   groups: FilterGroup[]; // Array of groups, sorted by order
 }
 
+// Filter Distribution Types
+export interface AttributeDistribution {
+  percentiles: number[]; // 19 boundary values at p5, p10, p15, ..., p95
+  min: number | null;
+  max: number | null;
+  display_min: number | null; // p5 value for UI capping
+  display_max: number | null; // p95 value for UI capping
+  total_count: number;
+  null_count: number;
+}
+
+export interface FilterDistributionResponse {
+  computed_at: string;
+  mcap?: AttributeDistribution;
+  pe_ratio?: AttributeDistribution;
+  roe?: AttributeDistribution;
+  pb?: AttributeDistribution;
+  [key: string]: AttributeDistribution | string | undefined;
+}
+
 export const filtersApi = {
   async getFilterConfig(): Promise<FilterConfigResponse> {
     const response = await fetch(`${API_BASE_URL}/filters/config`);
     return handleResponse<FilterConfigResponse>(response);
+  },
+
+  async getFilterDistribution(): Promise<FilterDistributionResponse> {
+    const response = await fetch(`${API_BASE_URL}/filters/distribution`);
+    return handleResponse<FilterDistributionResponse>(response);
   },
 };
 

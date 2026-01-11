@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Filter, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { FilterConfig, FilterGroup } from '@/lib/api';
 import { NumberFilterState } from '@/hooks/useFeedFilters';
 import { ProfileSelections } from '@/components/ProfileSelector';
+import { NumberFilterSlider } from '@/components/NumberFilterSlider';
+import { useFilterDistribution } from '@/hooks/useFilterDistribution';
 import {
   Sheet,
   SheetContent,
@@ -30,24 +31,6 @@ interface FilterCriteriaSidebarProps {
   hasActiveFilters: boolean;
 }
 
-// Format number for display in input field (add commas)
-const formatNumberForInput = (value: string): string => {
-  if (!value) return '';
-  const cleanValue = value.replace(/[^\d.]/g, '');
-  const num = parseFloat(cleanValue);
-  if (isNaN(num)) return value;
-  return new Intl.NumberFormat('en-IN', {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-    useGrouping: true,
-  }).format(num);
-};
-
-// Parse formatted number back to raw value
-const parseFormattedNumber = (value: string): string => {
-  return value.replace(/,/g, '');
-};
-
 export default function FilterCriteriaSidebar({
   filterConfigs,
   filterGroups,
@@ -64,6 +47,9 @@ export default function FilterCriteriaSidebar({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+  // Fetch distribution data for sliders
+  const { getDistribution } = useFilterDistribution();
 
   // Count active filters
   const activeFilterCount = (() => {
@@ -100,38 +86,21 @@ export default function FilterCriteriaSidebar({
       const state = numberFilterStates[config.field];
       if (!state) return null;
 
+      const distribution = getDistribution(config.field);
+
       return (
         <div key={config.field} className="py-2">
-          <Label className="text-xs font-medium text-foreground mb-1.5 block">
-            {config.label}
-            {config.unit && (
-              <span className="text-muted-foreground ml-1">({config.unit})</span>
-            )}
-          </Label>
-          <div className="grid grid-cols-2 gap-1.5">
-            <Input
-              type="text"
-              inputMode="numeric"
-              placeholder="Min"
-              value={state.from ? formatNumberForInput(state.from) : ''}
-              onChange={(e) => {
-                const rawValue = parseFormattedNumber(e.target.value);
-                onNumberFilterFromChange(config.field, rawValue);
-              }}
-              className="h-8 text-xs"
-            />
-            <Input
-              type="text"
-              inputMode="numeric"
-              placeholder="Max"
-              value={state.to ? formatNumberForInput(state.to) : ''}
-              onChange={(e) => {
-                const rawValue = parseFormattedNumber(e.target.value);
-                onNumberFilterToChange(config.field, rawValue);
-              }}
-              className="h-8 text-xs"
-            />
-          </div>
+          <NumberFilterSlider
+            field={config.field}
+            label={config.label}
+            unit={config.unit}
+            distribution={distribution}
+            fromValue={state.from}
+            toValue={state.to}
+            onFromChange={(value) => onNumberFilterFromChange(config.field, value)}
+            onToChange={(value) => onNumberFilterToChange(config.field, value)}
+            compact={true}
+          />
         </div>
       );
     } else if (config.type === 'boolean') {

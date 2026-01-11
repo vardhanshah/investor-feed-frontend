@@ -8,6 +8,8 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { FilterConfig, FilterGroup } from '@/lib/api';
 import { NumberFilterState } from '@/hooks/useFeedFilters';
 import { ProfileSelector, ProfileSelections } from '@/components/ProfileSelector';
+import { NumberFilterSlider } from '@/components/NumberFilterSlider';
+import { useFilterDistribution } from '@/hooks/useFilterDistribution';
 
 interface FeedFilterFormProps {
   filterConfigs: FilterConfig[];
@@ -37,24 +39,6 @@ const formatNumber = (value: string): string => {
   }).format(num);
 };
 
-// Format number for display in input field (add commas)
-const formatNumberForInput = (value: string): string => {
-  if (!value) return '';
-  const cleanValue = value.replace(/[^\d.]/g, '');
-  const num = parseFloat(cleanValue);
-  if (isNaN(num)) return value;
-  return new Intl.NumberFormat('en-IN', {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-    useGrouping: true,
-  }).format(num);
-};
-
-// Parse formatted number back to raw value
-const parseFormattedNumber = (value: string): string => {
-  return value.replace(/[,\s]/g, '');
-};
-
 // Feed Filter Form with collapsible filter sections
 export function FeedFilterForm({
   filterConfigs,
@@ -73,6 +57,9 @@ export function FeedFilterForm({
   showFeedDetails = true,
   showCombinedQuery = true,
 }: FeedFilterFormProps) {
+  // Fetch distribution data for sliders
+  const { getDistribution } = useFilterDistribution();
+
   // State for collapsible sections - default to collapsed to save space
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
@@ -296,40 +283,20 @@ export function FeedFilterForm({
       const state = numberFilterStates[config.field];
       if (!state) return null;
 
+      const distribution = getDistribution(config.field);
+
       return (
         <div key={config.field} className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-          {/* Filter Label - Prominent and clear */}
-          <Label htmlFor={config.field} className="text-sm font-semibold text-foreground mb-3 block">
-            {config.label}
-          </Label>
-
-          {/* Range Inputs - Simplified, side by side */}
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              id={`${config.field}-from`}
-              type="text"
-              inputMode="numeric"
-              placeholder={`Min${config.unit ? ' (' + config.unit + ')' : ''}`}
-              value={state.from ? formatNumberForInput(state.from) : ''}
-              onChange={(e) => {
-                const rawValue = parseFormattedNumber(e.target.value);
-                onNumberFilterFromChange(config.field, rawValue);
-              }}
-              className="h-9 text-sm"
-            />
-            <Input
-              id={`${config.field}-to`}
-              type="text"
-              inputMode="numeric"
-              placeholder={`Max${config.unit ? ' (' + config.unit + ')' : ''}`}
-              value={state.to ? formatNumberForInput(state.to) : ''}
-              onChange={(e) => {
-                const rawValue = parseFormattedNumber(e.target.value);
-                onNumberFilterToChange(config.field, rawValue);
-              }}
-              className="h-9 text-sm"
-            />
-          </div>
+          <NumberFilterSlider
+            field={config.field}
+            label={config.label}
+            unit={config.unit}
+            distribution={distribution}
+            fromValue={state.from}
+            toValue={state.to}
+            onFromChange={(value) => onNumberFilterFromChange(config.field, value)}
+            onToChange={(value) => onNumberFilterToChange(config.field, value)}
+          />
         </div>
       );
     } else if (config.type === 'boolean') {
