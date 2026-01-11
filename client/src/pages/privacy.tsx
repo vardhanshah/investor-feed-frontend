@@ -85,6 +85,7 @@ export default function Privacy() {
               <li><strong className="text-foreground">Google:</strong> For account authentication (OAuth login)</li>
               <li><strong className="text-foreground">Twitter/X:</strong> For account authentication (OAuth login)</li>
               <li><strong className="text-foreground">Razorpay:</strong> For payment processing (subject to Razorpay's privacy policy)</li>
+              <li><strong className="text-foreground">Google Analytics:</strong> For website analytics and usage statistics (see Cookies section below)</li>
             </ul>
             <p className="text-muted-foreground font-alata mb-4">
               These services have their own privacy policies which govern their data practices.
@@ -95,16 +96,37 @@ export default function Privacy() {
           <div className="bg-card rounded-2xl p-8 shadow-lg border border-border mb-8">
             <h2 className="text-2xl font-alata text-foreground mb-4">5. Cookies & Sessions</h2>
             <p className="text-muted-foreground font-alata mb-4">
-              We use essential cookies and session storage for:
+              We use cookies and similar technologies to operate our service and improve your experience.
+            </p>
+            <h3 className="text-xl font-alata text-foreground mb-3">Essential Cookies</h3>
+            <p className="text-muted-foreground font-alata mb-4">
+              These cookies are necessary for the website to function and cannot be disabled:
             </p>
             <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
-              <li><strong className="text-foreground">Authentication:</strong> To keep you securely logged in</li>
-              <li><strong className="text-foreground">Preferences:</strong> To remember your settings (e.g., dark/light mode)</li>
-              <li><strong className="text-foreground">Security:</strong> To protect against unauthorized access</li>
+              <li><strong className="text-foreground">Authentication cookies:</strong> To keep you securely logged in</li>
+              <li><strong className="text-foreground">Preference cookies:</strong> To remember your settings (e.g., dark/light mode, selected feed)</li>
+              <li><strong className="text-foreground">Security cookies:</strong> To protect against unauthorized access and CSRF attacks</li>
+            </ul>
+            <h3 className="text-xl font-alata text-foreground mb-3">Analytics Cookies</h3>
+            <p className="text-muted-foreground font-alata mb-4">
+              We use Google Analytics to understand how visitors interact with our website. This helps us improve our service. Google Analytics collects:
+            </p>
+            <ul className="text-muted-foreground font-alata mb-4 list-disc pl-6">
+              <li>Pages visited and time spent on each page</li>
+              <li>How you arrived at our site (referral source)</li>
+              <li>Your approximate geographic location (country/city level)</li>
+              <li>Device type, browser, and operating system</li>
             </ul>
             <p className="text-muted-foreground font-alata mb-4">
-              You can control cookie settings through your browser, but disabling essential
-              cookies may affect your ability to use our services.
+              This data is aggregated and anonymized. You can opt out of Google Analytics by installing the{' '}
+              <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                Google Analytics Opt-out Browser Add-on
+              </a>.
+            </p>
+            <h3 className="text-xl font-alata text-foreground mb-3">Managing Cookies</h3>
+            <p className="text-muted-foreground font-alata mb-4">
+              You can control cookie settings through your browser. Most browsers allow you to refuse or delete cookies.
+              However, disabling essential cookies may affect your ability to use our services.
             </p>
           </div>
 
@@ -172,7 +194,7 @@ export default function Privacy() {
 
         <div className="text-center mt-12">
           <Link href="/">
-            <span className="inline-flex items-center px-6 py-3 gradient-bg hover:opacity-90 text-white font-alata rounded-lg transition-all duration-200 cursor-pointer">
+            <span className="inline-flex items-center px-6 py-3 gradient-bg hover:opacity-90 text-black font-alata rounded-lg transition-all duration-200 cursor-pointer">
               Back to Home
             </span>
           </Link>
