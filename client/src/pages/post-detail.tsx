@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoute, useLocation } from 'wouter';
+import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -472,9 +473,20 @@ export default function PostDetailPage() {
 
   const timeAgo = formatTimeAgoTwoUnits(post.submission_date || post.created_at);
 
+  // Generate SEO title from post content (first 60 chars)
+  const seoTitle = post.content.length > 60
+    ? `${post.content.substring(0, 60)}...`
+    : post.content;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <>
+      <SEO
+        title={seoTitle}
+        description={post.content.substring(0, 160)}
+        canonical={`/posts/${post.id}`}
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
@@ -1080,6 +1092,7 @@ export default function PostDetailPage() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

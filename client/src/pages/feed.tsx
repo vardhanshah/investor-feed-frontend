@@ -507,7 +507,7 @@ export default function Feed() {
   return (
     <>
       <SEO
-        title="Real-Time Company Filings"
+        title={feedConfigs.find(f => f.id === selectedFeedId)?.name || "Real-Time Company Filings"}
         description="Live company filings delivered within 1-2 minutes. Track order announcements, financial results, board meetings, and more."
         canonical="/"
       />
