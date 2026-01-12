@@ -494,16 +494,12 @@ export default function Feed() {
     // Clear filters when switching feeds (filters only apply to default feed)
     filterPreview.clearFilters();
 
-    // Navigate to URL without query params
+    // Navigate to URL
     if (feed.is_default) {
-      window.history.pushState(null, '', '/');
+      setLocation('/');
     } else {
-      window.history.pushState(null, '', `/feed/${getFeedSlug(feed)}`);
+      setLocation(`/feed/${getFeedSlug(feed)}`);
     }
-
-    // Update selected feed state
-    setSelectedFeedId(feedId);
-    localStorage.setItem('selectedFeedId', feedId.toString());
 
     // Reset sort to default when changing feeds
     setSortBy(undefined);
