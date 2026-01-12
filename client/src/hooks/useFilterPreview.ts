@@ -213,6 +213,12 @@ export function useFilterPreview() {
     if (!criteria || (criteria.filters.length === 0 && !criteria.profile_ids?.length)) {
       return null;
     }
+    // Sort filters by field name for consistent encoding regardless of application order
+    criteria.filters.sort((a: any, b: any) => a.field.localeCompare(b.field));
+    // Sort profile_ids if present
+    if (criteria.profile_ids) {
+      criteria.profile_ids.sort((a: number, b: number) => a - b);
+    }
     // Build full payload matching /posts/search request body
     const payload = {
       filter_criteria: criteria,
