@@ -5,14 +5,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bell, BellOff, Loader2, TrendingUp, Radio, Sun, Moon, Plus, X, Edit2, ArrowUp } from 'lucide-react';
 import { FaCog as FaCogIcon } from 'react-icons/fa';
-import { useLocation } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { feedsApi, feedConfigApi, subscriptionsApi, adsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata, AdsConfig } from '@/lib/api';
 import { AdUnit } from '@/components/AdUnit';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/errorHandler';
-import { getInitials } from '@/lib/utils';
+import { getInitials, toSlug, encodeFilterCriteria } from '@/lib/utils';
 import PostCard, { Post } from '@/components/PostCard';
 import { useToast } from '@/hooks/use-toast';
 import { FEED_MESSAGES } from '@/lib/messages';
@@ -30,8 +30,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+// Helper to get slug for a feed (use feed.slug if available, otherwise generate from name)
+const getFeedSlug = (feed: FeedConfiguration): string => {
+  return feed.slug || toSlug(feed.name);
+};
+
 export default function Feed() {
   const [, setLocation] = useLocation();
+  const [, params] = useRoute('/feed/:slug');
+  const urlSlug = params?.slug;
   const { user, isLoading: authLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -71,6 +78,7 @@ export default function Feed() {
   // Filter preview state
   const [showSaveModal, setShowSaveModal] = useState(false);
   const filterPreview = useFilterPreview();
+  const [urlFiltersApplied, setUrlFiltersApplied] = useState(false);
 
   const LIMIT = 20;
   const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
@@ -96,6 +104,11 @@ export default function Feed() {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // Helper to find feed by slug
+  const findFeedBySlug = useCallback((configs: FeedConfiguration[], slug: string): FeedConfiguration | undefined => {
+    return configs.find(f => getFeedSlug(f) === slug);
+  }, []);
+
   // Load all feed configurations (only for authenticated users)
   useEffect(() => {
     const loadFeeds = async () => {
@@ -109,22 +122,30 @@ export default function Feed() {
           const configs = await feedConfigApi.listFeedConfigurations();
           setFeedConfigs(configs);
 
-          // Try to restore previously selected feed from localStorage
-          const savedFeedId = localStorage.getItem('selectedFeedId');
           let feedToSelect = null;
 
-          if (savedFeedId) {
-            // Check if the saved feed still exists
-            feedToSelect = configs.find(f => f.id === parseInt(savedFeedId));
+          // Priority 1: URL slug
+          if (urlSlug) {
+            feedToSelect = findFeedBySlug(configs, urlSlug);
           }
 
-          // If no saved feed or saved feed doesn't exist, use default or first feed
+          // Priority 2: localStorage
+          if (!feedToSelect) {
+            const savedFeedId = localStorage.getItem('selectedFeedId');
+            if (savedFeedId) {
+              feedToSelect = configs.find(f => f.id === parseInt(savedFeedId));
+            }
+          }
+
+          // Priority 3: Default feed or first feed
           if (!feedToSelect) {
             feedToSelect = configs.find(f => f.is_default) || configs[0];
           }
 
           if (feedToSelect) {
             setSelectedFeedId(feedToSelect.id);
+            // Update localStorage
+            localStorage.setItem('selectedFeedId', feedToSelect.id.toString());
           } else {
             setError('No feed configurations available. Please create a feed first.');
           }
@@ -148,7 +169,105 @@ export default function Feed() {
     };
 
     loadFeeds();
-  }, [user, authLoading, toast]);
+  }, [user, authLoading, toast, urlSlug, findFeedBySlug]);
+
+  // Handle URL slug changes (for browser back/forward navigation)
+  useEffect(() => {
+    if (feedConfigs.length === 0 || isLoadingFeeds) return;
+
+    if (urlSlug) {
+      // URL has a slug - find and select that feed
+      const feed = findFeedBySlug(feedConfigs, urlSlug);
+      if (feed && feed.id !== selectedFeedId) {
+        setSelectedFeedId(feed.id);
+        localStorage.setItem('selectedFeedId', feed.id.toString());
+      }
+    } else {
+      // URL is "/" - select default feed
+      const defaultFeed = feedConfigs.find(f => f.is_default);
+      if (defaultFeed && defaultFeed.id !== selectedFeedId) {
+        setSelectedFeedId(defaultFeed.id);
+        localStorage.setItem('selectedFeedId', defaultFeed.id.toString());
+      }
+    }
+  }, [urlSlug, feedConfigs, isLoadingFeeds, findFeedBySlug, selectedFeedId]);
+
+  // Apply filters from URL query param on initial load
+  useEffect(() => {
+    if (urlFiltersApplied || filterPreview.isLoadingConfig) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const encodedCriteria = params.get('q');
+
+    if (encodedCriteria) {
+      filterPreview.applyFromUrlCriteria(encodedCriteria);
+    }
+    setUrlFiltersApplied(true);
+  }, [filterPreview.isLoadingConfig, filterPreview.applyFromUrlCriteria, urlFiltersApplied]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      // Handle filter criteria
+      const params = new URLSearchParams(window.location.search);
+      const encodedCriteria = params.get('q');
+
+      if (encodedCriteria) {
+        // URL has filter criteria - apply it
+        filterPreview.applyFromUrlCriteria(encodedCriteria);
+      } else {
+        // No filter criteria - clear filters
+        filterPreview.clearFilters();
+      }
+
+      // Handle feed slug changes
+      const pathname = window.location.pathname;
+      const slugMatch = pathname.match(/^\/feed\/(.+)$/);
+
+      if (slugMatch) {
+        // URL has a slug - find and select that feed
+        const slug = slugMatch[1];
+        const feed = findFeedBySlug(feedConfigs, slug);
+        if (feed && feed.id !== selectedFeedId) {
+          setSelectedFeedId(feed.id);
+          localStorage.setItem('selectedFeedId', feed.id.toString());
+        }
+      } else if (pathname === '/' || pathname === '') {
+        // Root URL - select default feed
+        const defaultFeed = feedConfigs.find(f => f.is_default);
+        if (defaultFeed && defaultFeed.id !== selectedFeedId) {
+          setSelectedFeedId(defaultFeed.id);
+          localStorage.setItem('selectedFeedId', defaultFeed.id.toString());
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [filterPreview, feedConfigs, selectedFeedId, findFeedBySlug]);
+
+  // Update URL when filters change (after initial load) - use replaceState to not create history entries
+  useEffect(() => {
+    // Don't update URL until initial filters are applied
+    if (!urlFiltersApplied) return;
+
+    const encodedCriteria = filterPreview.getUrlEncodedCriteria();
+    const currentParams = new URLSearchParams(window.location.search);
+    const currentQ = currentParams.get('q');
+
+    if (encodedCriteria) {
+      // Has active filters - update URL with query param
+      if (currentQ !== encodedCriteria) {
+        const newUrl = `${window.location.pathname}?q=${encodedCriteria}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    } else {
+      // No filters - remove query param if present
+      if (currentQ) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  }, [filterPreview.getUrlEncodedCriteria, filterPreview.hasActiveFilters, urlFiltersApplied]);
 
   // Load user subscriptions
   useEffect(() => {
@@ -369,12 +488,19 @@ export default function Feed() {
   };
 
   const handleFeedSelect = (feedId: number) => {
-    setSelectedFeedId(feedId);
+    const feed = feedConfigs.find(f => f.id === feedId);
+    if (!feed) return;
+
+    // Navigate to URL (this will trigger state update via URL change)
+    if (feed.is_default) {
+      setLocation('/');
+    } else {
+      setLocation(`/feed/${getFeedSlug(feed)}`);
+    }
+
     // Reset sort to default when changing feeds
     setSortBy(undefined);
     setSortOrder(undefined);
-    // Save to localStorage for persistence across refreshes
-    localStorage.setItem('selectedFeedId', feedId.toString());
 
     // Manage sidebar state based on editing context
     if (editingFeedId === feedId) {
@@ -546,6 +672,63 @@ export default function Feed() {
     }
   };
 
+  // Build filter URL for a single filter (used by PostCard links)
+  const buildFilterUrl = useCallback((field: string, value: any): string => {
+    let filter_criteria: any;
+
+    if (field === 'sector') {
+      filter_criteria = {
+        filters: [{ field: 'sector', operator: 'in', value: [value] }],
+      };
+    } else if (field === 'subsector') {
+      filter_criteria = {
+        filters: [{ field: 'subsector', operator: 'in', value: [value] }],
+      };
+    } else {
+      // Boolean filter (e.g., is_order_information)
+      filter_criteria = {
+        filters: [{ field, operator: 'eq', value: true }],
+      };
+    }
+
+    const payload = {
+      filter_criteria,
+      limit: 20,
+      offset: 0,
+      sort_by: 'submission_date',
+      sort_order: 'desc',
+    };
+
+    return `/?q=${encodeFilterCriteria(payload)}`;
+  }, []);
+
+  // Handle filter click from PostCard (sector, subsector, tags)
+  const handlePostFilterClick = useCallback((e: React.MouseEvent, field: string, value: any) => {
+    const url = buildFilterUrl(field, value);
+
+    // Ctrl+click / Cmd+click: open in new tab
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      window.open(url, '_blank');
+      return;
+    }
+
+    // Normal click: navigate in same tab and apply filter
+    e.preventDefault();
+
+    // Use pushState to create a history entry for back button
+    window.history.pushState(null, '', url);
+
+    // Apply the filter directly
+    const encoded = url.split('?q=')[1];
+    if (encoded) {
+      filterPreview.applyFromUrlCriteria(encoded);
+    }
+
+    // Scroll to top to signal page change
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [buildFilterUrl, filterPreview]);
+
   // Don't block on auth - show posts as soon as they're ready
   // Auth loading is handled inline in the header (user button area)
 
@@ -565,12 +748,8 @@ export default function Feed() {
             <div
               className="flex items-center space-x-3 cursor-pointer group"
               onClick={() => {
-                // Go to default/live feed
-                const defaultFeed = feedConfigs.find(f => f.is_default);
-                if (defaultFeed) {
-                  setSelectedFeedId(defaultFeed.id);
-                  localStorage.setItem('selectedFeedId', defaultFeed.id.toString());
-                }
+                // Navigate to "/" (default/live feed) via URL
+                setLocation('/');
                 // Clear any active filters
                 filterPreview.clearFilters();
                 // Close sidebar and clear editing state
@@ -1052,6 +1231,8 @@ export default function Feed() {
                           post={post}
                           profilesAttributesMetadata={displayMetadata.profiles}
                           postsAttributesMetadata={displayMetadata.posts}
+                          onFilterClick={handlePostFilterClick}
+                          buildFilterUrl={buildFilterUrl}
                         />
 
                         {/* Show ad after every N posts based on frequency (only for non-filtered feed) */}

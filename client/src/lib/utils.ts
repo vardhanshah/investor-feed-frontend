@@ -63,6 +63,19 @@ export function goBack(fallbackPath: string = '/home'): void {
   }
 }
 
+/**
+ * Convert a string to a URL-friendly slug
+ * e.g., "Smallcap Expansion" -> "smallcap-expansion"
+ */
+export function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+    .replace(/-+/g, '-');     // Replace multiple hyphens with single
+}
+
 export function getRelativeTime(dateString: string): string {
   // Backend sends UTC time without 'Z' suffix, so append it if missing
   const utcDateString = dateString.endsWith('Z') ? dateString : `${dateString}Z`;
@@ -78,4 +91,31 @@ export function getRelativeTime(dateString: string): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString();
+}
+
+/**
+ * Encode filter criteria object to a URL-safe Base64 string
+ */
+export function encodeFilterCriteria(criteria: object): string {
+  const json = JSON.stringify(criteria);
+  // URL-safe Base64: replace + with -, / with _, remove padding =
+  return btoa(json)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+/**
+ * Decode a URL-safe Base64 filter criteria string back to an object
+ */
+export function decodeFilterCriteria(encoded: string): object | null {
+  try {
+    // Restore standard Base64 characters
+    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding if needed
+    while (base64.length % 4) base64 += '=';
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
 }

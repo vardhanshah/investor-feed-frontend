@@ -237,6 +237,7 @@ export interface SortOption {
 export interface FeedConfiguration {
   id: number;
   name: string;
+  slug?: string; // URL-friendly identifier, falls back to generated from name
   description: string | null;
   filter_criteria: {
     filters: Array<{
