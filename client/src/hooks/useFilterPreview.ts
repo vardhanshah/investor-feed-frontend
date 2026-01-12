@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { filtersApi, postsApi, FilterConfig, FilterGroup, Post, ProfilesAttributesMetadata, PostAttributesMetadata } from '@/lib/api';
 import { useFeedFilters } from './useFeedFilters';
 import { useToast } from './use-toast';
+import { encodeFilterCriteria, decodeFilterCriteria } from '@/lib/utils';
 
 const LIMIT = 20;
 const DEBOUNCE_MS = 500;
@@ -169,6 +170,60 @@ export function useFilterPreview() {
     return feedFilters.buildSearchCriteria(filterConfigs);
   }, [feedFilters, filterConfigs]);
 
+  // Apply a quick filter from clicking on a post element
+  const applyQuickFilter = useCallback((field: string, value: any) => {
+    if (field === 'sector') {
+      // Add to sectors selection (avoid duplicates)
+      feedFilters.setProfileSelections(prev => {
+        const exists = prev.sectors.some(s => s.value === value);
+        if (exists) return prev;
+        return {
+          ...prev,
+          sectors: [...prev.sectors, { label: value, value: value }],
+        };
+      });
+    } else if (field === 'subsector') {
+      // Add to subsectors selection (avoid duplicates)
+      feedFilters.setProfileSelections(prev => {
+        const exists = prev.subsectors.some(s => s.value === value);
+        if (exists) return prev;
+        return {
+          ...prev,
+          subsectors: [...prev.subsectors, { label: value, value: value }],
+        };
+      });
+    } else {
+      // Boolean filter - set to true
+      feedFilters.handleFilterChange(field, true);
+    }
+  }, [feedFilters]);
+
+  // Apply filters from a URL-encoded search payload string
+  const applyFromUrlCriteria = useCallback((encoded: string) => {
+    if (!encoded || filterConfigs.length === 0) return false;
+    const payload = decodeFilterCriteria(encoded) as any;
+    if (!payload || !payload.filter_criteria) return false;
+    feedFilters.applyFromCriteria(payload.filter_criteria, filterConfigs);
+    return true;
+  }, [feedFilters, filterConfigs]);
+
+  // Get URL-encoded search payload string (full /posts/search body)
+  const getUrlEncodedCriteria = useCallback(() => {
+    const criteria = feedFilters.buildSearchCriteria(filterConfigs);
+    if (!criteria || (criteria.filters.length === 0 && !criteria.profile_ids?.length)) {
+      return null;
+    }
+    // Build full payload matching /posts/search request body
+    const payload = {
+      filter_criteria: criteria,
+      limit: LIMIT,
+      offset: 0,
+      sort_by: 'submission_date',
+      sort_order: 'desc',
+    };
+    return encodeFilterCriteria(payload);
+  }, [feedFilters, filterConfigs]);
+
   return {
     // Filter config
     filterConfigs,
@@ -200,5 +255,8 @@ export function useFilterPreview() {
     loadMore,
     clearFilters,
     getSearchCriteria,
+    applyQuickFilter,
+    applyFromUrlCriteria,
+    getUrlEncodedCriteria,
   };
 }

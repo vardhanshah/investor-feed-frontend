@@ -331,6 +331,61 @@ export function useFeedFilters() {
     return false;
   }, [filterValues, numberFilterStates, profileSelections]);
 
+  // Apply filters from a criteria object (reverse of buildSearchCriteria, used for URL loading)
+  const applyFromCriteria = useCallback((criteria: any, filterConfigs: FilterConfig[]) => {
+    if (!criteria) return;
+
+    // Reset first
+    const newFilterValues: Record<string, any> = {};
+    const newNumberStates: Record<string, NumberFilterState> = {};
+    const newProfileSelections: ProfileSelections = {
+      companies: [],
+      sectors: [],
+      subsectors: [],
+    };
+
+    // Initialize number filter states
+    filterConfigs.forEach(config => {
+      if (config.type === 'number') {
+        newNumberStates[config.field] = { from: '', to: '' };
+      }
+    });
+
+    // Parse filters array
+    if (criteria.filters && Array.isArray(criteria.filters)) {
+      criteria.filters.forEach((filter: any) => {
+        const config = filterConfigs.find(c => c.field === filter.field);
+
+        if (filter.field === 'sector' && filter.operator === 'in') {
+          newProfileSelections.sectors = filter.value.map((v: string) => ({ label: v, value: v }));
+        } else if (filter.field === 'subsector' && filter.operator === 'in') {
+          newProfileSelections.subsectors = filter.value.map((v: string) => ({ label: v, value: v }));
+        } else if (config?.type === 'boolean' && filter.operator === 'eq') {
+          newFilterValues[filter.field] = filter.value;
+        } else if (config?.type === 'number') {
+          if (filter.operator === 'gte') {
+            newNumberStates[filter.field] = {
+              ...newNumberStates[filter.field],
+              from: filter.value.toString(),
+            };
+          } else if (filter.operator === 'lte') {
+            newNumberStates[filter.field] = {
+              ...newNumberStates[filter.field],
+              to: filter.value.toString(),
+            };
+          }
+        }
+      });
+    }
+
+    // Note: profile_ids require fetching profile details, so we skip them for URL loading
+    // Users can use sector/subsector filters instead
+
+    setFilterValues(newFilterValues);
+    setNumberFilterStates(newNumberStates);
+    setProfileSelections(newProfileSelections);
+  }, []);
+
   // Build search criteria for filter preview (no feed name validation, no minimum filter requirement)
   const buildSearchCriteria = useCallback((filterConfigs: FilterConfig[]) => {
     const filters: FilterValue[] = [];
@@ -453,5 +508,6 @@ export function useFeedFilters() {
     validateFeedName,
     hasActiveFilters,
     buildSearchCriteria,
+    applyFromCriteria,
   };
 }

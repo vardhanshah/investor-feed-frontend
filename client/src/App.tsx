@@ -45,6 +45,7 @@ function Router() {
       <Switch>
         {/* Main feed - eagerly loaded for fastest LCP */}
         <Route path="/" component={Feed} />
+        <Route path="/feed/:slug" component={Feed} />
         <Route path="/home">{() => <Redirect to="/" />}</Route>
 
         {/* Lazy-loaded pages */}

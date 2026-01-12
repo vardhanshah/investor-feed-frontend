@@ -18,6 +18,8 @@ interface PostCardProps {
   profilesAttributesMetadata?: ProfilesAttributesMetadata;
   postsAttributesMetadata?: PostAttributesMetadata;
   showConfidence?: boolean;
+  onFilterClick?: (e: React.MouseEvent, field: string, value: any) => void;
+  buildFilterUrl?: (field: string, value: any) => string;
 }
 
 // Helper to format attribute value with unit
@@ -36,7 +38,7 @@ function formatAttributeValue(value: any, metadata?: { unit?: string | null; typ
   return String(value);
 }
 
-export default function PostCard({ post, profilesAttributesMetadata, postsAttributesMetadata, showConfidence = true }: PostCardProps) {
+export default function PostCard({ post, profilesAttributesMetadata, postsAttributesMetadata, showConfidence = true, onFilterClick, buildFilterUrl }: PostCardProps) {
   const timeAgo = formatTimeAgoTwoUnits(post.submission_date || post.created_at);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -185,6 +187,25 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
             {Object.entries(post.profile.attributes).map(([key, value]) => {
               const metadata = profilesAttributesMetadata[key];
               if (!metadata || value === null || value === undefined) return null;
+              const isClickable = onFilterClick && buildFilterUrl && (key === 'sector' || key === 'subsector');
+
+              if (isClickable) {
+                return (
+                  <a
+                    key={key}
+                    href={buildFilterUrl(key, value)}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-alata bg-muted text-muted-foreground cursor-pointer hover:bg-sky-100 hover:text-sky-700 dark:hover:bg-sky-900/30 dark:hover:text-sky-300 hover:shadow-sm transition-all no-underline group/filter"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFilterClick(e, key, value);
+                    }}
+                  >
+                    <span className="group-hover/filter:text-sky-600 dark:group-hover/filter:text-sky-400">{metadata.label}:</span>
+                    <span className="ml-1 text-foreground group-hover/filter:text-sky-700 dark:group-hover/filter:text-sky-300 group-hover/filter:underline">{formatAttributeValue(value, metadata)}</span>
+                  </a>
+                );
+              }
+
               return (
                 <span
                   key={key}
@@ -250,9 +271,12 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
         {/* Attribute Badges */}
         {post.attributes && (post.attributes.category || post.attributes_metadata || postsAttributesMetadata) && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Category badge first */}
-            {post.attributes.category && (
-              <Badge className={`${getCategoryColor(post.attributes.category)} border text-sm font-alata px-2.5 py-0.5`}>
+            {/* Category badge first - not clickable as it's not a searchable filter */}
+            {post.attributes?.category && (
+              <Badge
+                variant="outline"
+                className={`${getCategoryColor(post.attributes.category)} text-sm font-alata px-2.5 py-0.5 pointer-events-none`}
+              >
                 {post.attributes.category}
               </Badge>
             )}
@@ -263,10 +287,31 @@ export default function PostCard({ post, profilesAttributesMetadata, postsAttrib
               // Use post-level metadata first, fall back to response-level metadata
               const metadata = post.attributes_metadata?.[key] || postsAttributesMetadata?.[key];
               if (value === true && metadata) {
+                if (onFilterClick && buildFilterUrl) {
+                  return (
+                    <a
+                      key={key}
+                      href={buildFilterUrl(key, true)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onFilterClick(e, key, true);
+                      }}
+                      className="no-underline"
+                    >
+                      <Badge
+                        variant="outline"
+                        className="bg-transparent border-border text-foreground/80 text-sm font-alata px-2.5 py-0.5 cursor-pointer hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 dark:hover:bg-sky-900/30 dark:hover:border-sky-700 dark:hover:text-sky-300 hover:underline transition-all"
+                      >
+                        {metadata.label}
+                      </Badge>
+                    </a>
+                  );
+                }
                 return (
                   <Badge
                     key={key}
-                    className={`${getCategoryColor(metadata.label)} border text-sm font-alata px-2.5 py-0.5`}
+                    variant="outline"
+                    className="bg-transparent border-border text-foreground/80 text-sm font-alata px-2.5 py-0.5"
                   >
                     {metadata.label}
                   </Badge>
