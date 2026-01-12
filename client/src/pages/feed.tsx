@@ -491,7 +491,10 @@ export default function Feed() {
     const feed = feedConfigs.find(f => f.id === feedId);
     if (!feed) return;
 
-    // Navigate to URL (this will trigger state update via URL change)
+    // Clear filters when switching feeds (filters only apply to default feed)
+    filterPreview.clearFilters();
+
+    // Navigate to URL
     if (feed.is_default) {
       setLocation('/');
     } else {
