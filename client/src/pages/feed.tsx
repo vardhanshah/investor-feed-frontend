@@ -491,12 +491,19 @@ export default function Feed() {
     const feed = feedConfigs.find(f => f.id === feedId);
     if (!feed) return;
 
-    // Navigate to URL (this will trigger state update via URL change)
+    // Clear filters when switching feeds (filters only apply to default feed)
+    filterPreview.clearFilters();
+
+    // Navigate to URL without query params
     if (feed.is_default) {
-      setLocation('/');
+      window.history.pushState(null, '', '/');
     } else {
-      setLocation(`/feed/${getFeedSlug(feed)}`);
+      window.history.pushState(null, '', `/feed/${getFeedSlug(feed)}`);
     }
+
+    // Update selected feed state
+    setSelectedFeedId(feedId);
+    localStorage.setItem('selectedFeedId', feedId.toString());
 
     // Reset sort to default when changing feeds
     setSortBy(undefined);
