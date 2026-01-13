@@ -893,7 +893,7 @@ export default function Feed() {
         )}
 
         {/* Center Content */}
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-4 pb-20 overflow-x-hidden">
           <div className={`flex gap-6 ${isSidebarOpen ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
             {/* Feed Content Area */}
             <div className={`transition-all duration-500 ease-in-out ${isSidebarOpen ? 'flex-1 min-w-0' : 'w-full'}`}>

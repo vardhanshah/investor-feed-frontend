@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Building2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProfileSelector, ProfileSelections } from '@/components/ProfileSelector';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 import {
   Sheet,
   SheetContent,
@@ -23,6 +24,7 @@ export default function ProfileSidebar({
 }: ProfileSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { isVisible } = useScrollDirection();
 
   const selectionCount =
     profileSelections.companies.length +
@@ -122,7 +124,9 @@ export default function ProfileSidebar({
           <Button
             variant="outline"
             size="sm"
-            className="lg:hidden fixed left-4 bottom-20 z-40 shadow-lg"
+            className={`lg:hidden fixed left-4 bottom-20 z-40 shadow-lg transition-transform duration-300 ${
+              isVisible ? 'translate-y-0' : 'translate-y-24'
+            }`}
           >
             <Building2 className="h-4 w-4 mr-2" />
             Companies

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { FilterConfig, FilterGroup } from '@/lib/api';
 import { NumberFilterState } from '@/hooks/useFeedFilters';
 import { ProfileSelections } from '@/components/ProfileSelector';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 import {
   Sheet,
   SheetContent,
@@ -64,6 +65,7 @@ export default function FilterCriteriaSidebar({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const { isVisible } = useScrollDirection();
 
   // Count active filters
   const activeFilterCount = (() => {
@@ -300,7 +302,9 @@ export default function FilterCriteriaSidebar({
           <Button
             variant="outline"
             size="sm"
-            className="lg:hidden fixed right-4 bottom-20 z-40 shadow-lg"
+            className={`lg:hidden fixed right-4 bottom-20 z-40 shadow-lg transition-transform duration-300 ${
+              isVisible ? 'translate-y-0' : 'translate-y-24'
+            }`}
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters

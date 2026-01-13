@@ -122,6 +122,8 @@ export function useFilterPreview() {
     const hasFilters = feedFilters.hasActiveFilters(filterConfigs);
 
     if (hasFilters) {
+      // Set searching state immediately to show loading indicator
+      setIsSearching(true);
       // Debounce the search
       debounceTimerRef.current = setTimeout(() => {
         setOffset(0);
