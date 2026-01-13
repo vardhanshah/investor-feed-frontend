@@ -1238,9 +1238,8 @@ export default function Feed() {
                           buildFilterUrl={buildFilterUrl}
                         />
 
-                        {/* Show ad after every N posts based on frequency (only for non-filtered feed) */}
-                        {!showFilteredPosts &&
-                         adsConfig?.enabled &&
+                        {/* Show ad after every N posts based on frequency */}
+                        {adsConfig?.enabled &&
                          adsConfig.ad_client &&
                          adsConfig.ad_slot &&
                          adsConfig.ad_layout_key &&
