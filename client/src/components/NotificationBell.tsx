@@ -170,7 +170,7 @@ export function NotificationBell() {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
+  const markAllAsRead = async () => {
     try {
       await notificationsApi.markAllAsRead();
 
@@ -179,7 +179,16 @@ export function NotificationBell() {
         prev.map(n => ({ ...n, read: true }))
       );
       setUnreadCount(0);
+    } catch (err) {
+      console.error('Failed to mark notifications as read:', err);
+    }
+  };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationsApi.markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
       toast({
         title: 'Success',
         description: 'All notifications marked as read',
@@ -194,8 +203,16 @@ export function NotificationBell() {
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    // When closing the popover, mark all as read if there are unread notifications
+    if (!open && isOpen && unreadCount > 0) {
+      markAllAsRead();
+    }
+    setIsOpen(open);
+  };
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
