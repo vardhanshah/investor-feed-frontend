@@ -1,82 +1,130 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaGoogle, FaTwitter } from 'react-icons/fa';
-import { Link, useLocation } from 'wouter';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FaGoogle } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Link, useLocation, useSearch } from 'wouter';
+import { authApi, API_BASE_URL } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorHandler';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { AUTH_MESSAGES } from '@/lib/messages';
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const search = useSearch();
+  const { user, isLoading: authLoading, login } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check for OAuth error in query params
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const oauthError = params.get('error');
+    if (oauthError) {
+      setError(oauthError);
+      // Clear the error from URL without triggering a reload
+      window.history.replaceState({}, '', '/login');
+    }
+  }, [search]);
+
+  // Redirect authenticated users to feed
+  useEffect(() => {
+    if (!authLoading && user) {
+      setLocation('/home');
+    }
+  }, [user, authLoading, setLocation]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    setError(null);
+
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      console.log('Starting login...');
+      const response = await authApi.login({ email, password });
+      console.log('Login API response:', response);
+
+      // Store token and update auth context
+      console.log('Calling login with token...');
+      await login(response.access_token);
+      console.log('Login completed, user should be set');
+
+      // Show success message
+      toast(AUTH_MESSAGES.LOGIN_SUCCESS);
+
+      // Redirect to home feed
+      console.log('Redirecting to /home...');
+      setLocation('/home');
+      console.log('setLocation called');
+    } catch (err) {
+      console.error('Login error:', err);
+      const errorInfo = getErrorMessage(err);
+      setError(errorInfo.message);
+
+      toast({
+        variant: 'destructive',
+        title: errorInfo.title,
+        description: errorInfo.message,
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Store auth token
-        localStorage.setItem('authToken', data.token);
-        setLocation('/dashboard');
-      } else {
-        console.error('Login failed');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    // TODO: Replace with actual Google OAuth redirect
-    window.location.href = '/api/auth/google';
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   const handleXLogin = () => {
-    // TODO: Replace with actual X OAuth redirect
-    window.location.href = '/api/auth/twitter';
+    window.location.href = `${API_BASE_URL}/auth/twitter`;
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/">
-            <span className="text-3xl font-alata font-medium text-white cursor-pointer hover:text-[hsl(280,100%,70%)] transition-colors">
+            <span className="text-3xl font-alata font-medium text-foreground cursor-pointer hover:text-primary transition-colors">
               Investor Feed
             </span>
           </Link>
-          <h2 className="mt-6 text-3xl font-alata text-white">
+          <h2 className="mt-6 text-3xl font-alata text-foreground">
             Sign in to your <span className="gradient-text">account</span>
           </h2>
-          <p className="mt-2 text-sm text-gray-400 font-alata">
+          <p className="mt-2 text-sm text-muted-foreground font-alata">
             Or{' '}
             <Link href="/signup">
-              <span className="text-[hsl(280,100%,70%)] hover:text-[hsl(280,100%,80%)] cursor-pointer">
+              <span className="text-primary hover:opacity-80 cursor-pointer">
                 create a new account
               </span>
             </Link>
           </p>
         </div>
 
-        <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-700">
+        <Card className="bg-card border-border shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-alata text-white text-center">Welcome back</CardTitle>
-            <CardDescription className="text-gray-400 font-alata text-center">
+            <CardTitle className="text-2xl font-alata text-foreground text-center">Welcome back</CardTitle>
+            <CardDescription className="text-muted-foreground font-alata text-center">
               Choose your preferred sign-in method
             </CardDescription>
           </CardHeader>
@@ -86,60 +134,69 @@ export default function Login() {
               <Button
                 variant="outline"
                 onClick={handleGoogleLogin}
-                className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 font-alata"
+                className="bg-card border-border text-foreground hover:bg-muted font-alata"
               >
-                <FaGoogle className="mr-2 h-4 w-4" />
+                <FaGoogle className="mr-2 h-4 w-4 text-[#4285F4]" />
                 Google
               </Button>
               <Button
                 variant="outline"
                 onClick={handleXLogin}
-                className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 font-alata"
+                className="bg-card border-border text-foreground hover:bg-muted font-alata"
               >
-                <FaTwitter className="mr-2 h-4 w-4" />
-                X (Twitter)
+                <FaXTwitter className="mr-2 h-4 w-4" />
+                X
               </Button>
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-600" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-gray-900 px-2 text-gray-400 font-alata">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground font-alata">Or continue with email</span>
               </div>
             </div>
 
             {/* Email Login Form */}
             <form onSubmit={handleEmailLogin} className="space-y-4">
+              {error && (
+                <Alert variant="destructive" className="bg-red-900/20 border-red-600">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="font-alata">{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white font-alata">Email</Label>
+                <Label htmlFor="email" className="text-foreground font-alata">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
+                  disabled={isLoading}
+                  className="bg-card border-border text-foreground font-alata focus:border-primary focus:ring-primary"
                   placeholder="investor@example.com"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white font-alata">Password</Label>
+                <Label htmlFor="password" className="text-foreground font-alata">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-gray-800 border-gray-600 text-white font-alata focus:border-[hsl(280,100%,70%)]"
+                  disabled={isLoading}
+                  className="bg-card border-border text-foreground font-alata focus:border-primary focus:ring-primary"
                   placeholder="Enter your password"
                 />
               </div>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-[hsl(280,100%,70%)] to-[hsl(200,100%,70%)] hover:from-[hsl(280,100%,75%)] hover:to-[hsl(200,100%,75%)] text-black font-alata"
+                className="w-full gradient-bg hover:opacity-90 text-white font-alata"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
@@ -147,7 +204,7 @@ export default function Login() {
 
             <div className="text-center">
               <Link href="/forgot-password">
-                <span className="text-sm text-gray-400 hover:text-[hsl(280,100%,70%)] cursor-pointer font-alata">
+                <span className="text-sm text-muted-foreground hover:text-primary cursor-pointer font-alata">
                   Forgot your password?
                 </span>
               </Link>
@@ -157,8 +214,8 @@ export default function Login() {
 
         <div className="text-center">
           <Link href="/">
-            <span className="text-sm text-gray-400 hover:text-white cursor-pointer font-alata">
-              ← Back to home
+            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer font-alata">
+              &larr; Back to home
             </span>
           </Link>
         </div>

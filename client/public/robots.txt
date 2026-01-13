@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /terms
+Allow: /privacy
+Allow: /cookies
+Allow: /contact
+Allow: /about
+
+# Auth pages - no SEO value
+Disallow: /login
+Disallow: /signup
+Disallow: /auth/
+
+# User-specific pages
+Disallow: /settings
+Disallow: /filters
+
+# Sitemap location
+Sitemap: https://investorfeed.in/sitemap.xml

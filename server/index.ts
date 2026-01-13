@@ -1,8 +1,39 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Enable gzip compression for all responses (reduces size by ~70%)
+app.use(compression());
+
+// Proxy /api requests to backend in development
+if (process.env.NODE_ENV === "development") {
+  const apiTarget = process.env.API_PROXY_TARGET || "https://dev.investorfeed.in";
+  app.use(
+    "/api",
+    createProxyMiddleware({
+      target: apiTarget,
+      changeOrigin: true,
+      secure: true,
+      // Don't rewrite - just forward the path as-is (Express strips /api, we forward to target/api/...)
+      pathRewrite: { '^/': '/api/' },
+      on: {
+        proxyReq: (proxyReq, req) => {
+          console.log(`[proxy] ${req.method} ${req.url} -> ${apiTarget}${proxyReq.path}`);
+        },
+        error: (err, req, res) => {
+          console.error(`[proxy] Error: ${err.message}`);
+        },
+      },
+    })
+  );
+  log(`Proxying /api requests to ${apiTarget}`);
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -61,11 +92,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
 })();

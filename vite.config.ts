@@ -29,9 +29,18 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    host: "0.0.0.0", // Listen on all interfaces for Docker
+    port: 5173,
     fs: {
       strict: true,
       deny: ["**/.*"],
+    },
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_PROXY_TARGET || "https://dev.investorfeed.in",
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
 });
