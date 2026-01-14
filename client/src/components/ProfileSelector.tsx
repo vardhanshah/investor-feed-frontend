@@ -109,6 +109,20 @@ export function ProfileSelector({ selections, onSelectionsChange }: ProfileSelec
     }
   }, [derivedMode]);
 
+  // Sync activeTab with scopeMode to ensure correct API type is used
+  useEffect(() => {
+    if (scopeMode === 'sectors' && activeTab === 'company') {
+      // If we have subsector selections but no sector selections, default to subsector tab
+      if (selections.subsectors.length > 0 && selections.sectors.length === 0) {
+        setActiveTab('subsector');
+      } else {
+        setActiveTab('sector');
+      }
+    } else if (scopeMode === 'companies' && activeTab !== 'company') {
+      setActiveTab('company');
+    }
+  }, [scopeMode, activeTab, selections.sectors.length, selections.subsectors.length]);
+
   // Handle mode change
   const handleModeChange = useCallback((newMode: ScopeMode) => {
     if (newMode === scopeMode) return;

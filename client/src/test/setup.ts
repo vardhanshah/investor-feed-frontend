@@ -11,7 +11,14 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   server.resetHandlers();
   cleanup();
-  localStorage.clear();
+  // Clear localStorage if available (happy-dom may not support clear())
+  if (typeof localStorage !== 'undefined' && typeof localStorage.clear === 'function') {
+    localStorage.clear();
+  } else if (typeof localStorage !== 'undefined') {
+    // Fallback: manually clear all keys
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => localStorage.removeItem(key));
+  }
 });
 
 // Clean up after the tests are finished
