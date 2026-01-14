@@ -95,11 +95,14 @@ export function getRelativeTime(dateString: string): string {
 
 /**
  * Encode filter criteria object to a URL-safe Base64 string
+ * Uses encodeURIComponent to handle Unicode characters safely
  */
 export function encodeFilterCriteria(criteria: object): string {
   const json = JSON.stringify(criteria);
+  // Convert UTF-8 to Latin1-safe string for btoa (handles Unicode)
+  const base64 = btoa(unescape(encodeURIComponent(json)));
   // URL-safe Base64: replace + with -, / with _, remove padding =
-  return btoa(json)
+  return base64
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
@@ -107,6 +110,7 @@ export function encodeFilterCriteria(criteria: object): string {
 
 /**
  * Decode a URL-safe Base64 filter criteria string back to an object
+ * Uses decodeURIComponent to handle Unicode characters safely
  */
 export function decodeFilterCriteria(encoded: string): object | null {
   try {
@@ -114,7 +118,8 @@ export function decodeFilterCriteria(encoded: string): object | null {
     let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     // Add padding if needed
     while (base64.length % 4) base64 += '=';
-    return JSON.parse(atob(base64));
+    // Convert Latin1-safe string back to UTF-8 (handles Unicode)
+    return JSON.parse(decodeURIComponent(escape(atob(base64))));
   } catch {
     return null;
   }
