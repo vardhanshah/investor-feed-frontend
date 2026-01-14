@@ -94,23 +94,28 @@ export function getRelativeTime(dateString: string): string {
 }
 
 /**
- * Encode filter criteria object to a URL-safe Base64 string
- * Uses encodeURIComponent to handle Unicode characters safely
+ * Encode any JSON object to a URL-safe Base64 string
+ * Handles Unicode characters safely using TextEncoder
  */
 export function encodeFilterCriteria(criteria: object): string {
   const json = JSON.stringify(criteria);
-  // Convert UTF-8 to Latin1-safe string for btoa (handles Unicode)
-  const base64 = btoa(unescape(encodeURIComponent(json)));
-  // URL-safe Base64: replace + with -, / with _, remove padding =
-  return base64
+  // Convert UTF-8 string to bytes
+  const bytes = new TextEncoder().encode(json);
+  // Convert bytes to binary string (avoiding spread operator for large arrays)
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  // Encode to Base64 and make URL-safe
+  return btoa(binary)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
 }
 
 /**
- * Decode a URL-safe Base64 filter criteria string back to an object
- * Uses decodeURIComponent to handle Unicode characters safely
+ * Decode a URL-safe Base64 string back to a JSON object
+ * Handles Unicode characters safely using TextDecoder
  */
 export function decodeFilterCriteria(encoded: string): object | null {
   try {
@@ -118,8 +123,15 @@ export function decodeFilterCriteria(encoded: string): object | null {
     let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     // Add padding if needed
     while (base64.length % 4) base64 += '=';
-    // Convert Latin1-safe string back to UTF-8 (handles Unicode)
-    return JSON.parse(decodeURIComponent(escape(atob(base64))));
+    // Decode Base64 to binary string
+    const binary = atob(base64);
+    // Convert binary string to bytes
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    // Decode UTF-8 bytes to string and parse JSON
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null;
   }
