@@ -8,7 +8,7 @@ import { FaCog as FaCogIcon } from 'react-icons/fa';
 import { useLocation, useRoute } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { feedsApi, feedConfigApi, subscriptionsApi, adsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata, AdsConfig } from '@/lib/api';
+import { feedsApi, feedConfigApi, subscriptionsApi, adsApi, postsApi, FeedConfiguration, Subscription, ProfilesAttributesMetadata, PostAttributesMetadata, AdsConfig } from '@/lib/api';
 import { AdUnit } from '@/components/AdUnit';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/errorHandler';
@@ -82,6 +82,7 @@ export default function Feed() {
 
   const LIMIT = 20;
   const NEW_POSTS_CHECK_INTERVAL = 30000; // Check for new posts every 30 seconds
+  const FILTERED_POSTS_CHECK_INTERVAL = 60000; // Check for new filtered posts every 60 seconds
   const PULL_THRESHOLD = 80; // Pixels to pull before triggering refresh
 
   // Public mode - when user is not authenticated AND auth has finished loading
@@ -421,16 +422,30 @@ export default function Feed() {
   }, [isPulling, isRefreshing, pullDistance, selectedFeedId, sortBy, sortOrder]);
 
   // Periodic check for new posts by polling the API
+  // Pauses when tab is hidden, resumes when visible
   useEffect(() => {
     // For authenticated users, need selectedFeedId; for public mode, always run
     if (!isPublicMode && !selectedFeedId) return;
 
+    let checkIntervalId: NodeJS.Timeout | null = null;
+
     const checkForNewPosts = async () => {
       try {
-        // Fetch just 1 post to check if there's something newer
-        const response = isPublicMode
-          ? await feedsApi.getPublicFeedPosts(1, 0, sortBy, sortOrder)
-          : await feedsApi.getFeedPosts(selectedFeedId!, 1, 0, sortBy, sortOrder);
+        // Check if we should use search API (filters are active on default feed)
+        const useSearchApi = isDefaultFeed && filterPreview.hasActiveFilters;
+        let response;
+
+        if (useSearchApi) {
+          // Use search API when filters are active
+          const criteria = filterPreview.getSearchCriteria();
+          if (!criteria) return;
+          response = await postsApi.searchPosts(criteria, 1, 0, sortBy, sortOrder);
+        } else {
+          // Use regular feed API
+          response = isPublicMode
+            ? await feedsApi.getPublicFeedPosts(1, 0, sortBy, sortOrder)
+            : await feedsApi.getFeedPosts(selectedFeedId!, 1, 0, sortBy, sortOrder);
+        }
 
         if (response.posts.length > 0 && latestPostId.current !== null) {
           const newestPostId = response.posts[0].id;
@@ -438,9 +453,18 @@ export default function Feed() {
           // If the newest post ID is different and greater than what we have, there are new posts
           if (newestPostId !== latestPostId.current && newestPostId > latestPostId.current) {
             // Count how many new posts (fetch a few more to count)
-            const countResponse = isPublicMode
-              ? await feedsApi.getPublicFeedPosts(10, 0, sortBy, sortOrder)
-              : await feedsApi.getFeedPosts(selectedFeedId!, 10, 0, sortBy, sortOrder);
+            let countResponse;
+
+            if (useSearchApi) {
+              const criteria = filterPreview.getSearchCriteria();
+              if (!criteria) return;
+              countResponse = await postsApi.searchPosts(criteria, 10, 0, sortBy, sortOrder);
+            } else {
+              countResponse = isPublicMode
+                ? await feedsApi.getPublicFeedPosts(10, 0, sortBy, sortOrder)
+                : await feedsApi.getFeedPosts(selectedFeedId!, 10, 0, sortBy, sortOrder);
+            }
+
             let count = 0;
             for (const post of countResponse.posts) {
               if (post.id > latestPostId.current!) {
@@ -459,10 +483,44 @@ export default function Feed() {
       }
     };
 
-    const checkInterval = setInterval(checkForNewPosts, NEW_POSTS_CHECK_INTERVAL);
+    // Use longer interval for filtered search (more expensive API calls)
+    const useSearchApi = isDefaultFeed && filterPreview.hasActiveFilters;
+    const interval = useSearchApi ? FILTERED_POSTS_CHECK_INTERVAL : NEW_POSTS_CHECK_INTERVAL;
 
-    return () => clearInterval(checkInterval);
-  }, [selectedFeedId, isPublicMode, sortBy, sortOrder]);
+    const startPolling = () => {
+      if (checkIntervalId) clearInterval(checkIntervalId);
+      checkIntervalId = setInterval(checkForNewPosts, interval);
+    };
+
+    const stopPolling = () => {
+      if (checkIntervalId) {
+        clearInterval(checkIntervalId);
+        checkIntervalId = null;
+      }
+    };
+
+    // Handle tab visibility changes
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        startPolling();
+      }
+    };
+
+    // Start polling if tab is visible
+    if (!document.hidden) {
+      startPolling();
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [selectedFeedId, isPublicMode, isDefaultFeed, filterPreview.hasActiveFilters, sortBy, sortOrder]);
 
   // Handle refresh for new posts
   const handleRefreshPosts = useCallback(async () => {
@@ -471,13 +529,19 @@ export default function Feed() {
 
     setShowNewPostsButton(false);
     setNewPostsCount(0);
-    setIsLoadingPosts(true);
-    setOffset(0);
-    await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
+
+    // Use filter refresh when filters are active on default feed
+    if (isDefaultFeed && filterPreview.hasActiveFilters) {
+      await filterPreview.refresh();
+    } else {
+      setIsLoadingPosts(true);
+      setOffset(0);
+      await fetchPosts(selectedFeedId, 0, sortBy, sortOrder);
+    }
 
     // Scroll to top smoothly
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [selectedFeedId, sortBy, sortOrder, isPublicMode]);
+  }, [selectedFeedId, sortBy, sortOrder, isPublicMode, isDefaultFeed, filterPreview]);
 
   const handleLoadMore = () => {
     // For public mode, don't need selectedFeedId

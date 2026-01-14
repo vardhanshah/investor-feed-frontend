@@ -157,6 +157,13 @@ export function useFilterPreview() {
     await executeSearch(offset);
   }, [executeSearch, offset, hasMore, isSearching, hasActiveFilters]);
 
+  // Refresh filtered results (re-execute search from offset 0)
+  const refresh = useCallback(async () => {
+    if (!hasActiveFilters) return;
+    setOffset(0);
+    await executeSearch(0);
+  }, [executeSearch, hasActiveFilters]);
+
   // Clear all filters
   const clearFilters = useCallback(() => {
     feedFilters.resetFilters(filterConfigs);
@@ -261,6 +268,7 @@ export function useFilterPreview() {
 
     // Actions
     loadMore,
+    refresh,
     clearFilters,
     getSearchCriteria,
     applyQuickFilter,
